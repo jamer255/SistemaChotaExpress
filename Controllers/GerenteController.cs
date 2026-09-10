@@ -29,110 +29,129 @@ namespace SistemaChotaExpress.Controllers
         [HttpGet]
         public async Task<IActionResult> Dashboard()
         {
-            var hoy = DateTime.Today;
-            var manana = hoy.AddDays(1);
-            var inicioMes = new DateTime(hoy.Year, hoy.Month, 1);
-            var inicioAnio = new DateTime(hoy.Year, 1, 1);
+            // Valores por defecto seguros (si falla alguna consulta, el Dashboard igual carga)
+            ViewBag.VentasHoy = 0m;
+            ViewBag.CantidadHoy = 0;
+            ViewBag.VentasMes = 0m;
+            ViewBag.VentasAnio = 0m;
+            ViewBag.BusesCount = 0;
+            ViewBag.RutasCount = 0;
+            ViewBag.ViajesCount = 0;
+            ViewBag.TrabajadoresCount = 0;
+            ViewBag.DiasLabels = Array.Empty<string>();
+            ViewBag.DiasValores = Array.Empty<decimal>();
+            ViewBag.MesesLabels = new[] { "Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic" };
+            ViewBag.MesesValores = new decimal[12];
+            ViewBag.ViajesMasVendidos = new List<RutaMasVendidaVM>();
 
-            // KPIs
-             var ventasHoy = await _context.Ventas
-                .Where(v => v.Estado == "Vendido" && v.FechaVenta >= hoy && v.FechaVenta < manana)
-                .SumAsync(v => (decimal?)v.PrecioPagado) ?? 0;
-
-            var cantidadHoy = await _context.Ventas
-                .Where(v => v.Estado == "Vendido" && v.FechaVenta >= hoy && v.FechaVenta < manana)
-                .CountAsync();
-
-            var ventasMes = await _context.Ventas
-                .Where(v => v.Estado == "Vendido" && v.FechaVenta >= inicioMes)
-                .SumAsync(v => (decimal?)v.PrecioPagado) ?? 0;
-
-            var ventasAnio = await _context.Ventas
-                .Where(v => v.Estado == "Vendido" && v.FechaVenta >= inicioAnio)
-                .SumAsync(v => (decimal?)v.PrecioPagado) ?? 0;
-
-            ViewBag.VentasHoy = ventasHoy;
-            ViewBag.CantidadHoy = cantidadHoy;
-            ViewBag.VentasMes = ventasMes;
-            ViewBag.VentasAnio = ventasAnio;
-
-            ViewBag.BusesCount = await _context.Buses.CountAsync();
-            ViewBag.RutasCount = await _context.Rutas.CountAsync();
-            ViewBag.ViajesCount = await _context.Viajes.Where(v => v.Estado == "Programado").CountAsync();
-            ViewBag.TrabajadoresCount = await _context.Usuarios.Where(u => u.Id_Rol == 2).CountAsync();
-
-            // Ventas diarias para gráfico (últimos 15 días)
-            // Se traen a memoria primero para poder agrupar por .Date en C# (PostgreSQL no lo soporta directo)
-            var limiteDias = DateTime.Today.AddDays(-14);
-            var ventasRaw = await _context.Ventas
-                .Where(v => v.Estado == "Vendido" && v.FechaVenta >= limiteDias)
-                .Select(v => new { v.FechaVenta, v.PrecioPagado })
-                .ToListAsync();
-
-            var ventasDiariasList = ventasRaw
-                .GroupBy(v => v.FechaVenta.Date)
-                .Select(g => new { Fecha = g.Key, Total = g.Sum(v => v.PrecioPagado) })
-                .OrderBy(g => g.Fecha)
-                .ToList();
-
-            var fechasGrafico = Enumerable.Range(0, 15)
-                .Select(offset => DateTime.Today.AddDays(-14 + offset))
-                .ToList();
-
-            var datosGraficoDias = fechasGrafico.Select(f => new {
-                Label = f.ToString("dd/MM"),
-                Total = ventasDiariasList.FirstOrDefault(vd => vd.Fecha == f)?.Total ?? 0
-            }).ToList();
-
-            ViewBag.DiasLabels = datosGraficoDias.Select(d => d.Label).ToArray();
-            ViewBag.DiasValores = datosGraficoDias.Select(d => d.Total).ToArray();
-
-            // Ventas mensuales para gráfico (año actual) - también en memoria
-            var ventasMesesRaw = await _context.Ventas
-                .Where(v => v.Estado == "Vendido" && v.FechaVenta >= inicioAnio)
-                .Select(v => new { v.FechaVenta, v.PrecioPagado })
-                .ToListAsync();
-
-            var ventasMensualesList = ventasMesesRaw
-                .GroupBy(v => v.FechaVenta.Month)
-                .Select(g => new { Mes = g.Key, Total = g.Sum(v => v.PrecioPagado) })
-                .ToList();
-
-            string[] nombreMeses = { "Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic" };
-            decimal[] valoresMeses = new decimal[12];
-            for (int i = 0; i < 12; i++)
+            try
             {
-                var mesNum = i + 1;
-                valoresMeses[i] = ventasMensualesList.FirstOrDefault(vm => vm.Mes == mesNum)?.Total ?? 0;
+                var hoy = DateTime.Today;
+                var manana = hoy.AddDays(1);
+                var inicioMes = new DateTime(hoy.Year, hoy.Month, 1);
+                var inicioAnio = new DateTime(hoy.Year, 1, 1);
+
+                // KPIs
+                ViewBag.VentasHoy = await _context.Ventas
+                    .Where(v => v.Estado == "Vendido" && v.FechaVenta >= hoy && v.FechaVenta < manana)
+                    .SumAsync(v => (decimal?)v.PrecioPagado) ?? 0;
+
+                ViewBag.CantidadHoy = await _context.Ventas
+                    .Where(v => v.Estado == "Vendido" && v.FechaVenta >= hoy && v.FechaVenta < manana)
+                    .CountAsync();
+
+                ViewBag.VentasMes = await _context.Ventas
+                    .Where(v => v.Estado == "Vendido" && v.FechaVenta >= inicioMes)
+                    .SumAsync(v => (decimal?)v.PrecioPagado) ?? 0;
+
+                ViewBag.VentasAnio = await _context.Ventas
+                    .Where(v => v.Estado == "Vendido" && v.FechaVenta >= inicioAnio)
+                    .SumAsync(v => (decimal?)v.PrecioPagado) ?? 0;
+
+                ViewBag.BusesCount = await _context.Buses.CountAsync();
+                ViewBag.RutasCount = await _context.Rutas.CountAsync();
+                ViewBag.ViajesCount = await _context.Viajes.Where(v => v.Estado == "Programado").CountAsync();
+                ViewBag.TrabajadoresCount = await _context.Usuarios.Where(u => u.Id_Rol == 2).CountAsync();
+
+                // Ventas diarias (últimos 15 días) - en memoria para PostgreSQL
+                var limiteDias = DateTime.Today.AddDays(-14);
+                var ventasRaw = await _context.Ventas
+                    .Where(v => v.Estado == "Vendido" && v.FechaVenta >= limiteDias)
+                    .Select(v => new { v.FechaVenta, v.PrecioPagado })
+                    .ToListAsync();
+
+                var ventasDiariasList = ventasRaw
+                    .GroupBy(v => v.FechaVenta.Date)
+                    .Select(g => new { Fecha = g.Key, Total = g.Sum(v => v.PrecioPagado) })
+                    .OrderBy(g => g.Fecha)
+                    .ToList();
+
+                var fechasGrafico = Enumerable.Range(0, 15)
+                    .Select(offset => DateTime.Today.AddDays(-14 + offset))
+                    .ToList();
+
+                var datosGraficoDias = fechasGrafico.Select(f => new {
+                    Label = f.ToString("dd/MM"),
+                    Total = ventasDiariasList.FirstOrDefault(vd => vd.Fecha == f)?.Total ?? 0
+                }).ToList();
+
+                ViewBag.DiasLabels = datosGraficoDias.Select(d => d.Label).ToArray();
+                ViewBag.DiasValores = datosGraficoDias.Select(d => d.Total).ToArray();
+
+                // Ventas mensuales (año actual) - en memoria para PostgreSQL
+                var ventasMesesRaw = await _context.Ventas
+                    .Where(v => v.Estado == "Vendido" && v.FechaVenta >= inicioAnio)
+                    .Select(v => new { v.FechaVenta, v.PrecioPagado })
+                    .ToListAsync();
+
+                var ventasMensualesList = ventasMesesRaw
+                    .GroupBy(v => v.FechaVenta.Month)
+                    .Select(g => new { Mes = g.Key, Total = g.Sum(v => v.PrecioPagado) })
+                    .ToList();
+
+                string[] nombreMeses = { "Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic" };
+                decimal[] valoresMeses = new decimal[12];
+                for (int i = 0; i < 12; i++)
+                {
+                    var mesNum = i + 1;
+                    valoresMeses[i] = ventasMensualesList.FirstOrDefault(vm => vm.Mes == mesNum)?.Total ?? 0;
+                }
+                ViewBag.MesesLabels = nombreMeses;
+                ViewBag.MesesValores = valoresMeses;
+
+                // Top rutas - en memoria para PostgreSQL
+                var ventasConRutas = await _context.Ventas
+                    .Where(v => v.Estado == "Vendido" && v.Id_Viaje != null)
+                    .Select(v => new {
+                        v.PrecioPagado,
+                        v.ObjetoViaje
+                    })
+                    .ToListAsync();
+
+                var topRutas = ventasConRutas
+                    .Where(v => v.ObjetoViaje?.ObjetoRuta != null)
+                    .GroupBy(v => new {
+                        Origen = v.ObjetoViaje!.ObjetoRuta!.Origen,
+                        Destino = v.ObjetoViaje.ObjetoRuta.Destino
+                    })
+                    .Select(g => new RutaMasVendidaVM {
+                        Ruta = $"{g.Key.Origen} - {g.Key.Destino}",
+                        Cantidad = g.Count(),
+                        Monto = g.Sum(v => v.PrecioPagado)
+                    })
+                    .OrderByDescending(g => g.Monto)
+                    .Take(5)
+                    .ToList();
+
+                ViewBag.ViajesMasVendidos = topRutas;
+            }
+            catch (Exception ex)
+            {
+                // Log el error pero no rompe la página — el Dashboard carga con valores en cero
+                var logger = HttpContext.RequestServices.GetRequiredService<ILogger<GerenteController>>();
+                logger.LogError(ex, "Error cargando datos del Dashboard del Gerente");
             }
 
-            ViewBag.MesesLabels = nombreMeses;
-            ViewBag.MesesValores = valoresMeses;
-
-            // Top rutas más vendidas - materializar en memoria para evitar errores PostgreSQL con navegación
-            var ventasConRutas = await _context.Ventas
-                .Include(v => v.ObjetoViaje)
-                    .ThenInclude(v => v!.ObjetoRuta)
-                .Where(v => v.Estado == "Vendido" && v.ObjetoViaje != null && v.ObjetoViaje.ObjetoRuta != null)
-                .Select(v => new {
-                    Origen = v.ObjetoViaje!.ObjetoRuta!.Origen,
-                    Destino = v.ObjetoViaje.ObjetoRuta.Destino,
-                    v.PrecioPagado
-                })
-                .ToListAsync();
-
-            var topRutas = ventasConRutas
-                .GroupBy(v => new { v.Origen, v.Destino })
-                .Select(g => new RutaMasVendidaVM {
-                    Ruta = $"{g.Key.Origen} - {g.Key.Destino}",
-                    Cantidad = g.Count(),
-                    Monto = g.Sum(v => v.PrecioPagado)
-                })
-                .OrderByDescending(g => g.Monto)
-                .Take(5)
-                .ToList();
-
-            ViewBag.ViajesMasVendidos = topRutas;
 
             return View();
         }
