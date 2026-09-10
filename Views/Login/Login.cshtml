@@ -196,7 +196,7 @@
                 </li>
                 <li class="nav-item">
                     <button class="nav-link" id="tab-vendedor" onclick="switchTab('vendedor')">
-                        <i class="fa-solid fa-ticket me-1"></i> Vendedor
+                        <i class="fa-solid fa-ticket me-1"></i> Trabajador
                     </button>
                 </li>
             </ul>
@@ -231,7 +231,7 @@
                 </form>
             </div>
 
-            <!-- FORMULARIO VENDEDOR -->
+            <!-- FORMULARIO TRABAJADOR -->
             <div id="form-vendedor" style="display:none;">
                 <form asp-controller="Login" asp-action="LoginVendedor" method="post">
                     @Html.AntiForgeryToken()
@@ -245,7 +245,7 @@
 
                     <div class="form-floating">
                         <input type="email" class="form-control" id="emailVendedor" name="Email" placeholder="Correo" required autocomplete="email">
-                        <label for="emailVendedor">Correo del Vendedor</label>
+                        <label for="emailVendedor">Correo del Trabajador</label>
                         <i class="fa-solid fa-envelope form-icon"></i>
                     </div>
 
@@ -256,7 +256,7 @@
                     </div>
 
                     <button type="submit" class="btn btn-login">
-                        INGRESAR COMO VENDEDOR <i class="fa-solid fa-arrow-right-to-bracket ms-2"></i>
+                        INGRESAR COMO TRABAJADOR <i class="fa-solid fa-arrow-right-to-bracket ms-2"></i>
                     </button>
                 </form>
             </div>
