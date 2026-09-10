@@ -80,6 +80,61 @@
     </div>
 </div>
 
+<!-- KPIs Encomiendas -->
+<div class="row g-3 mb-4">
+    <div class="col-12">
+        <h5 class="text-white fw-bold mb-0"><i class="fa-solid fa-box me-2 text-warning"></i>Encomiendas</h5>
+    </div>
+    <!-- Encomiendas de Hoy -->
+    <div class="col-md-4">
+        <div class="card bg-dark text-white border-glass p-3 h-100 position-relative overflow-hidden card-kpi">
+            <div class="kpi-glow-green"></div>
+            <div class="d-flex justify-content-between align-items-start z-1">
+                <div>
+                    <h6 class="text-uppercase text-muted fs-7">Encomiendas Hoy</h6>
+                    <h3 class="fw-bold my-2">@ViewBag.EncomiendaHoy</h3>
+                    <p class="text-success mb-0 fs-8"><i class="fa-solid fa-box me-1"></i> paquetes registrados hoy</p>
+                </div>
+                <div class="icon-circle bg-success-transparent text-success">
+                    <i class="fa-solid fa-box"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Cobrado por Encomiendas este mes -->
+    <div class="col-md-4">
+        <div class="card bg-dark text-white border-glass p-3 h-100 position-relative overflow-hidden card-kpi">
+            <div class="kpi-glow-blue"></div>
+            <div class="d-flex justify-content-between align-items-start z-1">
+                <div>
+                    <h6 class="text-uppercase text-muted fs-7">Cobrado en Encomiendas (Mes)</h6>
+                    <h3 class="fw-bold my-2">S/ @((ViewBag.EncomiendaMes as decimal? ?? 0m).ToString("N2"))</h3>
+                    <p class="text-info mb-0 fs-8"><i class="fa-solid fa-calendar-days me-1"></i> mes en curso</p>
+                </div>
+                <div class="icon-circle bg-info-transparent text-info">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Pendientes de entrega -->
+    <div class="col-md-4">
+        <div class="card bg-dark text-white border-glass p-3 h-100 position-relative overflow-hidden card-kpi">
+            <div class="kpi-glow-purple"></div>
+            <div class="d-flex justify-content-between align-items-start z-1">
+                <div>
+                    <h6 class="text-uppercase text-muted fs-7">Pendientes de Entrega</h6>
+                    <h3 class="fw-bold my-2">@ViewBag.EncomiendaPendientes</h3>
+                    <p class="text-warning mb-0 fs-8"><i class="fa-solid fa-clock me-1"></i> en tránsito o registradas</p>
+                </div>
+                <div class="icon-circle bg-warning-transparent text-warning">
+                    <i class="fa-solid fa-truck-fast"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Charts Section -->
 <div class="row g-4 mb-4">
     <!-- Chart Last 15 Days -->

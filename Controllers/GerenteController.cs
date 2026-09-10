@@ -43,6 +43,10 @@ namespace SistemaChotaExpress.Controllers
             ViewBag.MesesLabels = new[] { "Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic" };
             ViewBag.MesesValores = new decimal[12];
             ViewBag.ViajesMasVendidos = new List<RutaMasVendidaVM>();
+            // Encomiendas defaults
+            ViewBag.EncomiendaHoy = 0;
+            ViewBag.EncomiendaMes = 0m;
+            ViewBag.EncomiendaPendientes = 0;
 
             try
             {
@@ -144,6 +148,19 @@ namespace SistemaChotaExpress.Controllers
                     .ToList();
 
                 ViewBag.ViajesMasVendidos = topRutas;
+
+                // KPIs de Encomiendas
+                ViewBag.EncomiendaHoy = await _context.Encomiendas
+                    .Where(e => e.FechaRegistro >= hoy && e.FechaRegistro < manana)
+                    .CountAsync();
+
+                ViewBag.EncomiendaMes = await _context.Encomiendas
+                    .Where(e => e.FechaRegistro >= inicioMes)
+                    .SumAsync(e => (decimal?)e.PrecioEnvio) ?? 0;
+
+                ViewBag.EncomiendaPendientes = await _context.Encomiendas
+                    .Where(e => e.Estado == "Registrado" || e.Estado == "En transito")
+                    .CountAsync();
             }
             catch (Exception ex)
             {
