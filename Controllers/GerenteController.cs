@@ -109,10 +109,20 @@ namespace SistemaChotaExpress.Controllers
             ViewBag.MesesLabels = nombreMeses;
             ViewBag.MesesValores = valoresMeses;
 
-            // Top rutas más vendidas
-            var topRutas = await _context.Ventas
+            // Top rutas más vendidas - materializar en memoria para evitar errores PostgreSQL con navegación
+            var ventasConRutas = await _context.Ventas
+                .Include(v => v.ObjetoViaje)
+                    .ThenInclude(v => v!.ObjetoRuta)
                 .Where(v => v.Estado == "Vendido" && v.ObjetoViaje != null && v.ObjetoViaje.ObjetoRuta != null)
-                .GroupBy(v => new { v.ObjetoViaje!.ObjetoRuta!.Origen, v.ObjetoViaje.ObjetoRuta.Destino })
+                .Select(v => new {
+                    Origen = v.ObjetoViaje!.ObjetoRuta!.Origen,
+                    Destino = v.ObjetoViaje.ObjetoRuta.Destino,
+                    v.PrecioPagado
+                })
+                .ToListAsync();
+
+            var topRutas = ventasConRutas
+                .GroupBy(v => new { v.Origen, v.Destino })
                 .Select(g => new RutaMasVendidaVM {
                     Ruta = $"{g.Key.Origen} - {g.Key.Destino}",
                     Cantidad = g.Count(),
@@ -120,7 +130,7 @@ namespace SistemaChotaExpress.Controllers
                 })
                 .OrderByDescending(g => g.Monto)
                 .Take(5)
-                .ToListAsync();
+                .ToList();
 
             ViewBag.ViajesMasVendidos = topRutas;
 
