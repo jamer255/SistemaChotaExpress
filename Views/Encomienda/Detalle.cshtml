@@ -1,0 +1,170 @@
+﻿@model SistemaChotaExpress.Models.Encomienda
+@{
+    ViewData["Title"] = "Detalle Encomienda";
+    var badgeColor = Model.Estado switch {
+        "Registrado"   => "bg-secondary",
+        "En transito"  => "bg-info text-dark",
+        "Entregado"    => "bg-success",
+        "No reclamado" => "bg-danger",
+        _ => "bg-secondary"
+    };
+}
+
+<div class="row mb-3 no-print">
+    <div class="col-12 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+            <i class="fa-solid fa-arrow-left me-1"></i> Volver
+        </a>
+        <div class="d-flex gap-2">
+            <button onclick="window.print()" class="btn btn-outline-light btn-sm">
+                <i class="fa-solid fa-print me-1"></i> Imprimir comprobante
+            </button>
+            @if (Model.Estado != "Entregado")
+            {
+                <form asp-action="MarcarEntregada" asp-route-id="@Model.Id_Encomienda" method="post" class="m-0">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-success btn-sm fw-bold"
+                            onclick="return confirm('Confirmar entrega de la encomienda?')">
+                        <i class="fa-solid fa-circle-check me-1"></i> Marcar Entregada
+                    </button>
+                </form>
+            }
+            @if (User.IsInRole("Gerente") && Model.Estado != "Entregado")
+            {
+                <form asp-action="CambiarEstado" asp-route-id="@Model.Id_Encomienda" method="post" class="m-0 d-flex gap-1">
+                    @Html.AntiForgeryToken()
+                    <select name="nuevoEstado" class="form-select form-select-sm bg-secondary border-0 text-white" style="width:auto">
+                        <option value="Registrado">Registrado</option>
+                        <option value="En transito">En transito</option>
+                        <option value="Entregado">Entregado</option>
+                        <option value="No reclamado">No reclamado</option>
+                    </select>
+                    <button type="submit" class="btn btn-warning btn-sm">Cambiar</button>
+                </form>
+            }
+        </div>
+    </div>
+</div>
+
+@if (TempData["Exito"] != null)
+{
+    <div class="alert alert-success border-0 mb-3 no-print">
+        <i class="fa-solid fa-circle-check me-2"></i>@TempData["Exito"]
+    </div>
+}
+
+<!-- COMPROBANTE (imprimible) -->
+<div class="card bg-dark border-glass" id="comprobante">
+    <!-- Encabezado -->
+    <div class="card-body pb-0">
+        <div class="row align-items-center mb-3">
+            <div class="col-auto">
+                <img src="~/img/logo_oficial.png" alt="Logo" style="height:60px;" />
+            </div>
+            <div class="col">
+                <h5 class="text-white fw-bold mb-0">Tours Chota Express S.A.C.</h5>
+                <p class="text-muted mb-0 small">Servicio de Encomiendas</p>
+            </div>
+            <div class="col-auto text-end">
+                <div class="badge @badgeColor fs-6 px-3 py-2">@Model.Estado</div>
+                <div class="mt-1">
+                    <span class="text-warning fw-bold fs-5">@Model.CodigoSeguimiento</span>
+                </div>
+            </div>
+        </div>
+        <hr class="border-secondary" />
+    </div>
+
+    <div class="card-body pt-2">
+        <div class="row g-4">
+
+            <!-- Remitente -->
+            <div class="col-md-6">
+                <div class="p-3 rounded" style="background:rgba(255,165,0,0.08); border:1px solid rgba(255,165,0,0.3)">
+                    <h6 class="text-warning mb-3"><i class="fa-solid fa-user me-2"></i>Remitente</h6>
+                    <p class="mb-1 text-white fw-semibold">@Model.NombreRemitente</p>
+                    @if (!string.IsNullOrEmpty(Model.DniRemitente))
+                    { <p class="mb-1 text-muted small">DNI/RUC: @Model.DniRemitente</p> }
+                    @if (!string.IsNullOrEmpty(Model.TelefonoRemitente))
+                    { <p class="mb-0 text-muted small"><i class="fa-solid fa-phone me-1"></i>@Model.TelefonoRemitente</p> }
+                </div>
+            </div>
+
+            <!-- Destinatario -->
+            <div class="col-md-6">
+                <div class="p-3 rounded" style="background:rgba(13,202,240,0.08); border:1px solid rgba(13,202,240,0.3)">
+                    <h6 class="text-info mb-3"><i class="fa-solid fa-user-check me-2"></i>Destinatario</h6>
+                    <p class="mb-1 text-white fw-semibold">@Model.NombreDestinatario</p>
+                    @if (!string.IsNullOrEmpty(Model.DniDestinatario))
+                    { <p class="mb-1 text-muted small">DNI/RUC: @Model.DniDestinatario</p> }
+                    @if (!string.IsNullOrEmpty(Model.TelefonoDestinatario))
+                    { <p class="mb-0 text-muted small"><i class="fa-solid fa-phone me-1"></i>@Model.TelefonoDestinatario</p> }
+                </div>
+            </div>
+
+            <!-- Detalle del paquete -->
+            <div class="col-12">
+                <div class="card bg-secondary border-0">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-5">
+                                <small class="text-muted text-uppercase">Descripcion</small>
+                                <p class="text-white mb-0 fw-semibold">@Model.Descripcion</p>
+                            </div>
+                            <div class="col-md-2 text-center">
+                                <small class="text-muted text-uppercase">Peso</small>
+                                <p class="text-white mb-0 fw-semibold">
+                                    @(Model.PesoKg.HasValue ? $"{Model.PesoKg:N1} kg" : "-")
+                                </p>
+                            </div>
+                            <div class="col-md-2 text-center">
+                                <small class="text-muted text-uppercase">Ruta</small>
+                                <p class="text-info mb-0 small fw-semibold">
+                                    @(Model.ObjetoRuta != null ? $"{Model.ObjetoRuta.Origen} - {Model.ObjetoRuta.Destino}" : "-")
+                                </p>
+                            </div>
+                            <div class="col-md-3 text-end">
+                                <small class="text-muted text-uppercase">Precio de envio</small>
+                                <p class="text-success fw-bold fs-4 mb-0">S/ @Model.PrecioEnvio.ToString("N2")</p>
+                            </div>
+                        </div>
+                        @if (!string.IsNullOrEmpty(Model.Observaciones))
+                        {
+                            <hr class="border-dark" />
+                            <small class="text-muted">Observaciones: </small>
+                            <span class="text-white small">@Model.Observaciones</span>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fechas y registro -->
+            <div class="col-12">
+                <div class="row text-center">
+                    <div class="col-md-4">
+                        <small class="text-muted d-block">Fecha de registro</small>
+                        <span class="text-white">@Model.FechaRegistro.ToString("dd/MM/yyyy HH:mm")</span>
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-muted d-block">Fecha de entrega</small>
+                        <span class="text-white">@(Model.FechaEntrega.HasValue ? Model.FechaEntrega.Value.ToString("dd/MM/yyyy HH:mm") : "-")</span>
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-muted d-block">Registrado por</small>
+                        <span class="text-white">@(Model.UsuarioRegistro?.Name ?? "-")</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@@media print {
+    .no-print { display: none !important; }
+    body { background: white !important; color: black !important; }
+    .card { border: 1px solid #ccc !important; background: white !important; }
+    .text-white, .text-muted, .text-warning, .text-info, .text-success { color: black !important; }
+    .bg-dark, .bg-secondary { background: white !important; }
+}
+</style>

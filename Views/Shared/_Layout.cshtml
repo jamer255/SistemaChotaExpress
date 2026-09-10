@@ -69,6 +69,11 @@
                                     <i class="fa-solid fa-list-check me-1"></i> Registro de pasajes vendidos
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link nav-link-custom @(ViewContext.RouteData.Values["controller"]?.ToString() == "Encomienda" ? "active" : "")" asp-controller="Encomienda" asp-action="Index">
+                                    <i class="fa-solid fa-box me-1"></i> Encomiendas
+                                </a>
+                            </li>
                         }
                     </ul>
                     
