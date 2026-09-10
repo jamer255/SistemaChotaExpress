@@ -62,13 +62,18 @@ namespace SistemaChotaExpress.Controllers
             ViewBag.TrabajadoresCount = await _context.Usuarios.Where(u => u.Id_Rol == 2).CountAsync();
 
             // Ventas diarias para gráfico (últimos 15 días)
+            // Se traen a memoria primero para poder agrupar por .Date en C# (PostgreSQL no lo soporta directo)
             var limiteDias = DateTime.Today.AddDays(-14);
-            var ventasDiariasList = await _context.Ventas
+            var ventasRaw = await _context.Ventas
                 .Where(v => v.Estado == "Vendido" && v.FechaVenta >= limiteDias)
+                .Select(v => new { v.FechaVenta, v.PrecioPagado })
+                .ToListAsync();
+
+            var ventasDiariasList = ventasRaw
                 .GroupBy(v => v.FechaVenta.Date)
                 .Select(g => new { Fecha = g.Key, Total = g.Sum(v => v.PrecioPagado) })
                 .OrderBy(g => g.Fecha)
-                .ToListAsync();
+                .ToList();
 
             var fechasGrafico = Enumerable.Range(0, 15)
                 .Select(offset => DateTime.Today.AddDays(-14 + offset))
@@ -82,12 +87,16 @@ namespace SistemaChotaExpress.Controllers
             ViewBag.DiasLabels = datosGraficoDias.Select(d => d.Label).ToArray();
             ViewBag.DiasValores = datosGraficoDias.Select(d => d.Total).ToArray();
 
-            // Ventas mensuales para gráfico (año actual)
-            var ventasMensualesList = await _context.Ventas
-                .Where(v => v.Estado == "Vendido" && v.FechaVenta.Year == hoy.Year)
+            // Ventas mensuales para gráfico (año actual) - también en memoria
+            var ventasMesesRaw = await _context.Ventas
+                .Where(v => v.Estado == "Vendido" && v.FechaVenta >= inicioAnio)
+                .Select(v => new { v.FechaVenta, v.PrecioPagado })
+                .ToListAsync();
+
+            var ventasMensualesList = ventasMesesRaw
                 .GroupBy(v => v.FechaVenta.Month)
                 .Select(g => new { Mes = g.Key, Total = g.Sum(v => v.PrecioPagado) })
-                .ToListAsync();
+                .ToList();
 
             string[] nombreMeses = { "Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic" };
             decimal[] valoresMeses = new decimal[12];
