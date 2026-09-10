@@ -1,4 +1,4 @@
-﻿@model SistemaChotaExpress.Models.Encomienda
+@model SistemaChotaExpress.Models.Encomienda
 @{
     ViewData["Title"] = "Detalle Encomienda";
     var badgeColor = Model.Estado switch {
@@ -19,7 +19,7 @@
             <button onclick="window.print()" class="btn btn-outline-light btn-sm">
                 <i class="fa-solid fa-print me-1"></i> Imprimir comprobante
             </button>
-            @if (Model.Estado != "Entregado")
+            @if (!User.IsInRole("Gerente") && Model.Estado != "Entregado")
             {
                 <form asp-action="MarcarEntregada" asp-route-id="@Model.Id_Encomienda" method="post" class="m-0">
                     @Html.AntiForgeryToken()
@@ -27,19 +27,6 @@
                             onclick="return confirm('Confirmar entrega de la encomienda?')">
                         <i class="fa-solid fa-circle-check me-1"></i> Marcar Entregada
                     </button>
-                </form>
-            }
-            @if (User.IsInRole("Gerente") && Model.Estado != "Entregado")
-            {
-                <form asp-action="CambiarEstado" asp-route-id="@Model.Id_Encomienda" method="post" class="m-0 d-flex gap-1">
-                    @Html.AntiForgeryToken()
-                    <select name="nuevoEstado" class="form-select form-select-sm bg-secondary border-0 text-white" style="width:auto">
-                        <option value="Registrado">Registrado</option>
-                        <option value="En transito">En transito</option>
-                        <option value="Entregado">Entregado</option>
-                        <option value="No reclamado">No reclamado</option>
-                    </select>
-                    <button type="submit" class="btn btn-warning btn-sm">Cambiar</button>
                 </form>
             }
         </div>

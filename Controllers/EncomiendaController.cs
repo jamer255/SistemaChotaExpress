@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -135,25 +135,6 @@ namespace SistemaChotaExpress.Controllers
             await _context.SaveChangesAsync();
 
             TempData["Exito"] = $"Encomienda {enc.CodigoSeguimiento} marcada como entregada.";
-            return RedirectToAction("Detalle", new { id });
-        }
-
-        // =============================================
-        // CAMBIAR ESTADO (Gerente)
-        // =============================================
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Gerente")]
-        public async Task<IActionResult> CambiarEstado(int id, string nuevoEstado)
-        {
-            var enc = await _context.Encomiendas.FindAsync(id);
-            if (enc == null) return NotFound();
-
-            enc.Estado = nuevoEstado;
-            if (nuevoEstado == "Entregado" && enc.FechaEntrega == null)
-                enc.FechaEntrega = DateTime.Now;
-
-            await _context.SaveChangesAsync();
             return RedirectToAction("Detalle", new { id });
         }
     }
