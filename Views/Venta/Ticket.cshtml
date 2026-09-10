@@ -1,0 +1,618 @@
+@model SistemaChotaExpress.Models.Venta
+@using SistemaChotaExpress.Services
+@{
+    bool esFactura = (Model.TipoComprobante == "Factura");
+    string tipoTitulo = esFactura ? "FACTURA ELECTRÓNICA" : "BOLETA DE VENTA ELECTRÓNICA";
+    string serie = esFactura ? "F001" : "B001";
+    string correlativo = Model.Id_Venta.ToString("D8");
+    string serieCorrelativo = $"{serie}-{correlativo}";
+    string rucEmisor = "20600308883";
+    string empresaEmisor = "EMPRESA DE MULTISERVICIOS Y TRANSPORTES TURS CHOTA EXPRESS S.A.C.";
+    string nombreComercial = "TOURS CHOTA EXPRESS";
+    string direccionEmisor = "CAL. SARA MACDOUGALL NRO. 218 BAR. SAN JOSE - CHOTA - CAJAMARCA";
+
+    decimal subtotal = Math.Round(Model.PrecioPagado / 1.18m, 2);
+    decimal igv = Model.PrecioPagado - subtotal;
+
+    string clienteNombre = esFactura && !string.IsNullOrWhiteSpace(Model.RazonSocialEmpresa)
+        ? Model.RazonSocialEmpresa
+        : (Model.ObjetoPasajero?.NombreCompleto ?? "CLIENTE GENERAL");
+
+    string clienteDocTipo = esFactura ? "RUC" : (Model.ObjetoPasajero?.TipoDocumento ?? "DNI");
+    string clienteDocNum = esFactura && !string.IsNullOrWhiteSpace(Model.RucEmpresa)
+        ? Model.RucEmpresa
+        : (Model.ObjetoPasajero?.NumeroDocumento ?? "-");
+
+    string clienteDireccion = esFactura && !string.IsNullOrWhiteSpace(Model.DireccionEmpresa)
+        ? Model.DireccionEmpresa
+        : (esFactura ? "CAL. SARA MACDOUGALL NRO. 218 BAR. SAN JOSE - CHOTA" : "-");
+
+    string resumenHash = "";
+    string rawHashData = $"{rucEmisor}|{(esFactura ? "01" : "03")}|{serie}|{correlativo}|{igv:0.00}|{Model.PrecioPagado:0.00}|{Model.FechaVenta:yyyy-MM-dd}|{clienteDocNum}";
+    using (var sha = System.Security.Cryptography.SHA256.Create())
+    {
+        byte[] hashBytes = sha.ComputeHash(System.Text.Encoding.UTF8.GetBytes(rawHashData));
+        resumenHash = Convert.ToBase64String(hashBytes).Substring(0, 27) + "=";
+    }
+
+    string qrPayload = $"{rucEmisor}|{(esFactura ? "01" : "03")}|{serie}|{correlativo}|{igv:0.00}|{Model.PrecioPagado:0.00}|{Model.FechaVenta:yyyy-MM-dd}|{(esFactura ? "6" : "1")}|{clienteDocNum}|{resumenHash}|";
+    string qrUrl = $"https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=0&data={Uri.EscapeDataString(qrPayload)}";
+
+    ViewData["Title"] = $"{tipoTitulo} {serieCorrelativo} - Tours Chota Express";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@serieCorrelativo - Tours Chota Express</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+            background-color: #525659;
+            color: #1a1a1a;
+            margin: 0;
+            padding: 25px 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Toolbar */
+        .actions-panel {
+            width: 100%;
+            max-width: 820px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #2b3035;
+            padding: 12px 18px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .view-switch-btns {
+            display: flex;
+            background: #1e2225;
+            padding: 3px;
+            border-radius: 8px;
+            gap: 3px;
+        }
+
+        .btn-tab {
+            background: transparent;
+            color: #adb5bd;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-tab:hover {
+            color: #fff;
+            background: rgba(255,255,255,0.08);
+        }
+
+        .btn-tab.active {
+            background: #f97316;
+            color: #fff;
+        }
+
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-size: 0.86rem;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+        }
+        .btn-print  { background-color: #0d6efd; color: #fff; }
+        .btn-print:hover  { background-color: #0b5ed7; color: #fff; }
+        .btn-pdf    { background-color: #198754; color: #fff; }
+        .btn-pdf:hover    { background-color: #157347; color: #fff; }
+        .btn-xml    { background-color: #ffc107; color: #000; }
+        .btn-xml:hover    { background-color: #ffca2c; color: #000; }
+        .btn-back   { background-color: #495057; color: #fff; }
+        .btn-back:hover   { background-color: #6c757d; color: #fff; }
+
+        /* =============================================
+           1. FORMATO FORMAL A4 (Matching Imagen 3)
+           ============================================= */
+        .doc-a4 {
+            width: 100%;
+            max-width: 800px;
+            min-height: 1060px;
+            background: #ffffff;
+            padding: 40px 48px;
+            border-radius: 6px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+            box-sizing: border-box;
+        }
+
+        .a4-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; gap: 18px; }
+        .box-emisor { flex: 1.15; border: 1.5px solid #555; border-radius: 12px; padding: 16px 18px; min-height: 125px; display: flex; flex-direction: column; justify-content: center; }
+        .emisor-title { font-size: 0.95rem; font-weight: 900; line-height: 1.35; color: #000; text-transform: uppercase; margin-bottom: 10px; }
+        .emisor-comercial { font-size: 0.92rem; font-weight: 800; color: #f97316; margin-bottom: 6px; }
+        .emisor-dir { font-size: 0.82rem; color: #222; line-height: 1.35; }
+        .emisor-extra { font-size: 0.76rem; color: #444; margin-top: 4px; }
+        .box-sunat { flex: 0.85; border: 2px solid #222; border-radius: 12px; padding: 12px 10px; text-align: center; min-height: 125px; display: flex; flex-direction: column; justify-content: space-around; align-items: center; }
+        .sunat-ruc { font-size: 1.12rem; font-weight: 800; color: #000; }
+        .sunat-doc-type { font-size: 1.05rem; font-weight: 900; color: #fff; background-color: #212529; padding: 6px 12px; border-radius: 6px; text-transform: uppercase; width: 92%; margin: 4px 0; }
+        .sunat-number { font-size: 1.18rem; font-weight: 800; color: #000; letter-spacing: 1px; font-family: monospace; }
+
+        .box-customer { border: 1.5px solid #555; border-radius: 12px; padding: 14px 20px; margin-bottom: 12px; }
+        .customer-grid { display: grid; grid-template-columns: 1.2fr 1fr; row-gap: 8px; column-gap: 20px; font-size: 0.85rem; color: #111; }
+        .customer-item strong { font-weight: 800; color: #000; margin-right: 4px; }
+
+        .box-transporte { border: 1.5px solid #555; border-radius: 12px; padding: 10px 18px; margin-bottom: 16px; background-color: #f8f9fa; }
+        .transporte-title { font-size: 0.78rem; font-weight: 800; color: #0d6efd; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; border-bottom: 1px dashed #ccc; padding-bottom: 3px; }
+        .transporte-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px 15px; font-size: 0.82rem; color: #222; }
+        .badge-asiento { background-color: #f97316; color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 0.82rem; display: inline-block; }
+
+        .box-items { border: 1.5px solid #555; border-radius: 12px; overflow: hidden; margin-bottom: 22px; }
+        .items-table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+        .items-table thead tr { border-bottom: 1.5px solid #555; }
+        .items-table th { padding: 10px 12px; font-weight: 800; color: #000; }
+        .items-table td { padding: 12px 12px; color: #111; font-size: 0.85rem; }
+
+        .middle-section { display: flex; justify-content: space-between; align-items: flex-start; gap: 25px; margin-bottom: 30px; }
+        .left-notes { flex: 1.15; }
+        .monto-letras { font-size: 0.88rem; font-weight: 800; color: #000; margin-bottom: 14px; }
+        .adicional-title { font-size: 0.88rem; font-weight: 800; color: #000; margin-bottom: 4px; }
+        .adicional-divider { border: 0; border-top: 1px solid #777; margin: 4px 0 12px 0; width: 100%; }
+        .adicional-details { font-size: 0.78rem; color: #111; line-height: 1.45; }
+        .adicional-label { font-weight: 800; font-size: 0.78rem; margin-bottom: 4px; }
+        .adicional-obs-grid { display: grid; grid-template-columns: 110px 1fr; row-gap: 2px; margin-top: 2px; }
+        .right-totals { flex: 0.85; display: flex; flex-direction: column; gap: 10px; }
+        .total-row { display: flex; justify-content: flex-end; align-items: baseline; gap: 16px; }
+        .total-label { font-weight: 800; font-size: 0.88rem; color: #000; min-width: 110px; text-align: right; }
+        .total-line-val { border-bottom: 1px solid #444; min-width: 130px; text-align: right; padding-bottom: 2px; font-size: 0.88rem; font-weight: 600; color: #000; }
+        .total-final .total-line-val { font-weight: 800; }
+
+        .page-divider { border: 0; border-top: 1.5px solid #333; margin: 0 0 20px 0; width: 100%; }
+        .footer-section { display: flex; justify-content: space-between; align-items: center; gap: 20px; }
+        .box-hash { flex: 1; border: 1px solid #b5b5b5; padding: 12px 16px; font-size: 0.82rem; color: #111; line-height: 1.45; }
+        .box-hash strong { font-weight: 800; }
+        .box-qr { width: 115px; height: 115px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+        .box-qr img { width: 105px; height: 105px; display: block; }
+
+        /* =============================================
+           2. FORMATO TÉRMICO POS 80mm (Matching Imagen 2)
+           ============================================= */
+        .ticket-termal {
+            display: none;
+            width: 330px;
+            background: #ffffff;
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+            color: #111;
+            padding: 16px 14px;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+            font-size: 11px;
+            line-height: 1.35;
+        }
+
+        .t-top-sub { font-size: 9.5px; text-align: center; color: #444; margin-bottom: 6px; }
+        .t-empresa { font-size: 16px; font-weight: 900; color: #f97316; text-transform: uppercase; text-align: center; letter-spacing: 0.5px; }
+        .t-sac { font-size: 11px; font-weight: 700; text-align: center; color: #222; margin-top: 1px; }
+        .t-info-emisor { font-size: 10px; color: #333; text-align: center; margin: 3px 0; }
+        .t-dotted { border: none; border-top: 1px dotted #888; margin: 8px 0; }
+        
+        .t-title { font-size: 13px; font-weight: 900; text-align: center; text-transform: uppercase; margin: 3px 0 1px 0; color: #000; }
+        .t-serie { font-size: 12px; font-weight: 800; text-align: center; margin-bottom: 5px; color: #000; letter-spacing: 0.5px; }
+        
+        .t-row { display: flex; justify-content: space-between; margin: 3px 0; font-size: 11px; }
+        .t-row .t-key { color: #333; }
+        .t-row .t-val { font-weight: 700; text-align: right; color: #000; }
+        
+        .t-section-header { font-size: 10px; font-weight: 900; text-transform: uppercase; color: #000; margin: 6px 0 3px 0; letter-spacing: 0.5px; }
+        .t-pasajero-nombre { font-weight: 800; text-transform: uppercase; margin: 2px 0 4px 0; font-size: 11px; color: #000; }
+        
+        .t-ruta-box { margin: 4px 0; }
+        .t-ruta-title { font-size: 12px; font-weight: 900; text-align: right; text-transform: uppercase; color: #000; }
+        .t-salida-fecha { font-size: 12px; font-weight: 800; text-align: right; color: #dc2626; }
+        .t-salida-hora { font-size: 13px; font-weight: 900; text-align: right; color: #dc2626; }
+        
+        .t-asiento-box { text-align: center; margin: 10px 0 6px 0; }
+        .t-asiento-label { font-size: 9.5px; font-weight: 700; text-transform: uppercase; color: #666; letter-spacing: 1px; }
+        .t-asiento-val { font-size: 20px; font-weight: 900; color: #71717a; text-transform: uppercase; letter-spacing: 2px; margin-top: 2px; }
+        
+        .t-totales-box {
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 9px 12px;
+            margin: 8px 0;
+        }
+        .t-total-sub { display: flex; justify-content: space-between; font-size: 11px; margin: 3px 0; font-weight: 600; color: #222; }
+        .t-total-sub strong { font-weight: 800; }
+        .t-totales-box hr { border: none; border-top: 1px solid #cbd5e1; margin: 6px 0; }
+        .t-total-final { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
+        .t-total-final-lbl { font-size: 11px; font-weight: 900; color: #000; text-transform: uppercase; }
+        .t-total-final-val { font-size: 17px; font-weight: 900; color: #059669; }
+
+        .t-barcode-box { text-align: center; margin: 10px 0 4px 0; }
+        .t-barcode-box svg { max-width: 100%; height: 46px; }
+        .t-barcode-text { font-size: 9.5px; color: #555; letter-spacing: 1px; margin-top: 2px; }
+        
+        .t-footer-msg { font-size: 9px; text-align: center; color: #555; line-height: 1.45; margin-top: 8px; }
+
+        /* =============================================
+           PRINT CSS
+           ============================================= */
+        @@media print {
+            body {
+                background: #fff !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            .no-print { display: none !important; }
+
+            /* Modo Térmico */
+            body.printing-termal .ticket-termal {
+                display: block !important;
+                box-shadow: none !important;
+                border: none !important;
+                width: 78mm !important;
+                max-width: 78mm !important;
+                margin: 0 auto !important;
+                padding: 4mm 3mm !important;
+            }
+            body.printing-termal .doc-a4 { display: none !important; }
+            @@page.termal { size: 80mm auto; margin: 0; }
+
+            /* Modo A4 Formal */
+            body.printing-a4 .doc-a4 {
+                display: block !important;
+                box-shadow: none !important;
+                border: none !important;
+                padding: 10mm 15mm !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                min-height: auto !important;
+            }
+            body.printing-a4 .ticket-termal { display: none !important; }
+            @@page.a4 { size: A4 portrait; margin: 0; }
+        }
+    </style>
+</head>
+<body id="pageBody">
+
+    <!-- Toolbar no-print -->
+    <div class="actions-panel no-print">
+        <div style="color: #fff; font-size: 0.95rem; font-weight: 600;">
+            <i class="fa-solid fa-file-invoice text-warning me-2"></i> @tipoTitulo @serieCorrelativo
+        </div>
+
+        <!-- Botones para alternar vista en pantalla -->
+        <div class="view-switch-btns">
+            <button type="button" onclick="mostrarVista('termal')" id="tabBtnTermal" class="btn-tab">
+                <i class="fa-solid fa-receipt"></i> Vista Térmico (80mm)
+            </button>
+            <button type="button" onclick="mostrarVista('a4')" id="tabBtnA4" class="btn-tab active">
+                <i class="fa-solid fa-file-lines"></i> Vista A4 Formal
+            </button>
+        </div>
+
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <!-- Imprimir Ticket Térmico -->
+            <button onclick="imprimirTermal()" class="btn-action btn-print" title="Imprimir ticket para impresora térmica POS de 80mm (Imagen 2)">
+                <i class="fa-solid fa-print"></i> Imprimir Ticket (Térmico)
+            </button>
+            <!-- Descargar / Guardar PDF A4 -->
+            <button onclick="guardarPdfA4()" class="btn-action btn-pdf" title="Guardar como PDF o imprimir formato A4 formal (Imagen 3)">
+                <i class="fa-solid fa-file-pdf"></i> Descargar PDF (A4)
+            </button>
+            <!-- Descargar XML SUNAT -->
+            <a asp-action="DescargarXml" asp-route-id="@Model.Id_Venta" class="btn-action btn-xml" title="Descargar XML SUNAT UBL 2.1">
+                <i class="fa-solid fa-file-code"></i> XML SUNAT
+            </a>
+            <a asp-action="MisVentas" class="btn-action btn-back">
+                <i class="fa-solid fa-arrow-left"></i> Volver a Ventas
+            </a>
+        </div>
+    </div>
+
+    <!-- =============================================
+         1. DOCUMENTO A4 FORMAL (Matching Imagen 3)
+         ============================================= -->
+    <div class="doc-a4" id="docA4">
+
+        <div class="a4-header">
+            <div class="box-emisor">
+                <div class="emisor-title">@empresaEmisor</div>
+                <div class="emisor-comercial">@nombreComercial</div>
+                <div class="emisor-dir"><strong>Dirección Fiscal:</strong> @direccionEmisor</div>
+                <div class="emisor-extra"><strong>Teléfono:</strong> (076) 351234 / 987654321 &bull; <strong>Punto de Emisión:</strong> 0000 - OFICINA PRINCIPAL</div>
+            </div>
+            <div class="box-sunat">
+                <div class="sunat-ruc">R.U.C. N° @rucEmisor</div>
+                <div class="sunat-doc-type">@tipoTitulo</div>
+                <div class="sunat-number">N° @serieCorrelativo</div>
+            </div>
+        </div>
+
+        <div class="box-customer">
+            <div class="customer-grid">
+                <div class="customer-item"><strong>Señor(es):</strong> @clienteNombre</div>
+                <div class="customer-item"><strong>Fecha de Emisión:</strong> @Model.FechaVenta.ToString("dd/MM/yyyy HH:mm:ss")</div>
+                <div class="customer-item"><strong>@(clienteDocTipo):</strong> @clienteDocNum</div>
+                <div class="customer-item"><strong>Fecha de Vencimiento:</strong> @Model.FechaVenta.ToString("dd/MM/yyyy")</div>
+                <div class="customer-item"><strong>Dirección:</strong> @clienteDireccion</div>
+                <div class="customer-item"><strong>Forma de Pago:</strong> Contado</div>
+                <div class="customer-item"><strong>Tipo de Moneda:</strong> SOLES (PEN)</div>
+                <div class="customer-item"><strong>Tipo de Operación:</strong> Venta Interna (0101)</div>
+            </div>
+        </div>
+
+        <div class="box-transporte">
+            <div class="transporte-title"><i class="fa-solid fa-van-shuttle me-1"></i> DETALLES DEL SERVICIO DE TRANSPORTE TERRESTRE DE PASAJEROS</div>
+            <div class="transporte-grid">
+                <div><strong>Origen / Embarque:</strong> @(Model.ObjetoViaje?.ObjetoRuta?.Origen?.ToUpper() ?? "CHOTA")</div>
+                <div><strong>Destino / Llegada:</strong> @(Model.ObjetoViaje?.ObjetoRuta?.Destino?.ToUpper() ?? "CHICLAYO")</div>
+                <div><strong>Salida Programada:</strong> @(Model.ObjetoViaje?.FechaHoraSalida.ToString("dd/MM/yyyy hh:mm tt") ?? "-")</div>
+                <div><strong>Asiento Asignado:</strong> <span class="badge-asiento">ASIENTO #@Model.NumeroAsiento</span></div>
+                <div><strong>Vehículo / Placa:</strong> @(Model.ObjetoViaje?.ObjetoBus?.Placa ?? Model.ObjetoViaje?.PlacaVehiculo ?? "S/P") (@(Model.ObjetoViaje?.ObjetoBus?.NombreVehiculo ?? "Combi Express"))</div>
+                <div><strong>Conductor Asignado:</strong> @(Model.ObjetoViaje?.NombreConductor ?? Model.ObjetoViaje?.ObjetoBus?.NombreConductor ?? "Conductor en Turno")</div>
+            </div>
+        </div>
+
+        <div class="box-items">
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th style="width:5%;text-align:center;">Item</th>
+                        <th style="width:14%;text-align:center;">Código SUNAT</th>
+                        <th style="width:8%;text-align:center;">Cant.</th>
+                        <th style="width:8%;text-align:center;">U.M.</th>
+                        <th style="width:41%;text-align:left;">Descripción</th>
+                        <th style="width:12%;text-align:right;">V. Unitario</th>
+                        <th style="width:12%;text-align:right;">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="text-align:center;">1</td>
+                        <td style="text-align:center;font-family:monospace;">78111802</td>
+                        <td style="text-align:center;">1.00</td>
+                        <td style="text-align:center;">ZZ</td>
+                        <td style="text-align:left;">
+                            @if (!string.IsNullOrWhiteSpace(Model.Observaciones) && (Model.Observaciones.Contains("cajas") || Model.Observaciones.Contains("Encomienda")))
+                            {
+                                @Model.Observaciones
+                            }
+                            else
+                            {
+                                @($"SERVICIO DE TRANSPORTE TERRESTRE DE PASAJEROS: {Model.ObjetoViaje?.ObjetoRuta?.Origen?.ToUpper() ?? "CHOTA"} A {Model.ObjetoViaje?.ObjetoRuta?.Destino?.ToUpper() ?? "CHICLAYO"} | ASIENTO #{Model.NumeroAsiento} | PASAJERO: {Model.ObjetoPasajero?.NombreCompleto?.ToUpper()}")
+                            }
+                        </td>
+                        <td style="text-align:right;">S/ @subtotal.ToString("N2")</td>
+                        <td style="text-align:right;">S/ @subtotal.ToString("N2")</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="middle-section">
+            <div class="left-notes">
+                <div class="monto-letras">@NumeroALetrasHelper.Convertir(Model.PrecioPagado)</div>
+                <div class="adicional-title">INFORMACIÓN ADICIONAL</div>
+                <hr class="adicional-divider" />
+                <div class="adicional-details">
+                    <div class="adicional-obs-grid">
+                        <div class="adicional-label">OBSERVACIONES:</div>
+                        <div>
+                            @if (esFactura)
+                            {
+                                <div>REMITENTE: @clienteNombre</div>
+                                <div>DESTINATARIO: @clienteNombre</div>
+                            }
+                            <div>PASAJERO: @(Model.ObjetoPasajero?.NombreCompleto) (DOC: @Model.ObjetoPasajero?.NumeroDocumento)</div>
+                            <div>PUNTO DE PARTIDA: CAL. SARA MACDOUGALL NRO. 218 BAR. SAN JOSE - CHOTA</div>
+                            <div>ATENDIDO POR: @(Model.ObjetoUsuario?.Name ?? "AGENCIA CHOTA")</div>
+                            <div>FORMA DE PAGO: CONTADO - EFECTIVO</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="right-totals">
+                <div class="total-row"><span class="total-label">Op. Gravadas:</span><span class="total-line-val">S/ @subtotal.ToString("N2")</span></div>
+                <div class="total-row"><span class="total-label">Op. Inafectas:</span><span class="total-line-val">S/ 0.00</span></div>
+                <div class="total-row"><span class="total-label">Op. Exoneradas:</span><span class="total-line-val">S/ 0.00</span></div>
+                <div class="total-row"><span class="total-label">I.G.V. (18%):</span><span class="total-line-val">S/ @igv.ToString("N2")</span></div>
+                <div class="total-row total-final"><span class="total-label">Importe Total:</span><span class="total-line-val">S/ @Model.PrecioPagado.ToString("N2")</span></div>
+            </div>
+        </div>
+
+        <hr class="page-divider" />
+
+        <div class="footer-section">
+            <div class="box-hash">
+                <div><strong>Código Hash (DigestValue):</strong> @resumenHash</div>
+                <div>Representación Impresa de la @(esFactura ? "FACTURA ELECTRÓNICA" : "BOLETA DE VENTA ELECTRÓNICA").</div>
+                <div style="font-size:0.74rem;color:#555;margin-top:5px;line-height:1.35;">
+                    Emitido conforme a la normativa de la SUNAT mediante Sistema de Emisión Electrónica SEE (UBL 2.1).<br>
+                    Autorizado mediante Resolución de Superintendencia N° 034-005-0005315/SUNAT.<br>
+                    Consulte la autenticidad y validez del comprobante en: <strong>www.sunat.gob.pe</strong>
+                </div>
+            </div>
+            <div class="box-qr">
+                <img src="@qrUrl" alt="Código QR SUNAT" />
+            </div>
+        </div>
+
+    </div>
+
+    <!-- =============================================
+         2. FORMATO TÉRMICO POS 80mm (Matching Imagen 2)
+         ============================================= -->
+    <div class="ticket-termal" id="ticketTermal">
+
+        <div class="t-top-sub">@serieCorrelativo - Tours Chota Express</div>
+
+        <div class="t-empresa">@nombreComercial</div>
+        <div class="t-sac">S.A.C.</div>
+        <div class="t-info-emisor">RUC: @rucEmisor</div>
+        <div class="t-info-emisor">Dirección: Av. Los Laureles 321, Chota</div>
+        <div class="t-info-emisor">Teléfono: 987654321 / (076) 351234</div>
+
+        <hr class="t-dotted" />
+
+        <div class="t-title">@tipoTitulo</div>
+        <div class="t-serie">@serieCorrelativo</div>
+
+        <div class="t-row"><span class="t-key">Fecha de Emisión:</span><span class="t-val">@Model.FechaVenta.ToString("dd/MM/yyyy HH:mm")</span></div>
+        <div class="t-row"><span class="t-key">Forma de Pago:</span><span class="t-val">Efectivo</span></div>
+        <div class="t-row"><span class="t-key">Vendedor:</span><span class="t-val">@(Model.ObjetoUsuario?.Name ?? "OfChota")</span></div>
+        <div class="t-row"><span class="t-key">Estado:</span><span class="t-val" style="color: #059669;">@Model.Estado.ToUpper()</span></div>
+
+        <hr class="t-dotted" />
+
+        <div class="t-section-header">DATOS DEL PASAJERO</div>
+        <div class="t-row"><span class="t-key">Documento:</span><span class="t-val">@(Model.ObjetoPasajero?.TipoDocumento ?? "DNI"): @(Model.ObjetoPasajero?.NumeroDocumento ?? "-")</span></div>
+        <div class="t-row" style="margin-bottom: 0;"><span class="t-key">Pasajero:</span></div>
+        <div class="t-pasajero-nombre">@(Model.ObjetoPasajero?.NombreCompleto?.ToUpper() ?? "PASAJERO")</div>
+
+        <hr class="t-dotted" />
+
+        <div class="t-section-header">DETALLES DEL ITINERARIO</div>
+        <div class="t-row">
+            <span class="t-key">Ruta:</span>
+            <span class="t-ruta-title">@(Model.ObjetoViaje?.ObjetoRuta?.Origen?.ToUpper() ?? "CHOTA") A @(Model.ObjetoViaje?.ObjetoRuta?.Destino?.ToUpper() ?? "CHICLAYO")</span>
+        </div>
+        <div class="t-row">
+            <span class="t-key">Fecha Salida:</span>
+            <span class="t-salida-fecha">@(Model.ObjetoViaje?.FechaHoraSalida.ToString("dd/MM/yyyy") ?? "-")</span>
+        </div>
+        <div class="t-row">
+            <span class="t-key">Hora Salida:</span>
+            <span class="t-salida-hora">@(Model.ObjetoViaje?.FechaHoraSalida.ToString("hh:mm tt") ?? "-")</span>
+        </div>
+        <div class="t-row" style="align-items: baseline;">
+            <span class="t-key" style="min-width: 80px;">Vehículo / Conductor:</span>
+            <span class="t-val" style="font-size: 10.5px;">@(Model.ObjetoViaje?.ObjetoBus?.NombreVehiculo ?? "Combi Express") (@(Model.ObjetoViaje?.NombreConductor ?? Model.ObjetoViaje?.ObjetoBus?.NombreConductor ?? "Conductor en Turno"))</span>
+        </div>
+
+        <div class="t-asiento-box">
+            <div class="t-asiento-label">ASIENTO ASIGNADO</div>
+            <div class="t-asiento-val">ASIENTO @Model.NumeroAsiento</div>
+        </div>
+
+        <hr class="t-dotted" />
+
+        <!-- Totales en caja redondeada gris igual a Imagen 2 -->
+        <div class="t-totales-box">
+            <div class="t-total-sub">
+                <span>Op. Gravada (Subtotal):</span>
+                <strong>S/ @subtotal.ToString("N2")</strong>
+            </div>
+            <div class="t-total-sub">
+                <span>I.G.V. (18%):</span>
+                <strong>S/ @igv.ToString("N2")</strong>
+            </div>
+            <hr />
+            <div class="t-total-final">
+                <span class="t-total-final-lbl">IMPORTE TOTAL</span>
+                <span class="t-total-final-val">S/ @Model.PrecioPagado.ToString("N2")</span>
+            </div>
+        </div>
+
+        <!-- Código de barras -->
+        <div class="t-barcode-box">
+            <svg id="barcodeTermal"></svg>
+            <div class="t-barcode-text">*@serieCorrelativo*</div>
+        </div>
+
+        <div class="t-footer-msg">
+            Representación impresa del Comprobante Electrónico.<br>
+            Consulte su validez en el portal SUNAT.<br>
+            ¡Tours Chota Express le desea un feliz viaje!
+        </div>
+
+    </div>
+
+    <script>
+        // Renderizar código de barras
+        try {
+            JsBarcode("#barcodeTermal", "@serieCorrelativo", {
+                format: "CODE128",
+                width: 1.6,
+                height: 44,
+                displayValue: false,
+                margin: 2,
+                background: "#ffffff",
+                lineColor: "#000000"
+            });
+        } catch (e) {
+            console.error("Barcode error:", e);
+        }
+
+        // Alternar vista previa en pantalla
+        function mostrarVista(vista) {
+            const docA4 = document.getElementById('docA4');
+            const ticketTermal = document.getElementById('ticketTermal');
+            const tabA4 = document.getElementById('tabBtnA4');
+            const tabTermal = document.getElementById('tabBtnTermal');
+
+            if (vista === 'termal') {
+                docA4.style.display = 'none';
+                ticketTermal.style.display = 'block';
+                tabTermal.classList.add('active');
+                tabA4.classList.remove('active');
+            } else {
+                docA4.style.display = 'block';
+                ticketTermal.style.display = 'none';
+                tabA4.classList.add('active');
+                tabTermal.classList.remove('active');
+            }
+        }
+
+        // Imprimir Ticket Térmico (Formato POS 80mm de Imagen 2)
+        function imprimirTermal() {
+            document.body.classList.add('printing-termal');
+            document.body.classList.remove('printing-a4');
+            mostrarVista('termal');
+            setTimeout(function () {
+                window.print();
+            }, 150);
+        }
+
+        // Guardar o Imprimir PDF Formal (Formato A4 de Imagen 3)
+        function guardarPdfA4() {
+            document.body.classList.add('printing-a4');
+            document.body.classList.remove('printing-termal');
+            mostrarVista('a4');
+            setTimeout(function () {
+                window.print();
+            }, 150);
+        }
+
+        window.onafterprint = function () {
+            document.body.classList.remove('printing-termal');
+            document.body.classList.remove('printing-a4');
+        };
+    </script>
+
+</body>
+</html>

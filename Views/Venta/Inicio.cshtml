@@ -1,0 +1,139 @@
+@{
+    ViewData["Title"] = "Bienvenido";
+    var nombre = TempData["BienvenidaLogin"]?.ToString() ?? User.Identity?.Name ?? "Trabajador";
+    var hora   = DateTime.Now.Hour;
+    var saludo = hora < 12 ? "Buenos días" : hora < 19 ? "Buenas tardes" : "Buenas noches";
+    var emoji  = hora < 12 ? "🌅" : hora < 19 ? "☀️" : "🌙";
+}
+
+<style>
+    .bienvenida-wrapper {
+        min-height: calc(100vh - 120px);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 2rem 1rem;
+    }
+
+    .nombre-glow {
+        background: linear-gradient(90deg, #f37021 0%, #fbbf24 50%, #f37021 100%);
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        animation: gradientShift 3s linear infinite;
+    }
+    @@keyframes gradientShift {
+        to { background-position: 200% center; }
+    }
+
+    .wave {
+        display: inline-block;
+        font-size: 3.5rem;
+        animation: waveHand 1.4s ease-in-out 0.4s 3;
+        transform-origin: 70% 70%;
+    }
+    @@keyframes waveHand {
+        0%   { transform: rotate(0deg); }
+        15%  { transform: rotate(20deg); }
+        30%  { transform: rotate(-8deg); }
+        45%  { transform: rotate(20deg); }
+        60%  { transform: rotate(-4deg); }
+        75%  { transform: rotate(12deg); }
+        100% { transform: rotate(0deg); }
+    }
+
+    .divider-glow {
+        height: 2px;
+        width: 120px;
+        margin: 1rem auto;
+        background: linear-gradient(90deg, transparent, #f37021, transparent);
+        border-radius: 99px;
+    }
+
+    /* Imagen de la combi */
+    .combi-img-wrapper {
+        width: 100%;
+        max-width: 820px;
+        margin: 0 auto;
+        border-radius: 22px;
+        overflow: hidden;
+        border: 1px solid rgba(243, 112, 33, 0.25);
+        box-shadow: 0 20px 60px rgba(243, 112, 33, 0.2), 0 4px 20px rgba(0,0,0,0.6);
+        position: relative;
+    }
+    .combi-img-wrapper img {
+        width: 100%;
+        height: auto;
+        display: block;
+        object-fit: cover;
+        max-height: 380px;
+    }
+    /* Overlay degradado en la parte inferior de la imagen */
+    .combi-img-overlay {
+        position: absolute;
+        bottom: 0; left: 0; right: 0;
+        height: 55%;
+        background: linear-gradient(to top, rgba(10,9,15,0.85) 0%, transparent 100%);
+    }
+    .combi-img-caption {
+        position: absolute;
+        bottom: 18px; left: 50%;
+        transform: translateX(-50%);
+        white-space: nowrap;
+        font-size: 0.78rem;
+        color: rgba(255,255,255,0.45);
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        font-weight: 600;
+    }
+
+    /* Animaciones de entrada */
+    .fade-up { opacity: 0; transform: translateY(26px); animation: fadeUp 0.6s ease forwards; }
+    .d1 { animation-delay: 0.05s; }
+    .d2 { animation-delay: 0.2s;  }
+    .d3 { animation-delay: 0.38s; }
+    .d4 { animation-delay: 0.55s; }
+    @@keyframes fadeUp { to { opacity:1; transform:translateY(0); } }
+</style>
+
+<div class="bienvenida-wrapper">
+
+    <!-- Saludo -->
+    <div class="fade-up d1">
+        <span class="wave">👋</span>
+        <span style="font-size:3rem; margin-left:4px;">@emoji</span>
+    </div>
+
+    <div class="fade-up d2 mt-2">
+        <p class="text-muted mb-1" style="font-size:0.95rem; letter-spacing:1.2px; text-transform:uppercase; font-weight:600;">
+            @saludo
+        </p>
+        <h1 style="font-size: clamp(1.9rem, 5vw, 3rem); font-weight:900; line-height:1.1; color:#fff;">
+            <span class="nombre-glow">@nombre</span>
+        </h1>
+        <div class="divider-glow"></div>
+        <p class="text-muted" style="font-size:0.98rem;">
+            Bienvenido al sistema de ventas de <span class="text-white fw-bold">Chota Express</span>.<br>
+            Usa el menú superior para empezar.
+        </p>
+    </div>
+
+    <!-- Imagen de la combi -->
+    <div class="combi-img-wrapper fade-up d3 mt-4">
+        <img src="~/img/combi_bienvenida.jpg" alt="Combi Chota Express en ruta de montaña" />
+        <div class="combi-img-overlay"></div>
+        <span class="combi-img-caption">Chota Express — Siempre en ruta 🚐</span>
+    </div>
+
+    <!-- Hora de sesión -->
+    <div class="fade-up d4 mt-3">
+        <small class="text-muted" style="font-size:0.75rem;">
+            <i class="fa-regular fa-clock me-1"></i>
+            Sesión iniciada el @DateTime.Now.ToString("dd/MM/yyyy") a las @DateTime.Now.ToString("hh:mm tt")
+        </small>
+    </div>
+
+</div>

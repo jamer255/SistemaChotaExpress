@@ -1,0 +1,565 @@
+@model SistemaChotaExpress.Models.Viaje
+@{
+    Layout = null;
+    var ventas = ViewBag.VentasActivas as List<SistemaChotaExpress.Models.Venta> ?? new List<SistemaChotaExpress.Models.Venta>();
+    var vendidosCount = ventas.Count(v => v.Estado == "Vendido");
+    var reservadosCount = ventas.Count(v => v.Estado == "Reservado");
+    var ocupadosTotal = vendidosCount + reservadosCount;
+    var libresCount = 15 - ocupadosTotal;
+    if (libresCount < 0) libresCount = 0;
+
+    // Dict helper for quick lookup by seat
+    var ventasDict = ventas.GroupBy(v => v.NumeroAsiento).ToDictionary(g => g.Key, g => g.First());
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Manifiesto de Pasajeros - Viaje #@Model.Id_Viaje - Chota Express</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #f1f5f9;
+            color: #0f172a;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .paper-sheet {
+            max-width: 960px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 28px 36px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border: 1px solid #cbd5e1;
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid #f37021;
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+        }
+
+        .company-name {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #f37021;
+            letter-spacing: 0.5px;
+            margin: 0;
+        }
+
+        .manifest-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #1e293b;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 4px;
+        }
+
+        .meta-box {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+        }
+
+        .meta-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+
+        .meta-value {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        /* Croquis de Asientos para Chofer */
+        .cabin-layout {
+            background: #ffffff;
+            border: 1.5px solid #0f172a;
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 20px;
+        }
+
+        .cabin-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(4, 1fr);
+            gap: 8px;
+            align-items: center;
+            justify-items: center;
+        }
+
+        .seat-item {
+            width: 100%;
+            height: 64px;
+            border: 1.5px solid #94a3b8;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2px 4px;
+            font-size: 0.72rem;
+            text-align: center;
+            background: #f8fafc;
+        }
+
+        .seat-item.occupied {
+            background-color: #fee2e2;
+            border-color: #ef4444;
+            color: #991b1b;
+        }
+
+        .seat-item.reserved {
+            background-color: #fef3c7;
+            border-color: #f59e0b;
+            color: #92400e;
+        }
+
+        .seat-item.free {
+            background-color: #ecfdf5;
+            border-color: #10b981;
+            color: #065f46;
+        }
+
+        .seat-number-badge {
+            font-weight: 800;
+            font-size: 0.85rem;
+            line-height: 1;
+        }
+
+        .passenger-mini-name {
+            font-size: 0.65rem;
+            font-weight: 700;
+            line-height: 1.1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+            margin-top: 2px;
+        }
+
+        .seat-status-mini {
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .driver-box {
+            border: 1.5px dashed #64748b;
+            border-radius: 6px;
+            height: 64px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #475569;
+            font-size: 0.75rem;
+            font-weight: 700;
+            background: #f1f5f9;
+        }
+
+        /* Tabla de Pasajeros */
+        .manifest-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.78rem;
+            margin-bottom: 24px;
+        }
+
+        .manifest-table th {
+            background-color: #0f172a;
+            color: #ffffff;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            padding: 8px 6px;
+            border: 1px solid #0f172a;
+            text-align: left;
+        }
+
+        .manifest-table td {
+            padding: 7px 6px;
+            border: 1px solid #cbd5e1;
+            vertical-align: middle;
+        }
+
+        .manifest-table tr:nth-child(even) td {
+            background-color: #f8fafc;
+        }
+
+        .signatures-area {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 36px;
+            padding-top: 16px;
+        }
+
+        .sig-block {
+            text-align: center;
+            width: 220px;
+        }
+
+        .sig-line {
+            border-top: 1.5px solid #0f172a;
+            margin-bottom: 6px;
+        }
+
+        .sig-title {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #1e293b;
+            text-transform: uppercase;
+        }
+
+        .sig-sub {
+            font-size: 0.68rem;
+            color: #64748b;
+        }
+
+        /* Print Controls Bar */
+        .print-bar {
+            max-width: 960px;
+            margin: 0 auto 16px auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        @@media print {
+            body {
+                background: #ffffff !important;
+                padding: 0 !important;
+            }
+            .print-bar {
+                display: none !important;
+            }
+            .paper-sheet {
+                max-width: 100% !important;
+                border: none !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+            }
+            .manifest-table th {
+                background-color: #000000 !important;
+                color: #ffffff !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .seat-item.occupied {
+                background-color: #fee2e2 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .seat-item.reserved {
+                background-color: #fef3c7 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .seat-item.free {
+                background-color: #ecfdf5 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Bar with Action Buttons (Hidden when printing) -->
+    <div class="print-bar">
+        <div>
+            <button onclick="window.print();" class="btn btn-primary fw-bold px-4 py-2" style="background-color: #f37021; border-color: #f37021;">
+                <i class="fa-solid fa-print me-1"></i> Imprimir Manifiesto para Chofer
+            </button>
+            <button onclick="window.close();" class="btn btn-outline-secondary fw-bold px-3 py-2 ms-2">
+                <i class="fa-solid fa-xmark me-1"></i> Cerrar
+            </button>
+        </div>
+        <div class="text-muted fs-8">
+            <i class="fa-solid fa-circle-info me-1 text-primary"></i> Formato optimizado para impresión en hoja A4.
+        </div>
+    </div>
+
+    <!-- Official Paper Document -->
+    <div class="paper-sheet">
+        <!-- Header -->
+        <div class="header-brand">
+            <div>
+                <h1 class="company-name">TOURS CHOTA EXPRESS S.A.C.</h1>
+                <div class="manifest-title">MANIFIESTO OFICIAL DE PASAJEROS & CROQUIS DE ASIENTOS</div>
+                <small class="text-muted">Servicio de Transporte Interprovincial de Pasajeros | RUC: 20600308883</small>
+            </div>
+            <div class="text-end">
+                <span class="badge bg-dark fs-7 px-3 py-2 font-monospace">SALIDA #@Model.Id_Viaje</span>
+                <div class="fs-9 text-muted mt-1">Impreso: @DateTime.Now.ToString("dd/MM/yyyy hh:mm tt")</div>
+            </div>
+        </div>
+
+        <!-- Trip Metadata -->
+        <div class="meta-box">
+            <div class="row g-2">
+                <div class="col-3">
+                    <div class="meta-label">Ruta de Viaje:</div>
+                    <div class="meta-value text-primary">
+                        @(Model.ObjetoRuta?.Origen?.ToUpper() ?? "ORIGEN") → @(Model.ObjetoRuta?.Destino?.ToUpper() ?? "DESTINO")
+                    </div>
+                </div>
+                <div class="col-3">
+                    <div class="meta-label">Fecha y Hora de Salida:</div>
+                    <div class="meta-value">
+                        @Model.FechaHoraSalida.ToString("dd/MM/yyyy - hh:mm tt")
+                    </div>
+                </div>
+                <div class="col-3">
+                    <div class="meta-label">Vehículo / Placa:</div>
+                    <div class="meta-value font-monospace">
+                        @(Model.ObjetoBus?.NombreVehiculo ?? "Combi Express") | <span class="badge bg-dark">@(string.IsNullOrWhiteSpace(Model.PlacaVehiculo) ? "SIN PLACA" : Model.PlacaVehiculo.ToUpper())</span>
+                    </div>
+                </div>
+                <div class="col-3">
+                    <div class="meta-label">Conductor Asignado:</div>
+                    <div class="meta-value text-uppercase">
+                        @(string.IsNullOrWhiteSpace(Model.NombreConductor) ? "POR ASIGNAR" : Model.NombreConductor)
+                    </div>
+                </div>
+                <div class="col-12 mt-2 pt-2 border-top border-light d-flex justify-content-between align-items-center">
+                    <div class="fs-8">
+                        <strong>Capacidad Total:</strong> 15 asientos &nbsp;|&nbsp; 
+                        <strong class="text-success">Vendidos:</strong> @vendidosCount &nbsp;|&nbsp;
+                        <strong class="text-warning">Reservados:</strong> @reservadosCount &nbsp;|&nbsp;
+                        <strong class="text-secondary">Libres:</strong> @libresCount
+                    </div>
+                    <div class="fs-8 font-monospace">
+                        <strong>Total Recaudado:</strong> S/ @ventas.Where(v => v.Estado == "Vendido").Sum(v => v.PrecioPagado).ToString("0.00")
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Croquis Visual de los 15 Asientos para el Chofer (Mismo orden que el plano de ventas) -->
+        <div class="cabin-layout">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="fw-bold fs-8 text-uppercase"><i class="fa-solid fa-van-shuttle me-1 text-primary"></i> Croquis de Asientos - Piso 1 Combi Estándar (Distribución Física)</span>
+                <div class="d-flex gap-2 fs-9">
+                    <span class="badge" style="background:#fee2e2; color:#991b1b; border:1px solid #ef4444;">Vendido (@vendidosCount)</span>
+                    <span class="badge" style="background:#fef3c7; color:#92400e; border:1px solid #f59e0b;">Reservado (@reservadosCount)</span>
+                    <span class="badge" style="background:#ecfdf5; color:#065f46; border:1px solid #10b981;">Libre (@libresCount)</span>
+                </div>
+            </div>
+
+            <div class="cabin-grid">
+                <!-- Fila 1 (Superior) -->
+                @Html.Raw(RenderSeatManifestCell(2, ventasDict, 1, 1))
+                <div class="seat-space" style="grid-row: 1; grid-column: 2;"></div>
+                @Html.Raw(RenderSeatManifestCell(8, ventasDict, 1, 3))
+                @Html.Raw(RenderSeatManifestCell(11, ventasDict, 1, 4))
+                @Html.Raw(RenderSeatManifestCell(15, ventasDict, 1, 5))
+
+                <!-- Fila 2 -->
+                @Html.Raw(RenderSeatManifestCell(1, ventasDict, 2, 1))
+                @Html.Raw(RenderSeatManifestCell(5, ventasDict, 2, 2))
+                <div class="seat-space" style="grid-row: 2; grid-column: 3;"></div>
+                <div class="seat-space" style="grid-row: 2; grid-column: 4;"></div>
+                @Html.Raw(RenderSeatManifestCell(14, ventasDict, 2, 5))
+
+                <!-- Fila 3 -->
+                <div class="seat-space" style="grid-row: 3; grid-column: 1;"></div>
+                @Html.Raw(RenderSeatManifestCell(4, ventasDict, 3, 2))
+                @Html.Raw(RenderSeatManifestCell(7, ventasDict, 3, 3))
+                @Html.Raw(RenderSeatManifestCell(10, ventasDict, 3, 4))
+                @Html.Raw(RenderSeatManifestCell(13, ventasDict, 3, 5))
+
+                <!-- Fila 4 (Inferior / Conductor) -->
+                <div class="driver-box" style="grid-row: 4; grid-column: 1;">
+                    <i class="fa-solid fa-circle-radiation mb-1" style="transform: rotate(45deg); font-size: 1.3rem;"></i>
+                    <span>CHOFER</span>
+                </div>
+                @Html.Raw(RenderSeatManifestCell(3, ventasDict, 4, 2))
+                @Html.Raw(RenderSeatManifestCell(6, ventasDict, 4, 3))
+                @Html.Raw(RenderSeatManifestCell(9, ventasDict, 4, 4))
+                @Html.Raw(RenderSeatManifestCell(12, ventasDict, 4, 5))
+            </div>
+        </div>
+
+        <!-- Tabla Detallada de Pasajeros para el Conductor -->
+        <h6 class="fw-bold text-uppercase fs-8 mb-2"><i class="fa-solid fa-list-check me-1 text-primary"></i> Relación Nominal de Pasajeros</h6>
+        <table class="manifest-table">
+            <thead>
+                <tr>
+                    <th style="width: 45px; text-align: center;">Asiento</th>
+                    <th>Nombres y Apellidos del Pasajero</th>
+                    <th style="width: 100px;">Doc. Identidad</th>
+                    <th style="width: 85px;">Teléfono</th>
+                    <th style="width: 110px;">Destino / Bajada</th>
+                    <th>Comprobante / RUC</th>
+                    <th style="width: 65px; text-align: right;">Monto</th>
+                    <th style="width: 75px; text-align: center;">Estado</th>
+                    <th style="width: 110px; text-align: center;">Vendido por</th>
+                    <th style="width: 70px; text-align: center;">Abordaje</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (int s = 1; s <= 15; s++)
+                {
+                    if (ventasDict.ContainsKey(s))
+                    {
+                        var vta = ventasDict[s];
+                        var pas = vta.ObjetoPasajero;
+                        <tr>
+                            <td style="text-align: center; font-weight: 800; font-size: 0.85rem;" class="font-monospace">
+                                #@s
+                            </td>
+                            <td>
+                                <strong>@(pas?.NombreCompleto ?? "Pasajero")</strong>
+                                @if (!string.IsNullOrWhiteSpace(vta.Observaciones) && !vta.Observaciones.StartsWith("Bajada:") && !vta.Observaciones.StartsWith("Destino:"))
+                                {
+                                    <div class="text-muted fs-9"><i class="fa-solid fa-comment-dots me-1"></i>Obs: @vta.Observaciones</div>
+                                }
+                            </td>
+                            <td class="font-monospace fs-9">
+                                @(pas?.TipoDocumento ?? "DNI"): @(pas?.NumeroDocumento ?? "-")
+                            </td>
+                            <td class="font-monospace fs-9">
+                                @(string.IsNullOrWhiteSpace(pas?.Telefono) ? "-" : pas.Telefono)
+                            </td>
+                            <td>
+                                @{
+                                    var destPasajero = Model.ObjetoRuta?.Destino ?? "Destino";
+                                    if (!string.IsNullOrWhiteSpace(vta.Observaciones))
+                                    {
+                                        if (vta.Observaciones.Contains("Bajada:"))
+                                        {
+                                            destPasajero = vta.Observaciones.Split('|')[0].Replace("Bajada:", "").Trim();
+                                        }
+                                        else if (vta.Observaciones.Contains("Destino:"))
+                                        {
+                                            destPasajero = vta.Observaciones.Split('|')[0].Replace("Destino:", "").Trim();
+                                        }
+                                    }
+                                }
+                                <span class="fw-bold text-primary fs-8">@destPasajero.ToUpper()</span>
+                            </td>
+                            <td class="fs-9">
+                                <div>@vta.TipoComprobante</div>
+                                @if (!string.IsNullOrWhiteSpace(vta.RucEmpresa))
+                                {
+                                    <span class="text-primary font-monospace fs-9">RUC: @vta.RucEmpresa (@vta.RazonSocialEmpresa)</span>
+                                }
+                            </td>
+                            <td style="text-align: right; font-weight: 700;" class="font-monospace">
+                                S/ @vta.PrecioPagado.ToString("0.00")
+                            </td>
+                            <td style="text-align: center;">
+                                @if (vta.Estado == "Vendido")
+                                {
+                                    <span class="badge bg-success" style="font-size: 0.65rem;">VENDIDO</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning text-dark" style="font-size: 0.65rem;">RESERVADO</span>
+                                }
+                            </td>
+                            <td style="text-align: center; font-size: 0.72rem;">
+                                @(vta.ObjetoUsuario?.Name ?? "Sistema")
+                            </td>
+                            <td style="text-align: center;">
+                                <div style="width: 18px; height: 18px; border: 1.5px solid #64748b; border-radius: 3px; margin: 0 auto;"></div>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        <tr style="opacity: 0.55;">
+                            <td style="text-align: center; font-weight: 700; font-size: 0.85rem;" class="font-monospace text-muted">
+                                #@s
+                            </td>
+                            <td class="text-muted fst-italic">-- Asiento Libre / Disponible --</td>
+                            <td class="text-muted text-center">-</td>
+                            <td class="text-muted text-center">-</td>
+                            <td class="text-muted text-center">-</td>
+                            <td class="text-muted">-</td>
+                            <td class="text-muted text-end font-monospace">S/ 0.00</td>
+                            <td style="text-align: center;"><span class="badge bg-light text-secondary" style="font-size: 0.65rem; border:1px solid #cbd5e1;">LIBRE</span></td>
+                            <td class="text-muted text-center">-</td>
+                            <td style="text-align: center;">-</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+
+        <!-- Firmas del Conductor y Despachador -->
+        <div class="signatures-area">
+            <div class="sig-block">
+                <div class="sig-line"></div>
+                <div class="sig-title">Firma del Conductor</div>
+                <div class="sig-sub">@(string.IsNullOrWhiteSpace(Model.NombreConductor) ? "Nombre del Conductor" : Model.NombreConductor.ToUpper())</div>
+                <div class="sig-sub font-monospace">Placa: @(string.IsNullOrWhiteSpace(Model.PlacaVehiculo) ? "S/P" : Model.PlacaVehiculo.ToUpper())</div>
+            </div>
+
+            <div class="sig-block">
+                <div class="sig-line"></div>
+                <div class="sig-title">Despachador / Administración</div>
+                <div class="sig-sub">Control de Salida & Terminal</div>
+                <div class="sig-sub">Chota Express S.A.C.</div>
+            </div>
+        </div>
+
+        <div class="mt-4 pt-2 border-top text-center text-muted fs-9">
+            <i class="fa-solid fa-shield-halved me-1"></i> Este documento constituye el manifiesto de pasajeros legal conforme a las normativas del MTC / SUTRAN.
+        </div>
+    </div>
+
+</body>
+</html>
+
+@functions {
+    public static string RenderSeatManifestCell(int seatNum, Dictionary<int, SistemaChotaExpress.Models.Venta> dict, int row = 0, int col = 0)
+    {
+        string gridStyle = (row > 0 && col > 0) ? $"style=\"grid-row: {row}; grid-column: {col};\"" : "";
+        if (dict.ContainsKey(seatNum))
+        {
+            var vta = dict[seatNum];
+            var pas = vta.ObjetoPasajero;
+            var isVendido = vta.Estado == "Vendido";
+            var cssClass = isVendido ? "occupied" : "reserved";
+            var passengerName = pas?.NombreCompleto ?? "Pasajero";
+            var doc = pas?.NumeroDocumento ?? "";
+
+            return $@"
+            <div class=""seat-item {cssClass}"" {gridStyle} title=""Asiento #{seatNum} - {passengerName} ({doc})"">
+                <div class=""seat-number-badge"">#{seatNum}</div>
+                <div class=""passenger-mini-name"" title=""{passengerName}"">{passengerName}</div>
+                <div class=""seat-status-mini font-monospace"">{doc}</div>
+            </div>";
+        }
+        else
+        {
+            return $@"
+            <div class=""seat-item free"" {gridStyle} title=""Asiento #{seatNum} - Libre"">
+                <div class=""seat-number-badge"">#{seatNum}</div>
+                <div class=""seat-status-mini text-success"">LIBRE</div>
+            </div>";
+        }
+    }
+}

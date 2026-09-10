@@ -1,0 +1,258 @@
+@{
+    ViewData["Title"] = "Dashboard de Gerencia";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex align-items-center justify-content-between">
+            <h1 class="h2 text-white fw-bold mb-0">Panel de Control Gerencial</h1>
+            <span class="badge bg-secondary px-3 py-2 fs-6">Modo Gerente</span>
+        </div>
+        <p class="text-muted">Resumen financiero y control operativo de Tours Chota Express S.A.C.</p>
+    </div>
+</div>
+
+<!-- KPI Cards -->
+<div class="row g-3 mb-4">
+    <!-- Ventas del Día -->
+    <div class="col-md-3">
+        <div class="card bg-dark text-white border-glass p-3 h-100 position-relative overflow-hidden card-kpi">
+            <div class="kpi-glow-green"></div>
+            <div class="d-flex justify-content-between align-items-start z-1">
+                <div>
+                    <h6 class="text-uppercase text-muted fs-7 font-weight-600">Ventas del Día</h6>
+                    <h3 class="fw-bold my-2">S/ @ViewBag.VentasHoy.ToString("N2")</h3>
+                    <p class="text-success mb-0 fs-8"><i class="fa-solid fa-ticket me-1"></i> @ViewBag.CantidadHoy pasajes vendidos</p>
+                </div>
+                <div class="icon-circle bg-success-transparent text-success">
+                    <i class="fa-solid fa-calendar-day"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Ventas del Mes -->
+    <div class="col-md-3">
+        <div class="card bg-dark text-white border-glass p-3 h-100 position-relative overflow-hidden card-kpi">
+            <div class="kpi-glow-blue"></div>
+            <div class="d-flex justify-content-between align-items-start z-1">
+                <div>
+                    <h6 class="text-uppercase text-muted fs-7 font-weight-600">Ventas del Mes</h6>
+                    <h3 class="fw-bold my-2">S/ @ViewBag.VentasMes.ToString("N2")</h3>
+                    <p class="text-info mb-0 fs-8"><i class="fa-solid fa-circle-check me-1"></i> Mes en curso</p>
+                </div>
+                <div class="icon-circle bg-info-transparent text-info">
+                    <i class="fa-solid fa-calendar-days"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Ventas del Año -->
+    <div class="col-md-3">
+        <div class="card bg-dark text-white border-glass p-3 h-100 position-relative overflow-hidden card-kpi">
+            <div class="kpi-glow-orange"></div>
+            <div class="d-flex justify-content-between align-items-start z-1">
+                <div>
+                    <h6 class="text-uppercase text-muted fs-7 font-weight-600">Ventas del Año</h6>
+                    <h3 class="fw-bold my-2">S/ @ViewBag.VentasAnio.ToString("N2")</h3>
+                    <p class="text-warning mb-0 fs-8"><i class="fa-solid fa-chart-line me-1"></i> Año fiscal actual</p>
+                </div>
+                <div class="icon-circle bg-warning-transparent text-warning">
+                    <i class="fa-solid fa-chart-pie"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Operaciones Activas -->
+    <div class="col-md-3">
+        <div class="card bg-dark text-white border-glass p-3 h-100 position-relative overflow-hidden card-kpi">
+            <div class="kpi-glow-purple"></div>
+            <div class="d-flex justify-content-between align-items-start z-1">
+                <div>
+                    <h6 class="text-uppercase text-muted fs-7 font-weight-600">Viajes Programados</h6>
+                    <h3 class="fw-bold my-2">@ViewBag.ViajesCount</h3>
+                    <p class="text-purple mb-0 fs-8"><i class="fa-solid fa-user-group me-1"></i> @ViewBag.TrabajadoresCount vendedores activos</p>
+                </div>
+                <div class="icon-circle bg-purple-transparent text-purple">
+                    <i class="fa-solid fa-bus"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="row g-4 mb-4">
+    <!-- Chart Last 15 Days -->
+    <div class="col-md-7">
+        <div class="card bg-dark text-white border-glass p-4 h-100">
+            <h5 class="fw-bold mb-3"><i class="fa-solid fa-arrow-trend-up text-primary me-2"></i> Ventas Diarias (Últimos 15 días)</h5>
+            <div class="chart-container" style="position: relative; height:300px; width:100%">
+                <canvas id="diasChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <!-- Chart Months -->
+    <div class="col-md-5">
+        <div class="card bg-dark text-white border-glass p-4 h-100">
+            <h5 class="fw-bold mb-3"><i class="fa-solid fa-chart-column text-primary me-2"></i> Ventas Mensuales</h5>
+            <div class="chart-container" style="position: relative; height:300px; width:100%">
+                <canvas id="mesesChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Table and Quick Links -->
+<div class="row g-4">
+    <!-- Top Routes -->
+    <div class="col-md-8">
+        <div class="card bg-dark text-white border-glass p-4 h-100">
+            <h5 class="fw-bold mb-3"><i class="fa-solid fa-award text-warning me-2"></i> Rutas Más Vendidas (Top 5)</h5>
+            <div class="table-responsive">
+                <table class="table table-dark table-hover mb-0 align-middle">
+                    <thead>
+                        <tr class="text-muted border-secondary">
+                            <th>Ruta</th>
+                            <th class="text-center">Boletos Vendidos</th>
+                            <th class="text-end">Monto Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            var topRutas = ViewBag.ViajesMasVendidos as List<SistemaChotaExpress.ViewModels.RutaMasVendidaVM>;
+                        }
+                        @if (topRutas != null && topRutas.Any())
+                        {
+                            foreach (var item in topRutas)
+                            {
+                                <tr>
+                                    <td class="fw-semibold">@item.Ruta</td>
+                                    <td class="text-center"><span class="badge bg-secondary px-2.5 py-1.5">@item.Cantidad</span></td>
+                                    <td class="text-end fw-bold text-success">S/ @item.Monto.ToString("N2")</td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="3" class="text-center text-muted py-4">No hay ventas registradas actualmente.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <!-- Quick Management links -->
+    <div class="col-md-4">
+        <div class="card bg-dark text-white border-glass p-4 h-100">
+            <h5 class="fw-bold mb-3"><i class="fa-solid fa-gears text-primary me-2"></i> Gestión Rápida</h5>
+            <div class="d-grid gap-3">
+                <a asp-action="Trabajadores" class="btn btn-outline-light text-start py-3 px-3 d-flex align-items-center gap-3 border-glass-btn btn-management">
+                    <div class="m-icon bg-warning-transparent text-warning"><i class="fa-solid fa-user-tie"></i></div>
+                    <div>
+                        <div class="fw-bold">Vendedores / Cuentas</div>
+                        <small class="text-muted">Crear cuentas de venta</small>
+                    </div>
+                </a>
+                <a asp-controller="Venta" asp-action="BuscarViajes" class="btn btn-outline-light text-start py-3 px-3 d-flex align-items-center gap-3 border-glass-btn btn-management">
+                    <div class="m-icon bg-purple-transparent text-purple"><i class="fa-solid fa-cart-shopping"></i></div>
+                    <div>
+                        <div class="fw-bold">Vender Pasajes</div>
+                        <small class="text-muted">Emitir boletas y facturas</small>
+                    </div>
+                </a>
+                <a asp-controller="Venta" asp-action="MisVentas" class="btn btn-outline-light text-start py-3 px-3 d-flex align-items-center gap-3 border-glass-btn btn-management">
+                    <div class="m-icon bg-success-transparent text-success"><i class="fa-solid fa-list-check"></i></div>
+                    <div>
+                        <div class="fw-bold">Registro de Ventas</div>
+                        <small class="text-muted">Ver pasajes vendidos</small>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Chart 1: Daily Sales
+            const ctxDias = document.getElementById('diasChart').getContext('2d');
+            const diasLabels = @Html.Raw(Json.Serialize(ViewBag.DiasLabels));
+            const diasValores = @Html.Raw(Json.Serialize(ViewBag.DiasValores));
+
+            new Chart(ctxDias, {
+                type: 'line',
+                data: {
+                    labels: diasLabels,
+                    datasets: [{
+                        label: 'Ventas Diarias (S/)',
+                        data: diasValores,
+                        borderColor: '#F37021',
+                        backgroundColor: 'rgba(243, 112, 33, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#F37021',
+                        pointHoverRadius: 7
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            ticks: { color: '#8d8d99' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#8d8d99' }
+                        }
+                    }
+                }
+            });
+
+            // Chart 2: Monthly Sales
+            const ctxMeses = document.getElementById('mesesChart').getContext('2d');
+            const mesesLabels = @Html.Raw(Json.Serialize(ViewBag.MesesLabels));
+            const mesesValores = @Html.Raw(Json.Serialize(ViewBag.MesesValores));
+
+            new Chart(ctxMeses, {
+                type: 'bar',
+                data: {
+                    labels: mesesLabels,
+                    datasets: [{
+                        label: 'Ventas (S/)',
+                        data: mesesValores,
+                        backgroundColor: '#ff9248',
+                        borderRadius: 6,
+                        hoverBackgroundColor: '#F37021'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            ticks: { color: '#8d8d99' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#8d8d99' }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+}

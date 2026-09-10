@@ -1,0 +1,209 @@
+@model IEnumerable<SistemaChotaExpress.Models.Venta>
+@{
+    ViewData["Title"] = "Registro de pasajes vendidos";
+}
+
+<div class="row mb-4">
+    <div class="col-12 d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div>
+            <h1 class="h2 text-white fw-bold"><i class="fa-solid fa-list-check text-primary me-2"></i> Registro de pasajes vendidos</h1>
+            <p class="text-muted">Lista completa de boletos, facturas emitidas, reservas y descargas en formatos XML y Excel.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="ExportarExcel" class="btn btn-success py-2.5 px-3" style="background-color: #198754; border-radius: 8px;">
+                <i class="fa-solid fa-file-excel me-1"></i> Descargar Excel / CSV
+            </a>
+            <a asp-action="BuscarViajes" class="btn btn-primary btn-orange-solid py-2.5 px-4" style="border-radius: 8px;">
+                <i class="fa-solid fa-plus me-1"></i> Nueva Venta
+            </a>
+        </div>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show bg-success text-white border-0 mb-4" role="alert">
+        <i class="fa-solid fa-circle-check me-2"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show bg-danger text-white border-0 mb-4" role="alert">
+        <i class="fa-solid fa-circle-exclamation me-2"></i> @TempData["ErrorMessage"]
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<!-- Filters / Quick search -->
+<div class="card bg-dark text-white border-glass p-3 mb-4">
+    <div class="row align-items-center g-2">
+        <div class="col-md-6">
+            <span class="fs-8 text-muted"><i class="fa-solid fa-info-circle me-1"></i> Busca por pasajero, DNI, RUC, número de comprobante o destino.</span>
+        </div>
+        <div class="col-md-6 text-end">
+            <input type="text" id="tableFilter" class="form-control bg-dark-input text-white border-glass-field d-inline-block" placeholder="Filtrar ventas, RUC o pasajeros..." style="max-width: 350px;" />
+        </div>
+    </div>
+</div>
+
+<!-- List of sales -->
+<div class="card bg-dark text-white border-glass p-4">
+    <div class="table-responsive">
+        <table class="table table-dark table-hover mb-0 align-middle fs-8" id="ventasTable">
+            <thead>
+                <tr class="text-muted border-secondary">
+                    <th>Comprobante / Fecha</th>
+                    <th>Pasajero & RUC</th>
+                    <th>Itinerario / Salida</th>
+                    <th>Vehículo / Asiento</th>
+                    <th class="text-end">Monto</th>
+                    <th class="text-center">Estado</th>
+                    <th>Vendido / Reservado por</th>
+                    <th class="text-end">Descargas & Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var v in Model)
+                    {
+                        <tr class="venta-row border-secondary">
+                            <td>
+                                <div>
+                                    @if (v.TipoComprobante == "Factura")
+                                    {
+                                        <span class="badge bg-success" style="background-color: rgba(25, 135, 84, 0.2) !important; color: #20c997 !important; border: 1px solid rgba(25, 135, 84, 0.4);"><i class="fa-solid fa-file-invoice me-1"></i> Factura F001-@v.Id_Venta.ToString("D8")</span>
+                                    }
+                                    else if (v.TipoComprobante == "Ticket")
+                                    {
+                                        <span class="badge bg-secondary"><i class="fa-solid fa-receipt me-1"></i> Ticket T001-@v.Id_Venta.ToString("D8")</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-primary" style="background-color: rgba(243, 112, 33, 0.2) !important; color: #ff9248 !important; border: 1px solid rgba(243, 112, 33, 0.4);"><i class="fa-solid fa-file-lines me-1"></i> Boleta B001-@v.Id_Venta.ToString("D8")</span>
+                                    }
+                                </div>
+                                <div class="text-muted fs-9 mt-1">@v.FechaVenta.ToString("dd/MM/yyyy hh:mm tt")</div>
+                            </td>
+                            <td>
+                                <div class="fw-bold">@v.ObjetoPasajero!.NombreCompleto</div>
+                                <div class="fs-9 text-warning font-monospace">@v.ObjetoPasajero.TipoDocumento: @v.ObjetoPasajero.NumeroDocumento</div>
+                                @if (!string.IsNullOrEmpty(v.RucEmpresa))
+                                {
+                                    <div class="fs-9 text-info mt-0.5"><i class="fa-solid fa-building me-1"></i> RUC: @v.RucEmpresa - @v.RazonSocialEmpresa</div>
+                                }
+                            </td>
+                            <td>
+                                <div class="fw-semibold">@(v.ObjetoViaje?.ObjetoRuta?.Origen ?? "Origen") <i class="fa-solid fa-arrow-right text-warning fs-9 mx-1"></i> @(v.ObjetoViaje?.ObjetoRuta?.Destino ?? "Destino")</div>
+                                <small class="text-muted fs-9">Salida: @(v.ObjetoViaje?.FechaHoraSalida.ToString("dd/MM/yyyy - hh:mm tt") ?? "-")</small>
+                            </td>
+                            <td>
+                                <div class="fw-bold text-light"><i class="fa-solid fa-van-shuttle me-1 text-primary"></i>@(v.ObjetoViaje?.ObjetoBus?.NombreVehiculo ?? "Combi Express")</div>
+                                <span class="badge bg-secondary font-monospace px-2 py-1 fs-9">Asiento #@v.NumeroAsiento</span>
+                            </td>
+                            <td class="text-end fw-bold text-success fs-7">S/ @v.PrecioPagado.ToString("N2")</td>
+                            <td class="text-center">
+                                @if (v.Estado == "Vendido")
+                                {
+                                    <span class="badge bg-success-transparent text-success px-2.5 py-1.5"><i class="fa-solid fa-circle-check me-1"></i> Vendido</span>
+                                }
+                                else if (v.Estado == "Reservado")
+                                {
+                                    <span class="badge bg-warning-transparent text-warning px-2.5 py-1.5"><i class="fa-solid fa-hourglass-half me-1"></i> Reservado</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger-transparent text-danger px-2.5 py-1.5"><i class="fa-solid fa-circle-xmark me-1"></i> Cancelado</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="fw-bold text-info fs-8"><i class="fa-solid fa-user-check me-1"></i>@(v.ObjetoUsuario?.Name ?? "Cuenta Sistema")</div>
+                                <small class="text-muted fs-9">@(v.ObjetoUsuario?.Email ?? "-")</small>
+                            </td>
+                            <td class="text-end">
+                                <div class="d-inline-flex gap-1">
+                                    @if (v.Estado == "Reservado")
+                                    {
+                                        <!-- Confirm Reservation Form -->
+                                        <form asp-action="ConfirmarReserva" method="post" class="m-0">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@v.Id_Venta" />
+                                            <button type="submit" class="btn btn-xs btn-success py-1 px-2" style="border-radius: 6px;" title="Confirmar y Cobrar Venta">
+                                                <i class="fa-solid fa-check me-1"></i> Cobrar
+                                            </button>
+                                        </form>
+
+                                        <!-- Cancel Reservation Form -->
+                                        <form asp-action="CancelarTransaccion" method="post" class="m-0" onsubmit="return confirm('¿Está seguro de que desea cancelar esta reserva? El asiento quedará libre.');">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@v.Id_Venta" />
+                                            <button type="submit" class="btn btn-xs btn-outline-danger py-1 px-2" style="border-radius: 6px;" title="Cancelar Reserva">
+                                                <i class="fa-solid fa-trash-can"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                    else if (v.Estado == "Vendido")
+                                    {
+                                        <!-- Botón Imprimir / PDF -->
+                                        <a asp-action="Ticket" asp-route-id="@v.Id_Venta" target="_blank" class="btn btn-xs btn-outline-info py-1 px-2" style="border-radius: 6px;" title="Ver / Imprimir Comprobante Electrónico (PDF)">
+                                            <i class="fa-solid fa-file-pdf me-1"></i> PDF / Imprimir
+                                        </a>
+
+                                        <!-- Botón Descargar XML (UBL 2.1) -->
+                                        <a asp-action="DescargarXml" asp-route-id="@v.Id_Venta" class="btn btn-xs btn-outline-warning py-1 px-2" style="border-radius: 6px;" title="Descargar XML SUNAT UBL 2.1">
+                                            <i class="fa-solid fa-code me-1"></i> XML
+                                        </a>
+
+                                        <!-- Cancel Sale Form -->
+                                        <form asp-action="CancelarTransaccion" method="post" class="m-0" onsubmit="return confirm('¿Está seguro de que desea CANCELAR este pasaje vendido? Se liberará el asiento.');">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@v.Id_Venta" />
+                                            <button type="submit" class="btn btn-xs btn-outline-danger py-1 px-2" style="border-radius: 6px;" title="Cancelar Venta">
+                                                <i class="fa-solid fa-ban"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted fs-9">-</span>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-4">No se registran transacciones de pasajes.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Live table filtering
+            const filterInput = document.getElementById("tableFilter");
+            const rows = document.querySelectorAll(".venta-row");
+
+            filterInput.addEventListener("input", function() {
+                const term = this.value.toLowerCase().trim();
+                
+                rows.forEach(row => {
+                    const text = row.innerText.toLowerCase();
+                    if (text.includes(term)) {
+                        row.classList.remove("d-none");
+                    } else {
+                        row.classList.add("d-none");
+                    }
+                });
+            });
+        });
+    </script>
+}

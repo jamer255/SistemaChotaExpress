@@ -1,0 +1,187 @@
+@model IEnumerable<SistemaChotaExpress.Models.Viaje>
+@{
+    ViewData["Title"] = "Programación de Viajes";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="h2 text-white fw-bold"><i class="fa-solid fa-calendar-days text-primary me-2"></i> Programación de Salidas y Horarios</h1>
+        <p class="text-muted">Establece las fechas, horas, vehículos y precios para cada ruta de viaje programada.</p>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show bg-success text-white border-0 mb-4" role="alert">
+        <i class="fa-solid fa-circle-check me-2"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show bg-danger text-white border-0 mb-4" role="alert">
+        <i class="fa-solid fa-circle-exclamation me-2"></i> @TempData["ErrorMessage"]
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="row g-4">
+    <!-- List Trips -->
+    <div class="col-md-8">
+        <div class="card bg-dark text-white border-glass p-4">
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+                <h5 class="fw-bold m-0"><i class="fa-solid fa-list me-2 text-warning"></i>Salidas Programadas</h5>
+                <span class="badge bg-warning text-dark font-monospace">@((Model != null) ? Model.Count() : 0) salida(s)</span>
+            </div>
+
+            <!-- Filtros por Ruta y Fecha -->
+            <form method="get" class="row g-2 mb-3 bg-dark-card border-glass p-2.5 rounded">
+                <div class="col-md-5">
+                    <label class="form-label text-muted fs-9 mb-1">Filtrar por Ruta:</label>
+                    <select name="idRuta" asp-items="ViewBag.Rutas" class="form-select form-select-sm bg-dark-input text-white border-glass-field fs-8">
+                        <option value="">-- Todas las Rutas --</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label text-muted fs-9 mb-1">Fecha de Salida:</label>
+                    <input type="date" name="fecha" value="@ViewBag.SelectedFecha" class="form-control form-control-sm bg-dark-input text-white border-glass-field fs-8" />
+                </div>
+                <div class="col-md-3 d-flex align-items-end gap-1">
+                    <button type="submit" class="btn btn-sm btn-primary btn-orange-solid flex-grow-1 py-1.5 fs-8">
+                        <i class="fa-solid fa-filter me-1"></i> Filtrar
+                    </button>
+                    <a href="@Url.Action("Viajes")" class="btn btn-sm btn-outline-secondary border-glass-btn py-1.5 px-2.5 text-white fs-8" title="Limpiar Filtros">
+                        <i class="fa-solid fa-rotate-left"></i>
+                    </a>
+                </div>
+            </form>
+
+            <div class="table-responsive">
+                <table class="table table-dark table-hover mb-0 align-middle">
+                    <thead>
+                        <tr class="text-muted border-secondary">
+                            <th>Ruta (Origen-Destino)</th>
+                            <th>Vehículo / Conductor</th>
+                            <th>Fecha y Hora</th>
+                            <th class="text-center">Precio</th>
+                            <th class="text-center">Estado</th>
+                            <th class="text-end">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var v in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        @if (v.ObjetoRuta != null)
+                                        {
+                                            <div class="fw-bold">@v.ObjetoRuta.Origen <i class="fa-solid fa-arrow-right-long text-warning mx-1 fs-9"></i> @v.ObjetoRuta.Destino</div>
+                                        }
+                                        else
+                                        {
+                                            <div class="text-muted fst-italic"><i class="fa-solid fa-minus me-1"></i>Sin ruta asignada</div>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-light"><i class="fa-solid fa-van-shuttle me-1 text-primary"></i>@(v.ObjetoBus?.NombreVehiculo ?? "Sin vehículo")</div>
+                                        <small class="text-warning"><i class="fa-solid fa-id-card me-1"></i>@(v.NombreConductor ?? v.ObjetoBus?.NombreConductor ?? "Sin Conductor")</small>
+                                    </td>
+                                    <td>
+                                        <div>@v.FechaHoraSalida.ToString("dd/MM/yyyy")</div>
+                                        <div class="fw-semibold text-warning"><i class="fa-regular fa-clock me-1 fs-9"></i> @v.FechaHoraSalida.ToString("hh:mm tt")</div>
+                                    </td>
+                                    <td class="text-center fw-bold text-success">S/ @v.Precio.ToString("N2")</td>
+                                    <td class="text-center">
+                                        @if (v.Estado == "Programado")
+                                        {
+                                            <span class="badge bg-primary-transparent text-primary px-2.5 py-1.5"><i class="fa-solid fa-clock me-1"></i> Programado</span>
+                                        }
+                                        else if (v.Estado == "Completado")
+                                        {
+                                            <span class="badge bg-success-transparent text-success px-2.5 py-1.5"><i class="fa-solid fa-circle-check me-1"></i> Completado</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger-transparent text-danger px-2.5 py-1.5"><i class="fa-solid fa-circle-xmark me-1"></i> Cancelado</span>
+                                        }
+                                    </td>
+                                    <td class="text-end">
+                                        @if (v.Estado == "Programado")
+                                        {
+                                            <div class="d-inline-flex gap-2">
+                                                <form asp-action="CambiarEstadoViaje" method="post" class="m-0">
+                                                    <input type="hidden" name="id" value="@v.Id_Viaje" />
+                                                    <input type="hidden" name="estado" value="Completado" />
+                                                    <button type="submit" class="btn btn-sm btn-outline-success" style="border-radius: 8px;" title="Completar Viaje">
+                                                        <i class="fa-solid fa-circle-check"></i>
+                                                    </button>
+                                                </form>
+                                                <form asp-action="CambiarEstadoViaje" method="post" class="m-0" onsubmit="return confirm('¿Está seguro de que desea cancelar este viaje?');">
+                                                    <input type="hidden" name="id" value="@v.Id_Viaje" />
+                                                    <input type="hidden" name="estado" value="Cancelado" />
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 8px;" title="Cancelar Viaje">
+                                                        <i class="fa-solid fa-ban"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted fs-8">-</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">No hay salidas programadas.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Trip Form -->
+    <div class="col-md-4">
+        <div class="card bg-dark text-white border-glass p-4">
+            <h5 class="fw-bold mb-3">Programar Nueva Salida</h5>
+            <form asp-action="CrearViaje" method="post">
+                @Html.AntiForgeryToken()
+                <div class="mb-3">
+                    <label class="form-label text-muted fs-8 font-weight-600">Ruta de Viaje</label>
+                    <select name="Id_Ruta" asp-items="ViewBag.Rutas" class="form-select bg-dark-input text-white border-glass-field" required>
+                        <option value="">-- Seleccionar Ruta --</option>
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label text-muted fs-8 font-weight-600">Vehículo / Conductor Asignado</label>
+                    <select name="Id_Bus" asp-items="ViewBag.Buses" class="form-select bg-dark-input text-white border-glass-field" required>
+                        <option value="">-- Seleccionar Vehículo --</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-muted fs-8 font-weight-600">Fecha y Hora de Salida</label>
+                    <input type="datetime-local" name="FechaHoraSalida" class="form-control bg-dark-input text-white border-glass-field" required />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-muted fs-8 font-weight-600">Precio del Pasaje (S/)</label>
+                    <input type="number" step="0.50" name="Precio" value="0.00" class="form-control bg-dark-input text-white border-glass-field" placeholder="0.00" min="0.00" required />
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 py-2.5 mt-2 btn-orange-solid">
+                    <i class="fa-solid fa-calendar-plus me-2"></i> Programar Salida
+                </button>
+            </form>
+        </div>
+    </div>
+</div>

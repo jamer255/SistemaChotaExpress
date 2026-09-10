@@ -1,0 +1,355 @@
+@model SistemaChotaExpress.Models.Viaje
+@{
+    ViewData["Title"] = "Venta de Pasaje";
+    var asientosOcupados = ViewBag.AsientosOcupados as List<int> ?? new List<int>();
+    var asientosReservados = ViewBag.AsientosReservados as List<int> ?? new List<int>();
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <a asp-action="BuscarViajes" class="btn btn-sm btn-outline-light border-glass-btn mb-3"><i class="fa-solid fa-arrow-left me-1"></i> Volver a Salidas</a>
+        <h1 class="h2 text-white fw-bold"><i class="fa-solid fa-ticket-simple text-primary me-2"></i> Registrar Venta / Reserva</h1>
+        <p class="text-muted">Seleccione el asiento y llene los datos del pasajero para realizar la venta o reserva.</p>
+    </div>
+</div>
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show bg-danger text-white border-0 mb-4" role="alert">
+        <i class="fa-solid fa-circle-exclamation me-2"></i> @TempData["ErrorMessage"]
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="row g-4">
+    <!-- Seat Map Section -->
+    <div class="col-lg-6">
+        <div class="card bg-dark text-white border-glass p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold mb-0">Distribución de Asientos (Combi)</h5>
+                <span class="badge bg-primary font-monospace">Vehículo: @Model.ObjetoBus!.NombreVehiculo</span>
+            </div>
+
+            <!-- Seat Legend -->
+            <div class="d-flex flex-wrap gap-3 mb-4 justify-content-center bg-dark-card border-glass p-3 rounded">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="seat-legend-box seat-available"></div>
+                    <span class="fs-8 text-muted">Disponible</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <div class="seat-legend-box seat-selected-demo"></div>
+                    <span class="fs-8 text-muted">Seleccionado</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <div class="seat-legend-box seat-reserved-demo"></div>
+                    <span class="fs-8 text-muted">Reservado</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <div class="seat-legend-box seat-occupied-demo"></div>
+                    <span class="fs-8 text-muted">Vendido</span>
+                </div>
+            </div>
+
+            <!-- Interactive Bus Body -->
+            <div class="bus-outer-body p-4 mx-auto">
+                <div class="bus-inner-cabin position-relative">
+                    <div class="bus-title text-center text-danger fw-bold mb-3">Piso 1</div>
+                    
+                    <!-- Seats Grid Layout (4 Rows x 5 Columns) -->
+                    <div class="seats-grid">
+                        
+                        <!-- Row 1 (Top) -->
+                        <!-- Col 1: Seat 2 -->
+                        @Html.Raw(RenderSeatHtml(2, asientosOcupados, asientosReservados, 1, 1))
+                        <!-- Col 2: Empty -->
+                        <div class="seat-space" style="grid-row: 1; grid-column: 2;"></div>
+                        <!-- Col 3: Seat 8 -->
+                        @Html.Raw(RenderSeatHtml(8, asientosOcupados, asientosReservados, 1, 3))
+                        <!-- Col 4: Seat 11 -->
+                        @Html.Raw(RenderSeatHtml(11, asientosOcupados, asientosReservados, 1, 4))
+                        <!-- Col 5: Seat 15 -->
+                        @Html.Raw(RenderSeatHtml(15, asientosOcupados, asientosReservados, 1, 5))
+
+                        <!-- Row 2 -->
+                        <!-- Col 1: Seat 1 -->
+                        @Html.Raw(RenderSeatHtml(1, asientosOcupados, asientosReservados, 2, 1))
+                        <!-- Col 2: Seat 5 -->
+                        @Html.Raw(RenderSeatHtml(5, asientosOcupados, asientosReservados, 2, 2))
+                        <!-- Col 3: Aisle -->
+                        <div class="seat-space" style="grid-row: 2; grid-column: 3;"></div>
+                        <!-- Col 4: Aisle -->
+                        <div class="seat-space" style="grid-row: 2; grid-column: 4;"></div>
+                        <!-- Col 5: Seat 14 -->
+                        @Html.Raw(RenderSeatHtml(14, asientosOcupados, asientosReservados, 2, 5))
+
+                        <!-- Row 3 -->
+                        <!-- Col 1: Empty -->
+                        <div class="seat-space" style="grid-row: 3; grid-column: 1;"></div>
+                        <!-- Col 2: Seat 4 -->
+                        @Html.Raw(RenderSeatHtml(4, asientosOcupados, asientosReservados, 3, 2))
+                        <!-- Col 3: Seat 7 -->
+                        @Html.Raw(RenderSeatHtml(7, asientosOcupados, asientosReservados, 3, 3))
+                        <!-- Col 4: Seat 10 -->
+                        @Html.Raw(RenderSeatHtml(10, asientosOcupados, asientosReservados, 3, 4))
+                        <!-- Col 5: Seat 13 -->
+                        @Html.Raw(RenderSeatHtml(13, asientosOcupados, asientosReservados, 3, 5))
+
+                        <!-- Row 4 (Bottom) -->
+                        <!-- Col 1: Steering Wheel (Volante) -->
+                        <div class="driver-wheel" style="grid-row: 4; grid-column: 1;" title="Chofer">
+                            <i class="fa-solid fa-circle-radiation text-muted" style="transform: rotate(45deg); font-size: 2.2rem;"></i>
+                        </div>
+                        <!-- Col 2: Seat 3 -->
+                        @Html.Raw(RenderSeatHtml(3, asientosOcupados, asientosReservados, 4, 2))
+                        <!-- Col 3: Seat 6 -->
+                        @Html.Raw(RenderSeatHtml(6, asientosOcupados, asientosReservados, 4, 3))
+                        <!-- Col 4: Seat 9 -->
+                        @Html.Raw(RenderSeatHtml(9, asientosOcupados, asientosReservados, 4, 4))
+                        <!-- Col 5: Seat 12 -->
+                        @Html.Raw(RenderSeatHtml(12, asientosOcupados, asientosReservados, 4, 5))
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Booking Form Section -->
+    <div class="col-lg-6">
+        <div class="card bg-dark text-white border-glass p-4 h-100">
+            <h5 class="fw-bold mb-3"><i class="fa-solid fa-clipboard-user text-primary me-2"></i> Datos de la Transacción</h5>
+
+            <!-- Voyage summary -->
+            <div class="p-3 bg-dark-card border-glass rounded mb-4">
+                <div class="row g-2">
+                    <div class="col-7">
+                        <span class="fs-9 text-muted d-block">RUTA</span>
+                        <span class="fw-bold fs-7">@Model.ObjetoRuta!.Origen <i class="fa-solid fa-arrow-right text-warning fs-9 mx-1"></i> @Model.ObjetoRuta.Destino</span>
+                    </div>
+                    <div class="col-5 text-end">
+                        <span class="fs-9 text-muted d-block">PRECIO</span>
+                        <span class="fw-bold text-success fs-6">S/ @Model.Precio.ToString("N2")</span>
+                    </div>
+                    <div class="col-12 mt-2 pt-2 border-top border-secondary d-flex justify-content-between">
+                        <div>
+                            <span class="fs-9 text-muted d-block">FECHA Y SALIDA</span>
+                            <span class="fw-semibold text-warning fs-8">@Model.FechaHoraSalida.ToString("dd/MM/yyyy") - @Model.FechaHoraSalida.ToString("hh:mm tt")</span>
+                        </div>
+                        <div class="text-end">
+                            <span class="fs-9 text-muted d-block">VEHÍCULO</span>
+                            <span class="fw-semibold text-light fs-8">@Model.ObjetoBus.Modelo</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Booking / Form -->
+            <form asp-action="RegistrarVenta" method="post" id="ventaForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="viajeId" value="@Model.Id_Viaje" />
+                <input type="hidden" name="numeroAsiento" id="selectedSeatInput" value="0" />
+
+                <!-- Selection alert -->
+                <div id="seatAlert" class="alert alert-warning p-2.5 mb-3 fs-8 text-center" role="alert">
+                    <i class="fa-solid fa-circle-exclamation me-1"></i> Por favor, seleccione un asiento en el mapa.
+                </div>
+                <div id="seatSelectedIndicator" class="alert alert-success p-2.5 mb-3 fs-7 text-center d-none fw-bold" role="alert">
+                    <i class="fa-solid fa-circle-check me-1"></i> Asiento Seleccionado: <span id="selectedSeatLabel" class="badge bg-dark px-2 py-1 fs-8 text-success border border-success">None</span>
+                </div>
+
+                <!-- Document section with AJAX button -->
+                <div class="row g-2 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label text-muted fs-8 font-weight-600">Tipo Doc.</label>
+                        <select name="tipoDocumento" id="tipoDocumento" class="form-select bg-dark-input text-white border-glass-field" required>
+                            <option value="DNI">DNI</option>
+                            <option value="CE">C. Extranjería (CE)</option>
+                            <option value="RUC">RUC (Sunat)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label text-muted fs-8 font-weight-600">N° Documento</label>
+                        <div class="input-group">
+                            <input type="text" name="numeroDocumento" id="numeroDocumento" class="form-control bg-dark-input text-white border-glass-field font-monospace" placeholder="Ingrese número" required maxlength="15" />
+                            <button class="btn btn-outline-warning" type="button" id="btnConsultarDoc" style="border-radius: 0 12px 12px 0;">
+                                <span id="btnText"><i class="fa-solid fa-magnifying-glass"></i> Consultar</span>
+                                <span id="btnSpinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-muted fs-8 font-weight-600" id="lblNombre">Nombre Completo del Pasajero</label>
+                    <input type="text" name="nombreCompleto" id="nombreCompleto" class="form-control bg-dark-input text-white border-glass-field" placeholder="Nombres y Apellidos" required />
+                </div>
+
+                <div class="row g-2 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted fs-8 font-weight-600">Teléfono</label>
+                        <input type="text" name="telefono" id="telefono" class="form-control bg-dark-input text-white border-glass-field" placeholder="Celular" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted fs-8 font-weight-600">Correo Electrónico</label>
+                        <input type="email" name="correo" id="correo" class="form-control bg-dark-input text-white border-glass-field" placeholder="Email" />
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-muted fs-8 font-weight-600">Monto/Precio del Pasaje (S/)</label>
+                    <input type="number" step="0.01" min="0.01" name="precioPagado" id="precioPagado" class="form-control bg-dark-input text-white border-glass-field text-success fw-bold fs-7" value="@Model.Precio.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)" required />
+                </div>
+
+                <!-- Transaction type choice -->
+                <div class="mb-4">
+                    <label class="form-label text-muted fs-8 font-weight-600 d-block">Tipo de Operación</label>
+                    <div class="btn-group w-100" role="group" aria-label="Tipo Operación">
+                        <input type="radio" class="btn-check" name="tipoTransaccion" id="btnRadioVenta" value="Venta" checked>
+                        <label class="btn btn-outline-success py-2.5" for="btnRadioVenta" style="border-top-left-radius: 12px; border-bottom-left-radius: 12px;">
+                            <i class="fa-solid fa-cart-shopping me-1"></i> VENTA DE PASAJE
+                        </label>
+
+                        <input type="radio" class="btn-check" name="tipoTransaccion" id="btnRadioReserva" value="Reserva">
+                        <label class="btn btn-outline-warning py-2.5" for="btnRadioReserva" style="border-top-right-radius: 12px; border-bottom-right-radius: 12px;">
+                            <i class="fa-solid fa-hourglass-half me-1"></i> RESERVA DE PASAJE
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Confirm buttons -->
+                <button type="submit" class="btn btn-success w-100 py-3 fw-bold fs-6 btn-orange-solid" id="btnConfirmSubmit" disabled>
+                    <i class="fa-solid fa-cash-register me-2"></i> CONFIRMAR REGISTRO
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@functions {
+    public string RenderSeatHtml(int seatNumber, List<int> occupied, List<int> reserved, int row, int col)
+    {
+        string cssClass = "seat-available";
+        string disabledAttr = "";
+        string statusText = "Disponible";
+
+        if (occupied.Contains(seatNumber))
+        {
+            cssClass = "seat-occupied";
+            disabledAttr = "disabled";
+            statusText = "Vendido";
+        }
+        else if (reserved.Contains(seatNumber))
+        {
+            cssClass = "seat-reserved";
+            disabledAttr = "disabled";
+            statusText = "Reservado";
+        }
+
+        return $@"
+        <button type=""button"" class=""seat-box {cssClass}"" style=""grid-row: {row}; grid-column: {col};"" 
+                data-seat=""{seatNumber}"" {disabledAttr} title=""Asiento {seatNumber} ({statusText})"">
+            <span class=""seat-num"">{seatNumber}</span>
+        </button>";
+    }
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const seats = document.querySelectorAll(".seat-box.seat-available");
+            const selectedSeatInput = document.getElementById("selectedSeatInput");
+            const selectedSeatLabel = document.getElementById("selectedSeatLabel");
+            const seatAlert = document.getElementById("seatAlert");
+            const seatSelectedIndicator = document.getElementById("seatSelectedIndicator");
+            const btnConfirmSubmit = document.getElementById("btnConfirmSubmit");
+
+            // Handle seat selection
+            seats.forEach(seat => {
+                seat.addEventListener("click", function() {
+                    // Remove active selection from other seats
+                    seats.forEach(s => s.classList.remove("seat-selected"));
+                    
+                    // Add selected class to clicked seat
+                    this.classList.add("seat-selected");
+
+                    const seatNum = this.getAttribute("data-seat");
+                    selectedSeatInput.value = seatNum;
+                    selectedSeatLabel.innerText = seatNum;
+
+                    // Update UI Alerts
+                    seatAlert.classList.add("d-none");
+                    seatSelectedIndicator.classList.remove("d-none");
+                    btnConfirmSubmit.removeAttribute("disabled");
+                });
+            });
+
+            // Handle Document lookup (Sunat / Reniec DNI CE)
+            const btnConsultarDoc = document.getElementById("btnConsultarDoc");
+            const btnText = document.getElementById("btnText");
+            const btnSpinner = document.getElementById("btnSpinner");
+            
+            const tipoDocSelect = document.getElementById("tipoDocumento");
+            const numDocInput = document.getElementById("numeroDocumento");
+            const nombreInput = document.getElementById("nombreCompleto");
+            const lblNombre = document.getElementById("lblNombre");
+
+            // Change name label depending on type
+            tipoDocSelect.addEventListener("change", function() {
+                if (this.value === "RUC") {
+                    lblNombre.innerText = "Razón Social de la Empresa";
+                    nombreInput.placeholder = "Nombre de la empresa";
+                } else {
+                    lblNombre.innerText = "Nombre Completo del Pasajero";
+                    nombreInput.placeholder = "Nombres y Apellidos";
+                }
+            });
+
+            btnConsultarDoc.addEventListener("click", async function() {
+                const tipo = tipoDocSelect.value;
+                const numero = numDocInput.value.trim();
+
+                if (!numero) {
+                    alert("Debe ingresar un número de documento.");
+                    return;
+                }
+
+                // Show spinner
+                btnText.classList.add("d-none");
+                btnSpinner.classList.remove("d-none");
+                btnConsultarDoc.setAttribute("disabled", "true");
+
+                try {
+                    const response = await fetch(`/Documento/Consultar?tipo=${tipo}&numero=${numero}`);
+                    const data = await response.json();
+
+                    if (data.success) {
+                        nombreInput.value = data.nombreCompleto;
+                        // Display message or autofill address in console if available
+                        if (data.direccion && tipo === "RUC") {
+                            console.log("Dirección RUC: ", data.direccion);
+                            alert("Empresa encontrada:\n" + data.nombreCompleto + "\nDirección: " + data.direccion);
+                        }
+                    } else {
+                        alert(data.mensaje || "No se encontraron datos para este documento. Ingrese el nombre manualmente.");
+                    }
+                } catch (error) {
+                    console.error("Error al consultar documento: ", error);
+                    alert("Ocurrió un error al consultar el documento. Complete el nombre de forma manual.");
+                } finally {
+                    // Hide spinner
+                    btnText.classList.remove("d-none");
+                    btnSpinner.classList.add("d-none");
+                    btnConsultarDoc.removeAttribute("disabled");
+                }
+            });
+
+            // Prevent submit if no seat is selected
+            const ventaForm = document.getElementById("ventaForm");
+            ventaForm.addEventListener("submit", function(e) {
+                if (parseInt(selectedSeatInput.value) <= 0) {
+                    e.preventDefault();
+                    alert("Debe seleccionar un asiento en el mapa del bus antes de proceder.");
+                }
+            });
+        });
+    </script>
+}

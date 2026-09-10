@@ -1,0 +1,31 @@
+﻿## Archivos de compilacion .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+
+## Configuracion local (no subir a GitHub)
+appsettings.Development.json
+
+## Scripts locales de Cloudflare (solo para uso local)
+Generar_Link_Publico.ps1
+Iniciar_Link_Publico.bat
+Iniciar_Sistema_Con_Link.bat
+Iniciar_Todo.ps1
+ENLACE_ACTUAL.txt
+cookies.txt
+scratch_test.ps1
+process_logo.ps1
+
+## Archivos de publicacion
+publish/
+*.nupkg
+
+## Sistema operativo
+.DS_Store
+Thumbs.db
+
+## Rider / Resharper
+.idea/
+*.sln.iml

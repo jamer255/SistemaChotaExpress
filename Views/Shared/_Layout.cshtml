@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Tours Chota Express</title>
+    
+    <!-- Fonts and Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <!-- Aplica tema guardado antes de renderizar para evitar parpadeo -->
+    <script>if(localStorage.getItem('tema')==='claro')document.documentElement.classList.add('light-mode-pre');</script>
+    <style>.light-mode-pre body,.light-mode-pre{background:#f0f0f5!important}</style>
+</head>
+<body>
+    <header class="no-print">
+        <nav class="navbar navbar-expand-lg navbar-dark custom-navbar py-3">
+            <div class="container">
+                <!-- Branding Logo Oficial Tours Chota Express -->
+                <a class="navbar-brand d-flex align-items-center py-0" asp-controller="Home" asp-action="Index">
+                    <div class="navbar-logo-badge">
+                        <img src="~/img/logo_oficial.png?v=@DateTime.Now.Ticks" asp-append-version="true" alt="Tours Chota Express S.A.C." class="navbar-logo-img" />
+                    </div>
+                </a>
+                
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-1">
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            var isGerente = User.IsInRole("Gerente");
+                            if (isGerente)
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link nav-link-custom @(ViewContext.RouteData.Values["controller"]?.ToString() == "Gerente" && ViewContext.RouteData.Values["action"]?.ToString() == "Dashboard" ? "active" : "")" asp-controller="Gerente" asp-action="Dashboard">
+                                        <i class="fa-solid fa-chart-pie me-1"></i> Dashboard
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link nav-link-custom @(ViewContext.RouteData.Values["controller"]?.ToString() == "Gerente" && ViewContext.RouteData.Values["action"]?.ToString() == "Trabajadores" ? "active" : "")" asp-controller="Gerente" asp-action="Trabajadores">
+                                        <i class="fa-solid fa-user-tie me-1"></i> Cuentas
+                                    </a>
+                                </li>
+                            }
+
+                            <!-- Inicio solo para Vendedor -->
+                            @if (!User.IsInRole("Gerente"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link nav-link-custom @(ViewContext.RouteData.Values["controller"]?.ToString() == "Venta" && ViewContext.RouteData.Values["action"]?.ToString() == "Inicio" ? "active" : "")" asp-controller="Venta" asp-action="Inicio">
+                                        <i class="fa-solid fa-house me-1"></i> Inicio
+                                    </a>
+                                </li>
+                            }
+                            <li class="nav-item">
+                                <a class="nav-link nav-link-custom @(ViewContext.RouteData.Values["controller"]?.ToString() == "Venta" && ViewContext.RouteData.Values["action"]?.ToString() == "BuscarViajes" ? "active" : "")" asp-controller="Venta" asp-action="BuscarViajes">
+                                    <i class="fa-solid fa-cart-shopping me-1"></i> Vender Pasajes
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link nav-link-custom @(ViewContext.RouteData.Values["controller"]?.ToString() == "Venta" && ViewContext.RouteData.Values["action"]?.ToString() == "MisVentas" ? "active" : "")" asp-controller="Venta" asp-action="MisVentas">
+                                    <i class="fa-solid fa-list-check me-1"></i> Registro de pasajes vendidos
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                    
+                    <div class="d-flex align-items-center gap-3">
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            var userRole = User.IsInRole("Gerente") ? "Gerente" : "Vendedor";
+                            <div class="text-end d-none d-sm-block">
+                                <div class="text-white fw-bold fs-7">@User.Identity.Name</div>
+                                <span class="badge bg-secondary fs-9">@userRole</span>
+                            </div>
+
+                            <!-- Botón Oscuro / Claro Súper Visible -->
+                            <button id="btnToggleTema" onclick="toggleTema()" title="Cambiar a Modo Claro / Oscuro"
+                                    type="button"
+                                    class="theme-toggle-btn">
+                                <span id="iconTema">🌙</span>
+                                <span id="textTema">Modo Oscuro</span>
+                            </button>
+
+                            <form asp-controller="Login" asp-action="Salir" method="post" class="m-0">
+                                <button type="submit" class="btn btn-outline-danger border-glass-btn btn-sm px-3" style="border-radius: 10px;">
+                                    <i class="fa-solid fa-right-from-bracket"></i> Salir
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <!-- Botón de tema para visitantes / login -->
+                            <button id="btnToggleTema" onclick="toggleTema()" title="Cambiar a Modo Claro / Oscuro"
+                                    type="button"
+                                    class="theme-toggle-btn">
+                                <span id="iconTema">🌙</span>
+                                <span id="textTema">Modo Oscuro</span>
+                            </button>
+
+                            <a asp-controller="Login" asp-action="Login" class="btn btn-primary btn-orange-solid btn-sm px-4">
+                                <i class="fa-solid fa-right-to-bracket me-1"></i> Iniciar Sesión
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container py-4">
+        <main role="main" class="pb-5">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="custom-footer text-center no-print">
+        <div class="container">
+            &copy; 2026 - Tours Chota Express S.A.C. - Todos los derechos reservados.
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+
+    <script>
+        // Aplica el tema guardado inmediatamente
+        (function () {
+            if (localStorage.getItem('tema') === 'claro') {
+                document.documentElement.classList.add('light-mode');
+                document.body?.classList.add('light-mode');
+            }
+        })();
+
+        function toggleTema() {
+            const isLight = document.body.classList.toggle('light-mode');
+            document.documentElement.classList.toggle('light-mode', isLight);
+            localStorage.setItem('tema', isLight ? 'claro' : 'oscuro');
+            actualizarBotonesTema(isLight);
+        }
+
+        function actualizarBotonesTema(isLight) {
+            document.querySelectorAll('#iconTema').forEach(el => {
+                el.textContent = isLight ? '☀️' : '🌙';
+            });
+            document.querySelectorAll('#textTema').forEach(el => {
+                el.textContent = isLight ? 'Modo Claro' : 'Modo Oscuro';
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const isLight = localStorage.getItem('tema') === 'claro';
+            if (isLight) {
+                document.body.classList.add('light-mode');
+                document.documentElement.classList.add('light-mode');
+            }
+            actualizarBotonesTema(isLight);
+        });
+    </script>
+</body>
+</html>

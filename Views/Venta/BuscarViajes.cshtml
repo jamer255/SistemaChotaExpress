@@ -1,0 +1,1513 @@
+@model IEnumerable<SistemaChotaExpress.Controllers.VentaController.ViajeConDisponibilidad>
+@{
+    ViewData["Title"] = "Venta de Pasajes y Salidas";
+    var selectedViaje = ViewBag.SelectedViaje as SistemaChotaExpress.Models.Viaje;
+    var asientosOcupados = ViewBag.AsientosOcupados as List<int> ?? new List<int>();
+    var asientosReservados = ViewBag.AsientosReservados as List<int> ?? new List<int>();
+}
+
+<style>
+    /* Inline Glassmorphic Calendar Styles */
+    .calendar-container {
+        background: rgba(15, 14, 19, 0.6);
+        border: 1px solid var(--border-glass);
+        border-radius: 14px;
+        padding: 12px;
+    }
+    .calendar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    .calendar-title {
+        font-weight: 700;
+        font-size: 0.9rem;
+        color: #fff;
+    }
+    .calendar-nav-btn {
+        background: none;
+        border: none;
+        color: var(--primary);
+        font-size: 0.85rem;
+        cursor: pointer;
+        padding: 2px 6px;
+        border-radius: 4px;
+        transition: background 0.2s;
+    }
+    .calendar-nav-btn:hover {
+        background: rgba(255, 255, 255, 0.05);
+    }
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 4px;
+        text-align: center;
+    }
+    .calendar-day-header {
+        font-size: 0.72rem;
+        color: var(--text-muted);
+        font-weight: 600;
+        padding-bottom: 4px;
+    }
+    .calendar-day-cell {
+        font-size: 0.8rem;
+        padding: 6px 0;
+        cursor: pointer;
+        border-radius: 50%;
+        color: #e1e1e6;
+        transition: all 0.2s;
+        aspect-ratio: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .calendar-day-cell:hover:not(.empty-cell):not(.selected-cell) {
+        background: rgba(255, 255, 255, 0.08);
+    }
+    .calendar-day-cell.selected-cell {
+        background: var(--primary);
+        color: #fff;
+        font-weight: bold;
+        box-shadow: 0 0 10px rgba(243, 112, 33, 0.4);
+    }
+    .calendar-day-cell.today-cell:not(.selected-cell) {
+        border: 1px solid var(--primary);
+        color: var(--primary-light);
+    }
+    .calendar-day-cell.empty-cell {
+        cursor: default;
+    }
+
+    .sidebar-card {
+        background: var(--dark-card);
+        border: 1px solid var(--border-glass);
+        border-radius: 14px;
+        padding: 16px;
+        margin-bottom: 16px;
+    }
+    .sidebar-section-title {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 10px;
+    }
+    .hour-pill-btn {
+        border-top-left-radius: 20px !important;
+        border-bottom-left-radius: 20px !important;
+        border-top-right-radius: 0 !important;
+        border-bottom-right-radius: 0 !important;
+        font-size: 0.78rem;
+        font-weight: 600;
+        padding: 4px 10px;
+        transition: all 0.2s ease-in-out;
+    }
+    .btn-glass-pill {
+        background: rgba(255, 255, 255, 0.12);
+        color: #e2e8f0;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+    .btn-glass-pill:hover {
+        background: rgba(255, 255, 255, 0.25);
+        color: #ffffff;
+    }
+    .btn-teal-active {
+        background: #10b981 !important;
+        color: #ffffff !important;
+        border-color: #10b981 !important;
+        box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+    }
+    .btn-pill-control {
+        border-radius: 0 !important;
+        padding: 4px 7px;
+        font-size: 0.72rem;
+        font-weight: bold;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+    .btn-pill-minus {
+        background: rgba(220, 38, 38, 0.2);
+        color: #f87171;
+        border-color: rgba(220, 38, 38, 0.3);
+    }
+    .btn-pill-minus:hover {
+        background: #dc2626;
+        color: #ffffff;
+    }
+    .btn-pill-plus {
+        border-top-right-radius: 20px !important;
+        border-bottom-right-radius: 20px !important;
+        background: rgba(245, 158, 11, 0.2);
+        color: #fbbf24;
+        border-color: rgba(245, 158, 11, 0.3);
+    }
+    .btn-pill-plus:hover {
+        background: #f59e0b;
+        color: #ffffff;
+    }
+    .hour-container {
+        max-height: 140px;
+        overflow-y: auto;
+        padding-right: 4px;
+    }
+    .big-price-text {
+        font-size: 2.2rem;
+        font-weight: 900;
+        color: #198754;
+    }
+    .route-pill-btn {
+        font-size: 0.75rem;
+        padding: 4px 10px;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.05);
+        color: #e1e1e6;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+    .route-pill-btn:hover, .route-pill-btn.active {
+        background: var(--primary);
+        color: #fff;
+        border-color: var(--primary);
+    }
+    .nav-tabs-custom .nav-link {
+        color: #adb5bd;
+        border: 1px solid transparent;
+        font-weight: 600;
+        padding: 10px 20px;
+        border-radius: 10px 10px 0 0;
+    }
+    .nav-tabs-custom .nav-link.active {
+        color: #fff;
+        background: var(--dark-card);
+        border-color: var(--border-glass) var(--border-glass) transparent;
+    }
+    .panel-cuadro {
+        background: rgba(25, 24, 32, 0.7);
+        border: 1px solid var(--border-glass);
+        border-radius: 10px;
+        padding: 14px;
+        margin-bottom: 14px;
+    }
+    .cuadro-title {
+        font-size: 0.85rem;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+</style>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show bg-success text-white border-0 mb-4" role="alert">
+        <i class="fa-solid fa-circle-check me-2"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show bg-danger text-white border-0 mb-4" role="alert">
+        <i class="fa-solid fa-circle-exclamation me-2"></i> @TempData["ErrorMessage"]
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["BienvenidaLogin"] != null)
+{
+    var nombreUsuario = TempData["BienvenidaLogin"]!.ToString();
+    var hora = DateTime.Now.Hour;
+    var saludo = hora < 12 ? "¡Buenos días" : hora < 19 ? "¡Buenas tardes" : "¡Buenas noches";
+    <div id="toastBienvenida" style="
+        position: fixed;
+        top: 24px;
+        right: 24px;
+        z-index: 9999;
+        min-width: 340px;
+        max-width: 420px;
+        background: linear-gradient(135deg, #1a1921 0%, #2a1f3d 100%);
+        border: 1px solid rgba(243, 112, 33, 0.5);
+        border-radius: 18px;
+        box-shadow: 0 8px 40px rgba(243, 112, 33, 0.3), 0 2px 16px rgba(0,0,0,0.6);
+        padding: 20px 24px;
+        animation: slideInRight 0.5s cubic-bezier(.22,1,.36,1) forwards;
+        overflow: hidden;">
+        <!-- Barra de progreso -->
+        <div id="toastProgressBar" style="
+            position: absolute;
+            bottom: 0; left: 0;
+            height: 3px;
+            width: 100%;
+            background: linear-gradient(90deg, #f37021, #fbbf24);
+            border-radius: 0 0 18px 18px;
+            transform-origin: left;
+            animation: shrinkBar 5s linear forwards;">
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <div style="font-size: 2.6rem; line-height:1; filter: drop-shadow(0 0 8px rgba(251,191,36,0.6));">👋</div>
+            <div class="flex-grow-1">
+                <div style="font-size: 0.78rem; color: #f59e0b; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px;">
+                    Chota Express — Módulo de Ventas
+                </div>
+                <div style="font-size: 1.1rem; font-weight: 900; color: #ffffff; line-height: 1.2;">
+                    @saludo, <span style="color: #f37021;">@nombreUsuario</span>! 🎉
+                </div>
+                <div style="font-size: 0.82rem; color: #cbd5e1; margin-top: 4px;">
+                    Listo para vender boletos hoy 🚐💨 ¡A darle con todo!
+                </div>
+            </div>
+            <button onclick="cerrarToast()" style="
+                background: none; border: none; color: #6b7280;
+                font-size: 1.1rem; cursor: pointer; padding: 0 0 0 8px;
+                transition: color 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#6b7280'">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+    </div>
+
+    <style>
+        @@keyframes slideInRight {
+            from { opacity: 0; transform: translateX(120px) scale(0.95); }
+            to   { opacity: 1; transform: translateX(0) scale(1); }
+        }
+        @@keyframes slideOutRight {
+            from { opacity: 1; transform: translateX(0) scale(1); }
+            to   { opacity: 0; transform: translateX(120px) scale(0.95); }
+        }
+        @@keyframes shrinkBar {
+            from { transform: scaleX(1); }
+            to   { transform: scaleX(0); }
+        }
+    </style>
+
+    <script>
+        function cerrarToast() {
+            const t = document.getElementById('toastBienvenida');
+            if (t) {
+                t.style.animation = 'slideOutRight 0.4s cubic-bezier(.22,1,.36,1) forwards';
+                setTimeout(() => t.remove(), 400);
+            }
+        }
+        // Auto-cierre a los 5 segundos
+        setTimeout(cerrarToast, 5000);
+    </script>
+}
+
+<!-- Unified Ticket Sales Screen -->
+<div class="row g-4">
+    <!-- LEFT SIDEBAR -->
+    <div class="col-xl-3 col-lg-4 col-md-5 col-12">
+        <form method="get" id="searchFilterForm" class="m-0" action="@Url.Action("BuscarViajes")">
+            <!-- Search Date and Selected Trip hidden inputs -->
+            <input type="hidden" name="fecha" id="fechaInput" value="@ViewBag.SelectedFecha" />
+            @if (selectedViaje != null)
+            {
+                <input type="hidden" name="viajeId" id="filtroViajeId" value="@selectedViaje.Id_Viaje" />
+            }
+
+            <!-- Selección de Origen y Destino -->
+            <div class="sidebar-card border-warning">
+                <div class="sidebar-section-title text-warning fw-bold fs-7 mb-2">
+                    <i class="fa-solid fa-route me-1"></i> SELECCIÓN DE RUTA
+                </div>
+
+                <div class="mb-2.5">
+                    <label class="form-label text-warning fw-bold fs-8 mb-1">DESDE (ORIGEN):</label>
+                    <select name="origen" id="origenSelect" class="form-select bg-dark-input fw-bold border-glass-field fs-8 select-filter" required>
+                        <option value="">-- Seleccionar Origen --</option>
+                        @if (ViewBag.LugaresDisponibles != null)
+                        {
+                            foreach (string lugar in (List<string>)ViewBag.LugaresDisponibles)
+                            {
+                                var isSel = string.Equals(lugar.Trim(), ViewBag.SelectedOrigen?.ToString()?.Trim(), StringComparison.OrdinalIgnoreCase);
+                                if (isSel)
+                                {
+                                    <option value="@lugar" selected="selected" class="fw-bold">@lugar</option>
+                                }
+                                else
+                                {
+                                    <option value="@lugar">@lugar</option>
+                                }
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="mb-2.5">
+                    <label class="form-label text-warning fw-bold fs-8 mb-1">HACIA (DESTINO):</label>
+                    <select name="destino" id="destinoSelect" class="form-select bg-dark-input fw-bold border-glass-field fs-8 select-filter" required>
+                        <option value="">-- Seleccionar Destino --</option>
+                        @if (ViewBag.LugaresDisponibles != null)
+                        {
+                            foreach (string lugar in (List<string>)ViewBag.LugaresDisponibles)
+                            {
+                                var isSel = string.Equals(lugar.Trim(), ViewBag.SelectedDestino?.ToString()?.Trim(), StringComparison.OrdinalIgnoreCase);
+                                if (isSel)
+                                {
+                                    <option value="@lugar" selected="selected" class="fw-bold">@lugar</option>
+                                }
+                                else
+                                {
+                                    <option value="@lugar">@lugar</option>
+                                }
+                            }
+                        }
+                    </select>
+                </div>
+
+                <div class="d-flex gap-2 mt-3">
+                    <button type="submit" class="btn btn-sm btn-primary btn-orange-solid flex-grow-1 py-2 fw-bold fs-8">
+                        <i class="fa-solid fa-magnifying-glass me-1"></i> Filtrar Ruta
+                    </button>
+                    <a href="@Url.Action("BuscarViajes", new { reset = true })" class="btn btn-sm btn-outline-secondary border-glass-btn py-2 px-2.5 text-white" title="Limpiar Filtros">
+                        <i class="fa-solid fa-rotate-left"></i>
+                    </a>
+                </div>
+            </div>
+        </form>
+
+        <!-- Calendario de Salidas -->
+        <div class="sidebar-card">
+            <div class="sidebar-section-title text-white fw-bold fs-8 mb-2">
+                <i class="fa-solid fa-calendar-days text-warning me-1"></i> FECHA DE VIAJE
+            </div>
+            <div class="calendar-container" id="calendarWidget">
+                <!-- Calendar generated dynamically via Javascript -->
+            </div>
+            <div class="text-center mt-2">
+                <button type="button" class="btn btn-sm btn-link text-warning fs-9" id="btnGoToToday"><i class="fa-solid fa-circle-dot"></i> Ir a Hoy</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT MAIN CONTENT (PASO 2: SELECCIONAR HORARIO & VENDER) -->
+    <div class="col-xl-9 col-lg-8 col-md-7 col-12">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1 class="h3 text-white fw-bold m-0"><i class="fa-solid fa-cash-register text-primary me-2"></i> Módulo de Ventas & Salidas</h1>
+            <span class="badge bg-warning text-dark fs-8 fw-bold"><i class="fa-regular fa-calendar me-1"></i> Fecha: @ViewBag.SelectedFecha</span>
+        </div>
+
+        <div class="sales-content-area">
+            <!-- VENTA DE PASAJES Y MAPA DE ASIENTOS -->
+            <div id="capaVenta">
+                <!-- SELECCIONAR HORARIO (24 HORAS) -->
+                @{
+                    var viajesEnMismaHora = ViewBag.ViajesEnMismaHora as List<SistemaChotaExpress.Controllers.VentaController.ViajeConDisponibilidad>;
+                    DateTime fechaBase = DateTime.Parse(ViewBag.SelectedFecha as string ?? DateTime.Today.ToString("yyyy-MM-dd"));
+                    bool hasActiveRoute = !string.IsNullOrWhiteSpace(ViewBag.SelectedOrigen as string) && !string.IsNullOrWhiteSpace(ViewBag.SelectedDestino as string);
+                }
+
+                @if (!hasActiveRoute)
+                {
+                    <div class="alert alert-dark border-warning text-warning p-4 text-center fs-7 shadow-lg my-3" role="alert">
+                        <i class="fa-solid fa-route fa-2x d-block mb-2 text-warning"></i>
+                        <strong class="fs-6 d-block mb-1">SELECCIÓN DE RUTA REQUERIDA</strong>
+                        Por favor seleccione el <strong>Origen</strong> y <strong>Destino</strong> en el panel lateral para ver los horarios y salidas disponibles.
+                    </div>
+                }
+                else
+                {
+                    <div class="card bg-dark text-white border-glass p-3 mb-3">
+                        <div class="sidebar-section-title mb-2 d-flex justify-content-between align-items-center">
+                            <span class="text-warning fw-bold fs-7">
+                                <i class="fa-regular fa-clock me-1 text-warning"></i> HORARIOS DISPONIBLES: <span class="text-white text-uppercase">@ViewBag.SelectedOrigen → @ViewBag.SelectedDestino</span>
+                            </span>
+                            <small class="text-muted fs-9">24 franjas horarias</small>
+                        </div>
+                        <div class="d-flex flex-wrap gap-1.5 hour-container">
+                            @for (int h = 0; h < 24; h++)
+                            {
+                                var horaSlot = fechaBase.Date.AddHours(h);
+                                var horaTexto = horaSlot.ToString("hh:mm tt");
+                                var tripsEnHora = Model != null 
+                                    ? Model.Where(m => m.Viaje.FechaHoraSalida.Hour == h).ToList() 
+                                    : new List<SistemaChotaExpress.Controllers.VentaController.ViajeConDisponibilidad>();
+                                var cantidadVehiculos = tripsEnHora.Count;
+
+                                if (cantidadVehiculos > 0)
+                                {
+                                    var itemSeleccionado = selectedViaje != null 
+                                        ? tripsEnHora.FirstOrDefault(item => item.Viaje.Id_Viaje == selectedViaje.Id_Viaje) 
+                                        : null;
+
+                                    var isSelected = itemSeleccionado != null;
+                                    var targetTrip = (itemSeleccionado ?? tripsEnHora.First()).Viaje;
+
+                                    <a href="@Url.Action("BuscarViajes", new { origen = ViewBag.SelectedOrigen, destino = ViewBag.SelectedDestino, fecha = ViewBag.SelectedFecha, viajeId = targetTrip.Id_Viaje })#bookingSection" 
+                                       class="btn hour-pill-btn mb-1 me-1 @(isSelected ? "btn-teal-active shadow-lg" : "btn-glass-pill")"
+                                       title="Salida a las @horaTexto (@cantidadVehiculos vehículo(s))">
+                                        <i class="fa-regular fa-clock me-1 fs-9"></i>@horaTexto
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span class="btn hour-pill-btn btn-glass-pill text-muted opacity-75 mb-1 me-1">
+                                        <i class="fa-regular fa-clock me-1 text-muted fs-9"></i>@horaTexto
+                                    </span>
+                                }
+                            }
+                        </div>
+                    </div>
+                }
+
+                @if (selectedViaje != null)
+                {
+                    @if (viajesEnMismaHora != null && viajesEnMismaHora.Count > 0)
+                    {
+                        <!-- BARRA PROMINENTE DE SELECCIÓN DE VEHÍCULOS / COMBIS -->
+                        <div class="card bg-dark text-white border-glass p-3 mb-3 shadow-lg">
+                            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                                <span class="fs-8 font-weight-700 text-warning">
+                                    <i class="fa-solid fa-van-shuttle me-1 text-warning"></i> SELECCIONAR VEHÍCULO / COMBI (SALIDA @selectedViaje.FechaHoraSalida.ToString("hh:mm tt")):
+                                </span>
+                                <span class="fs-9 text-muted font-monospace">(@viajesEnMismaHora.Count Vehículo(s) registrado(s))</span>
+                            </div>
+                            
+                            <div class="d-flex flex-wrap gap-2 align-items-center">
+                                @for (int idx = 0; idx < viajesEnMismaHora.Count; idx++)
+                                {
+                                    var itemV = viajesEnMismaHora[idx];
+                                    var isThisSelected = itemV.Viaje.Id_Viaje == selectedViaje.Id_Viaje;
+                                    var numCombi = idx + 1;
+                                    var nombreVeh = $"Combi {numCombi:D2}";
+                                    var chofer = string.IsNullOrWhiteSpace(itemV.Viaje.NombreConductor) ? "Sin Conductor" : itemV.Viaje.NombreConductor;
+
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a href="@Url.Action("BuscarViajes", new { origen = ViewBag.SelectedOrigen, destino = ViewBag.SelectedDestino, fecha = ViewBag.SelectedFecha, viajeId = itemV.Viaje.Id_Viaje })#bookingSection"
+                                           class="btn @(isThisSelected ? "btn-teal-active shadow-lg text-white font-weight-700" : "btn-outline-light border-glass-btn opacity-85") fs-8 py-1.5 px-3">
+                                            <i class="fa-solid fa-van-shuttle me-1 text-warning"></i>
+                                            <strong>@nombreVeh</strong> <small class="opacity-75">(@chofer)</small>
+                                            @if (isThisSelected)
+                                            {
+                                                <span class="badge bg-white text-dark ms-1 fs-9">Vendiéndose</span>
+                                            }
+                                        </a>
+
+                                        @if (viajesEnMismaHora.Count > 1)
+                                        {
+                                            <form asp-action="EliminarSalida" method="post" class="d-inline m-0" onsubmit="return confirm('¿Está seguro de que desea eliminar la salida de @nombreVeh?');">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="origen" value="@ViewBag.SelectedOrigen" />
+                                                <input type="hidden" name="destino" value="@ViewBag.SelectedDestino" />
+                                                <input type="hidden" name="fecha" value="@ViewBag.SelectedFecha" />
+                                                <input type="hidden" name="viajeId" value="@itemV.Viaje.Id_Viaje" />
+                                                <button type="submit" class="btn btn-sm btn-outline-danger border-glass-btn h-100 px-2" title="Eliminar este vehículo de la hora @selectedViaje.FechaHoraSalida.ToString("hh:mm tt")">
+                                                    <i class="fa-solid fa-trash-can fs-9"></i>
+                                                </button>
+                                            </form>
+                                        }
+                                    </div>
+                                }
+
+                                <!-- Botón + Agregar Otra Combi en esta Hora -->
+                                <form asp-action="AgregarSalidaAdicional" method="post" class="d-inline m-0">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="viajeId" value="@selectedViaje.Id_Viaje" />
+                                    <input type="hidden" name="origen" value="@ViewBag.SelectedOrigen" />
+                                    <input type="hidden" name="destino" value="@ViewBag.SelectedDestino" />
+                                    <input type="hidden" name="fecha" value="@selectedViaje.FechaHoraSalida.ToString("yyyy-MM-dd")" />
+                                    <input type="hidden" name="hora" value="@selectedViaje.FechaHoraSalida.Hour" />
+                                    <button type="submit" class="btn btn-sm btn-outline-warning border-glass-btn py-1.5 px-3 fs-9" title="Agregar otra combi a las @selectedViaje.FechaHoraSalida.ToString("hh:mm tt")">
+                                        <i class="fa-solid fa-plus me-1"></i> Agregar Combi @(viajesEnMismaHora.Count + 1)
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    }
+
+                    var combiIndexPos = (viajesEnMismaHora != null) ? viajesEnMismaHora.FindIndex(v => v.Viaje.Id_Viaje == selectedViaje.Id_Viaje) + 1 : 1;
+                    if (combiIndexPos <= 0) combiIndexPos = 1;
+                    var displayNombreCombi = $"COMBI {combiIndexPos:D2}";
+                    <!-- SEAT MAP & REGISTRATION AREA -->
+                    <div class="row g-4" id="bookingSection">
+                        <!-- Bus Seats Cabin Column -->
+                        <div class="col-lg-5 col-12">
+                            <div class="card bg-dark text-white border-glass p-3">
+                                <div class="sidebar-section-title mb-2 d-flex flex-wrap align-items-center justify-content-between gap-1">
+                                    <div>
+                                        @{
+                                            var rutaDisplay = !string.IsNullOrWhiteSpace(ViewBag.SelectedOrigen as string) && !string.IsNullOrWhiteSpace(ViewBag.SelectedDestino as string)
+                                                ? $"{ViewBag.SelectedOrigen.ToString().ToUpper()} → {ViewBag.SelectedDestino.ToString().ToUpper()}"
+                                                : "RUTA LIBRE";
+                                            var placaActual = string.IsNullOrWhiteSpace(selectedViaje.PlacaVehiculo) ? "S/P" : selectedViaje.PlacaVehiculo.ToUpper();
+                                        }
+                                        <i class="fa-solid fa-van-shuttle me-1 text-primary"></i> <strong>@displayNombreCombi</strong>
+                                        <span class="badge bg-warning text-dark ms-1 fs-9 font-monospace">@rutaDisplay</span>
+                                    </div>
+                                </div>
+                                <!-- Panel DATOS DEL VEHÍCULO: Placa + Conductor -->
+                                <div class="row g-2 mb-2">
+                                    <!-- Placa -->
+                                    <div class="col-12">
+                                        <form asp-action="ActualizarPlacaViaje" method="post" class="d-flex align-items-center gap-2 m-0 bg-dark-card border-glass p-2 rounded">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="viajeId" value="@selectedViaje.Id_Viaje" />
+                                            <input type="hidden" name="origen"  value="@ViewBag.SelectedOrigen" />
+                                            <input type="hidden" name="destino" value="@ViewBag.SelectedDestino" />
+                                            <input type="hidden" name="fecha"   value="@ViewBag.SelectedFecha" />
+                                            <i class="fa-solid fa-id-badge text-warning fs-8 flex-shrink-0"></i>
+                                            <span class="fs-9 text-muted text-nowrap">PLACA:</span>
+                                            <input type="text"
+                                                   name="placaVehiculo"
+                                                   class="form-control form-control-sm bg-dark-input border-glass-field text-warning font-monospace text-uppercase text-center fw-bold"
+                                                   style="max-width:110px; letter-spacing:2px;"
+                                                   value="@(string.IsNullOrWhiteSpace(selectedViaje.PlacaVehiculo) ? "" : selectedViaje.PlacaVehiculo.ToUpper())"
+                                                   placeholder="123-ABC"
+                                                   maxlength="8"
+                                                   pattern="[0-9]{3}-[A-Za-z]{3}"
+                                                   title="Formato: 123-ABC"
+                                                   oninput="this.value=this.value.toUpperCase()" />
+                                            <button type="submit" class="btn btn-sm btn-warning text-dark fw-bold px-2 py-1 fs-9 flex-shrink-0" style="background:#f7941d;border:none;" title="Guardar placa">
+                                                <i class="fa-solid fa-floppy-disk"></i>
+                                            </button>
+                                            @if (!string.IsNullOrWhiteSpace(selectedViaje.PlacaVehiculo))
+                                            {
+                                                <span class="badge bg-success text-white fs-9 font-monospace ms-1">@selectedViaje.PlacaVehiculo.ToUpper()</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary text-white fs-9 font-monospace ms-1">SIN PLACA</span>
+                                            }
+                                        </form>
+                                    </div>
+                                    <!-- Conductor -->
+                                    <div class="col-12">
+                                        <div class="d-flex align-items-center gap-2 bg-dark-card border-glass p-2 rounded">
+                                            <i class="fa-solid fa-id-card text-warning fs-8 flex-shrink-0"></i>
+                                            <span class="fs-9 text-muted text-nowrap">CONDUCTOR:</span>
+                                            <span class="fs-9 text-white fw-bold flex-grow-1">@(string.IsNullOrWhiteSpace(selectedViaje.NombreConductor) ? "SIN ASIGNAR" : selectedViaje.NombreConductor.ToUpper())</span>
+                                            <button type="button" class="btn btn-xs btn-outline-warning border-glass-btn px-2 py-0 text-warning fs-9 flex-shrink-0" data-bs-toggle="modal" data-bs-target="#modalCambiarConductor">
+                                                <i class="fa-solid fa-pen-to-square me-1"></i>@(string.IsNullOrWhiteSpace(selectedViaje.NombreConductor) ? "Ingresar" : "Editar")
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <!-- Botón Imprimir Manifiesto para Chofer -->
+                                    <div class="col-12">
+                                        <a href="@Url.Action("ManifiestoChofer", "Venta", new { viajeId = selectedViaje.Id_Viaje })" target="_blank" class="btn btn-sm btn-outline-warning w-100 fw-bold border-glass-btn py-1.5 fs-8 text-warning shadow-sm">
+                                            <i class="fa-solid fa-print me-1.5"></i> Imprimir Plano y Manifiesto para Chofer
+                                        </a>
+                                    </div>
+                                </div>
+
+                                               <!-- Seat Legends -->
+                                <div class="d-flex flex-wrap gap-3 mb-3 justify-content-center bg-dark-card border-glass p-2 rounded">
+                                    <div class="d-flex align-items-center gap-1.5 fs-8">
+                                        <div class="seat-legend-box seat-available-demo"></div>
+                                        <span class="text-white fw-bold">Libre</span>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-1.5 fs-8">
+                                        <div class="seat-legend-box seat-selected-demo"></div>
+                                        <span class="text-white fw-bold">Elegido</span>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-1.5 fs-8">
+                                        <div class="seat-legend-box seat-reserved-demo"></div>
+                                        <span class="text-white fw-bold">Reservado</span>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-1.5 fs-8">
+                                        <div class="seat-legend-box seat-occupied-demo"></div>
+                                        <span class="text-white fw-bold">Vendido</span>
+                                    </div>
+                                </div>
+
+                                <!-- Interactive Bus Chassis -->
+                                <div class="bus-outer-body p-4 mx-auto mb-3">
+                                    <div class="bus-inner-cabin position-relative">
+                                        <div class="bus-title text-center text-danger fw-bold mb-3 fs-9">Piso 1 - Combi Estándar</div>
+                                        
+                                        <div class="seats-grid">
+                                            <!-- Row 1 (Top) -->
+                                            @Html.Raw(RenderSeatHtml(2, asientosOcupados, asientosReservados, 1, 1))
+                                            <div class="seat-space" style="grid-row: 1; grid-column: 2;"></div>
+                                            @Html.Raw(RenderSeatHtml(8, asientosOcupados, asientosReservados, 1, 3))
+                                            @Html.Raw(RenderSeatHtml(11, asientosOcupados, asientosReservados, 1, 4))
+                                            @Html.Raw(RenderSeatHtml(15, asientosOcupados, asientosReservados, 1, 5))
+
+                                            <!-- Row 2 -->
+                                            @Html.Raw(RenderSeatHtml(1, asientosOcupados, asientosReservados, 2, 1))
+                                            @Html.Raw(RenderSeatHtml(5, asientosOcupados, asientosReservados, 2, 2))
+                                            <div class="seat-space" style="grid-row: 2; grid-column: 3;"></div>
+                                            <div class="seat-space" style="grid-row: 2; grid-column: 4;"></div>
+                                            @Html.Raw(RenderSeatHtml(14, asientosOcupados, asientosReservados, 2, 5))
+
+                                            <!-- Row 3 -->
+                                            <div class="seat-space" style="grid-row: 3; grid-column: 1;"></div>
+                                            @Html.Raw(RenderSeatHtml(4, asientosOcupados, asientosReservados, 3, 2))
+                                            @Html.Raw(RenderSeatHtml(7, asientosOcupados, asientosReservados, 3, 3))
+                                            @Html.Raw(RenderSeatHtml(10, asientosOcupados, asientosReservados, 3, 4))
+                                            @Html.Raw(RenderSeatHtml(13, asientosOcupados, asientosReservados, 3, 5))
+
+                                            <!-- Row 4 (Bottom) -->
+                                            <div class="driver-wheel" style="grid-row: 4; grid-column: 1;" title="Chofer">
+                                                <i class="fa-solid fa-circle-radiation text-muted" style="transform: rotate(45deg); font-size: 2rem;"></i>
+                                            </div>
+                                            @Html.Raw(RenderSeatHtml(3, asientosOcupados, asientosReservados, 4, 2))
+                                            @Html.Raw(RenderSeatHtml(6, asientosOcupados, asientosReservados, 4, 3))
+                                            @Html.Raw(RenderSeatHtml(9, asientosOcupados, asientosReservados, 4, 4))
+                                            @Html.Raw(RenderSeatHtml(12, asientosOcupados, asientosReservados, 4, 5))
+                                        </div>
+                                    </div>
+                                </div>
+
+                                              <!-- Price display & inline editor -->
+                                  <div class="px-3 py-2.5 bg-dark-card border-glass rounded mb-2">
+                                      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                                          <div>
+                                              <span class="fs-9 text-muted d-block text-uppercase fw-bold"><i class="fa-solid fa-coins text-warning me-1"></i> MONTO TOTAL A COBRAR (<span id="totalPasajesCount" class="text-info font-monospace">0 pasajes</span>)</span>
+                                              <span class="big-price-text text-success fw-bold" id="priceDisplay">S/ 0.00</span>
+                                          </div>
+                                          <form asp-action="ActualizarPrecioViaje" method="post" class="d-flex align-items-center gap-1 m-0">
+                                              @Html.AntiForgeryToken()
+                                              <input type="hidden" name="viajeId" value="@selectedViaje.Id_Viaje" />
+                                              <input type="hidden" name="origen" value="@ViewBag.SelectedOrigen" />
+                                              <input type="hidden" name="destino" value="@ViewBag.SelectedDestino" />
+                                              <input type="hidden" name="fecha" value="@ViewBag.SelectedFecha" />
+                                              <span class="fs-9 text-muted">Precio base S/</span>
+                                              <input type="number" step="0.50" min="0" name="nuevoPrecio" id="inputPrecioBase"
+                                                     class="form-control form-control-sm bg-dark-input text-warning font-monospace border-glass-field text-end" 
+                                                     style="width: 90px;" 
+                                                     value="@selectedViaje.Precio.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)" placeholder="0.00" 
+                                                     onblur="if(this.value) this.value = parseFloat(this.value).toFixed(2);" required />
+                                              <button type="submit" class="btn btn-sm btn-warning text-dark fw-bold px-2 py-1 fs-9" style="background-color: #f7941d; border: none;" title="Guardar nuevo precio del pasaje">
+                                                  <i class="fa-solid fa-floppy-disk me-1"></i> Guardar
+                                              </button>
+                                          </form>
+                                      </div>
+                                  </div>
+                             </div>
+                         </div>
+
+                         <!-- Transaction Booking Form Column -->
+                         <div class="col-lg-7 col-12">
+                             <div class="card bg-dark text-white border-glass p-3 h-100">
+                                 <div class="sidebar-section-title mb-2"><i class="fa-solid fa-receipt text-primary me-1"></i> Emisión de Pasaje & Comprobante</div>
+
+                                 <form asp-action="RegistrarVentaMultiple" method="post" id="ventaForm">
+                                     @Html.AntiForgeryToken()
+                                     <input type="hidden" name="viajeId" value="@selectedViaje.Id_Viaje" />
+                                     <input type="hidden" name="tipoTransaccion" id="tipoTransaccionInput" value="Venta" />
+                                     <input type="hidden" name="origen" value="@ViewBag.SelectedOrigen" />
+                                     <input type="hidden" name="destino" value="@ViewBag.SelectedDestino" />
+                                     <input type="hidden" name="fecha" value="@ViewBag.SelectedFecha" />
+
+                                     <!-- Indicadores de Selección de Asientos -->
+                                     <div id="seatAlert" class="alert alert-warning p-2 mb-3 fs-9 text-center" role="alert">
+                                         <i class="fa-solid fa-hand-pointer me-1"></i> Haga clic en uno o varios asientos libres del mapa para seleccionarlos.
+                                     </div>
+                                     <div id="seatSelectedIndicator" class="alert alert-success p-2 mb-3 fs-8 text-center d-none fw-bold" role="alert">
+                                         <i class="fa-solid fa-circle-check me-1"></i> Asiento(s) Seleccionado(s): <span id="selectedSeatLabel" class="badge bg-dark px-2 py-1 fs-8 text-success border border-success">Ninguno</span>
+                                     </div>
+
+                                     <!-- ============================================== -->
+                                     <!-- CUADRO 1: REGISTRO DE PASAJEROS POR ASIENTO    -->
+                                     <!-- ============================================== -->
+                                     <div class="panel-cuadro mb-3">
+                                         <div class="cuadro-title text-info d-flex justify-content-between align-items-center">
+                                             <span><i class="fa-solid fa-users me-1"></i> CUADRO 1: Registro de Pasajero(s) por Asiento</span>
+                                             <span class="fs-8 text-warning font-monospace fw-bold" id="counterAsientos">0 Asiento(s)</span>
+                                         </div>
+
+                                         <div id="asientosPasajerosContainer">
+                                             <p class="text-white fs-8 text-center fw-bold py-3 m-0"><i class="fa-solid fa-info-circle text-warning me-1"></i> Seleccione un asiento en el mapa interactivo para ingresar los datos del pasajero.</p>
+                                         </div>
+                                     </div>
+
+                                     <!-- ============================================== -->
+                                     <!-- CUADRO 2: FACTURACIÓN & RUC ÚNICO PARA GRUPO   -->
+                                     <!-- ============================================== -->
+                                     <div class="panel-cuadro mb-3">
+                                         <div class="cuadro-title text-success">
+                                             <i class="fa-solid fa-file-invoice-dollar me-1"></i> CUADRO 2: Comprobante & Datos de Facturación (RUC Único para Empresa)
+                                         </div>
+
+                                         <div class="row g-2 mb-2">
+                                             <div class="col-6">
+                                                 <label class="form-label text-muted fs-9 mb-1">Tipo de Comprobante</label>
+                                                 <select name="tipoComprobante" id="tipoComprobante" class="form-select bg-dark-input text-white border-glass-field fs-8 py-1.5 fw-bold">
+                                                     <option value="Boleta" selected>Boleta de Venta Electrónica</option>
+                                                     <option value="Factura">Factura Electrónica (RUC)</option>
+                                                     <option value="Ticket">Ticket de Pasaje</option>
+                                                 </select>
+                                             </div>
+                                             <div class="col-6">
+                                                 <label class="form-label text-muted fs-9 mb-1">Método de Pago</label>
+                                                 <select name="metodoPago" id="metodoPago" class="form-select bg-dark-input text-white border-glass-field fs-8 py-1.5">
+                                                     <option value="Efectivo" selected>Efectivo</option>
+                                                     <option value="Yape / Plin">Yape / Plin</option>
+                                                     <option value="Tarjeta">Tarjeta Débito / Crédito</option>
+                                                     <option value="Transferencia">Transferencia Bancaria</option>
+                                                 </select>
+                                             </div>
+                                         </div>
+
+                                         <!-- Sección RUC Único de la Empresa (Aplica a todos los pasajes seleccionados) -->
+                                         <div id="seccionFactura" class="d-none p-2.5 bg-dark rounded border border-success mb-2">
+                                             <div class="row g-2 mb-2">
+                                                 <div class="col-6">
+                                                     <label class="form-label text-success fs-9 mb-1 fw-bold">N° RUC Empresa (Aplica a todos)</label>
+                                                     <div class="input-group input-group-sm">
+                                                         <input type="text" name="rucEmpresa" id="rucEmpresa" class="form-control bg-dark-input text-white border-glass-field font-monospace fs-8" placeholder="20600308883" maxlength="11" />
+                                                         <button class="btn btn-success" type="button" id="btnConsultarRuc" title="Consultar RUC en SUNAT">
+                                                             <span id="btnRucText"><i class="fa-solid fa-magnifying-glass me-1"></i> Sunat</span>
+                                                             <span id="btnRucSpinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                                         </button>
+                                                     </div>
+                                                 </div>
+                                                 <div class="col-6">
+                                                     <label class="form-label text-muted fs-9 mb-1">Razón Social</label>
+                                                     <input type="text" name="razonSocialEmpresa" id="razonSocialEmpresa" class="form-control bg-dark-input text-white border-glass-field fs-8 py-1.5" placeholder="Nombre de la empresa" />
+                                                 </div>
+                                             </div>
+                                             <div>
+                                                 <label class="form-label text-muted fs-9 mb-1">Domicilio / Dirección Fiscal</label>
+                                                 <input type="text" name="direccionEmpresa" id="direccionEmpresa" class="form-control bg-dark-input text-white border-glass-field fs-8 py-1.5" placeholder="Dirección fiscal para la factura" />
+                                             </div>
+                                         </div>
+
+                                         <!-- Descuento y Observaciones -->
+                                         <div class="row g-2 mt-2">
+                                             <div class="col-6">
+                                                 <label class="form-label text-muted fs-9 mb-1">Descuento Especial (S/)</label>
+                                                 <div class="input-group input-group-sm">
+                                                     <input type="number" step="0.50" min="0" class="form-control bg-dark-input text-white border-glass-field font-monospace fs-8" id="descuentoInput" placeholder="Monto desc." />
+                                                     <button class="btn btn-outline-success" type="button" id="btnAplicarDescuento">Aplicar</button>
+                                                 </div>
+                                             </div>
+                                             <div class="col-6">
+                                                 <label class="form-label text-muted fs-9 mb-1">Observaciones</label>
+                                                 <input type="text" name="observaciones" id="observaciones" class="form-control bg-dark-input text-white border-glass-field fs-8 py-1.5" placeholder="Ej. Viaje corporativo, equipaje extra..." />
+                                             </div>
+                                         </div>
+                                     </div>
+
+                                     <!-- Form Actions -->
+                                     <div class="d-flex gap-2">
+                                         <button type="button" class="btn btn-success flex-grow-1 py-2.5 fw-bold fs-8 border-0" style="background-color: #198754;" id="btnVenderSubmit" disabled>
+                                             <i class="fa-solid fa-cart-shopping me-1"></i> VENDER PASAJE(S)
+                                         </button>
+                                         <button type="button" class="btn btn-warning flex-grow-1 py-2.5 fw-bold fs-8 text-white border-0" style="background-color: #f7941d;" id="btnReservarSubmit" disabled>
+                                             <i class="fa-solid fa-hourglass-half me-1"></i> RESERVAR PASAJE(S)
+                                         </button>
+                                     </div>
+                                 </form>
+                             </div>
+                         </div>
+                     </div>
+
+                     <!-- SECCIÓN DE ANULACIÓN DE VENTAS Y PASAJEROS DESANIMADOS -->
+                     <div class="card bg-dark text-white border-glass p-3 mt-4 shadow-lg">
+                          <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                              <h6 class="fw-bold text-warning m-0">
+                                  <i class="fa-solid fa-users text-warning me-1"></i> Lista de Asientos Ocupados & Anulación de Ventas (Pasajeros desanimados)
+                              </h6>
+                              <div class="d-flex align-items-center gap-2">
+                                  <a href="@Url.Action("ManifiestoChofer", "Venta", new { viajeId = selectedViaje.Id_Viaje })" target="_blank" class="btn btn-xs btn-outline-warning border-glass-btn py-1 px-2.5 fs-9 text-warning fw-bold">
+                                      <i class="fa-solid fa-print me-1"></i> Imprimir Manifiesto Chofer
+                                  </a>
+                                  @{
+                                      var ventasDetalleList = ViewBag.VentasActivasDetalle as List<SistemaChotaExpress.Models.Venta> ?? new List<SistemaChotaExpress.Models.Venta>();
+                                  }
+                                  <span class="badge bg-secondary font-monospace fs-9">@ventasDetalleList.Count Asiento(s) ocupado(s)</span>
+                              </div>
+                          </div>
+
+                         @if (ventasDetalleList.Any())
+                         {
+                             <div class="table-responsive">
+                                 <table class="table table-dark table-hover mb-0 align-middle fs-8">
+                                     <thead>
+                                         <tr class="text-muted border-secondary fs-9">
+                                             <th class="text-center">Asiento</th>
+                                             <th>Pasajero</th>
+                                             <th>Documento</th>
+                                             <th>Comprobante / RUC</th>
+                                             <th class="text-center">Monto</th>
+                                             <th class="text-center">Estado</th>
+                                             <th class="text-center">Anulación</th>
+                                         </tr>
+                                     </thead>
+                                     <tbody>
+                                         @foreach (var vta in ventasDetalleList)
+                                         {
+                                             <tr>
+                                                 <td class="text-center fw-bold text-warning fs-7">#@vta.NumeroAsiento</td>
+                                                 <td class="fw-bold text-white">@(vta.ObjetoPasajero?.NombreCompleto ?? "Pasajero")</td>
+                                                 <td class="font-monospace fs-9">@(vta.ObjetoPasajero?.TipoDocumento): @(vta.ObjetoPasajero?.NumeroDocumento)</td>
+                                                 <td class="fs-9">
+                                                     <div>@vta.TipoComprobante</div>
+                                                     @if (!string.IsNullOrEmpty(vta.RucEmpresa))
+                                                     {
+                                                         <small class="text-success font-monospace">RUC: @vta.RucEmpresa (@vta.RazonSocialEmpresa)</small>
+                                                     }
+                                                 </td>
+                                                 <td class="text-center font-monospace text-success fw-bold">S/ @vta.PrecioPagado.ToString("0.00")</td>
+                                                 <td class="text-center">
+                                                     <span class="badge @(vta.Estado == "Vendido" ? "bg-success" : "bg-warning text-dark") fs-9">@vta.Estado</span>
+                                                 </td>
+                                                 <td class="text-center">
+                                                     <form asp-action="AnularVenta" method="post" class="d-inline m-0" onsubmit="return confirm('¿Está seguro de ANULAR la venta del asiento #@vta.NumeroAsiento (@(vta.ObjetoPasajero?.NombreCompleto))? El asiento se liberará inmediatamente.');">
+                                                         @Html.AntiForgeryToken()
+                                                         <input type="hidden" name="idVenta" value="@vta.Id_Venta" />
+                                                         <input type="hidden" name="origen" value="@ViewBag.SelectedOrigen" />
+                                                         <input type="hidden" name="destino" value="@ViewBag.SelectedDestino" />
+                                                         <input type="hidden" name="fecha" value="@ViewBag.SelectedFecha" />
+                                                         <input type="hidden" name="viajeId" value="@selectedViaje.Id_Viaje" />
+                                                         <button type="submit" class="btn btn-xs btn-outline-danger border-glass-btn px-2.5 py-1 text-danger fs-9" title="Anular venta y liberar asiento #@vta.NumeroAsiento">
+                                                             <i class="fa-solid fa-ban me-1"></i> Anular Venta
+                                                         </button>
+                                                     </form>
+                                                 </td>
+                                             </tr>
+                                         }
+                                     </tbody>
+                                 </table>
+                             </div>
+                         }
+                         else
+                         {
+                             <p class="text-muted fs-8 m-0 py-2 text-center"><i class="fa-solid fa-info-circle me-1"></i> No hay pasajes vendidos ni reservados en este vehículo por el momento. Todos los asientos están libres.</p>
+                         }
+                     </div>
+                }
+                else
+                {
+                    <div class="card bg-dark text-white border-glass p-5 text-center shadow-lg my-3">
+                        <i class="fa-solid fa-van-shuttle text-primary mb-3" style="font-size: 3.5rem;"></i>
+                        <h4 class="fw-bold text-white">Seleccione un Horario de Salida</h4>
+                        <p class="text-muted fs-7 mx-auto" style="max-width: 540px;">
+                            Haga clic en cualquiera de los horarios disponibles en la barra superior para cargar el croquis de asientos del vehículo y gestionar pasajes.
+                        </p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@functions {
+    public string RenderSeatHtml(int seatNumber, List<int> occupied, List<int> reserved, int row, int col)
+    {
+        string cssClass = "seat-available";
+        string statusText = "Disponible (Clic para seleccionar)";
+
+        if (occupied.Contains(seatNumber))
+        {
+            cssClass = "seat-occupied";
+            statusText = "Vendido (Clic para ver detalles o anular)";
+        }
+        else if (reserved.Contains(seatNumber))
+        {
+            cssClass = "seat-reserved";
+            statusText = "Reservado (Clic para ver detalles o anular)";
+        }
+
+        return $@"
+        <button type=""button"" class=""seat-box {cssClass}"" style=""grid-row: {row}; grid-column: {col};"" 
+                data-seat=""{seatNumber}"" title=""Asiento {seatNumber} ({statusText})"">
+            <span class=""seat-num"">{seatNumber}</span>
+        </button>";
+    }
+}
+
+<!-- Modal 1: Agregar Salida con Nombre de Conductor (botón +) -->
+<div class="modal fade" id="modalAgregarSalidaConductor" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-white border-glass shadow-lg">
+            <div class="modal-header border-secondary py-2.5">
+                <h5 class="modal-title fw-bold text-warning">
+                    <i class="fa-solid fa-plus-circle me-2"></i> Agregar Salida (<span id="spanModalHoraTexto">--:--</span>)
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="AgregarSalidaAdicional" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="origen" value="@ViewBag.SelectedOrigen" />
+                <input type="hidden" name="destino" value="@ViewBag.SelectedDestino" />
+                <input type="hidden" name="fecha" value="@ViewBag.SelectedFecha" />
+                <input type="hidden" name="hora" id="inputModalHora" value="0" />
+                <input type="hidden" name="idRuta" id="inputModalIdRuta" value="0" />
+                
+                <div class="modal-body py-3">
+                    <div class="mb-3">
+                        <label class="form-label text-muted fs-8 font-weight-600">Nombre del Conductor (Chofer)</label>
+                        <input type="text" name="conductorNombre" id="inputModalConductor" class="form-control bg-dark-input text-white border-glass-field" 
+                               placeholder="Ej. Carlos Gómez, Juan Pérez, Mario Silva" required />
+                        <span class="fs-9 text-muted mt-1 d-block"><i class="fa-solid fa-info-circle me-1"></i> Ingrese el nombre del chofer asignado a esta salida.</span>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary py-2">
+                    <button type="button" class="btn btn-sm btn-outline-light" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-sm btn-warning text-white fw-bold px-4" style="background-color: #f7941d; border: none; border-radius: 8px;">
+                        <i class="fa-solid fa-floppy-disk me-1"></i> Crear Salida
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@if (selectedViaje != null)
+{
+    <!-- Modal 2: Editar Conductor Actual -->
+    <div class="modal fade" id="modalCambiarConductor" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content bg-dark text-white border-glass shadow-lg">
+                <div class="modal-header border-secondary py-2">
+                    <h6 class="modal-title fw-bold text-warning">
+                        <i class="fa-solid fa-id-card me-2"></i> Cambiar Conductor
+                    </h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form asp-action="ActualizarConductorViaje" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="viajeId" value="@selectedViaje.Id_Viaje" />
+                    <input type="hidden" name="origen" value="@ViewBag.SelectedOrigen" />
+                    <input type="hidden" name="destino" value="@ViewBag.SelectedDestino" />
+                    <input type="hidden" name="fecha" value="@ViewBag.SelectedFecha" />
+                    <div class="modal-body py-3">
+                        <label class="form-label text-muted fs-8 font-weight-600">Nombre del Conductor (Chofer)</label>
+                        <input type="text" name="nombreConductor" class="form-control bg-dark-input text-white border-glass-field" 
+                               value="@(selectedViaje.NombreConductor ?? selectedViaje.ObjetoBus?.NombreConductor ?? "")" 
+                               placeholder="Ej. Carlos Gómez" required />
+                    </div>
+                    <div class="modal-footer border-secondary py-2">
+                        <button type="submit" class="btn btn-sm btn-warning text-white w-100 fw-bold" style="background-color: #f7941d; border: none; border-radius: 8px;">
+                            <i class="fa-solid fa-floppy-disk me-1"></i> Guardar Nombre
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 3: Detalle y Anulación Directa de Asiento Ocupado (Al dar clic al asiento ocupado) -->
+    <div class="modal fade" id="modalDetalleAsientoOcupado" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content bg-dark text-white border-glass shadow-lg">
+                <div class="modal-header border-secondary py-2">
+                    <h6 class="modal-title fw-bold text-warning">
+                        <i class="fa-solid fa-chair me-2"></i> Asiento #<span id="modalAsientoNumero">--</span> (<span id="modalAsientoEstado">Ocupado</span>)
+                    </h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body py-3">
+                    <div class="mb-2 fs-8">
+                        <span class="text-muted d-block fs-9">Pasajero:</span>
+                        <strong id="modalPasajeroNombre" class="text-white">--</strong>
+                    </div>
+                    <div class="mb-2 fs-8">
+                        <span class="text-muted d-block fs-9">Documento:</span>
+                        <span id="modalPasajeroDoc" class="font-monospace text-warning">--</span>
+                    </div>
+                    <div class="mb-2 fs-8">
+                        <span class="text-muted d-block fs-9">Comprobante / Costo:</span>
+                        <span id="modalPasajeroComp" class="text-success font-monospace fw-bold">--</span>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary p-2 d-flex flex-column gap-1">
+                    <form asp-action="AnularVenta" method="post" id="formAnularAsientoModal" class="w-100 m-0" onsubmit="return confirm('¿Está seguro de ANULAR la venta de este asiento? El asiento se liberará inmediatamente.');">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="idVenta" id="modalIdVentaInput" value="0" />
+                        <input type="hidden" name="origen" value="@ViewBag.SelectedOrigen" />
+                        <input type="hidden" name="destino" value="@ViewBag.SelectedDestino" />
+                        <input type="hidden" name="fecha" value="@ViewBag.SelectedFecha" />
+                        <input type="hidden" name="viajeId" value="@(selectedViaje.Id_Viaje)" />
+                        <button type="submit" class="btn btn-danger btn-sm w-100 fw-bold py-2 fs-8" style="background-color: #dc3545; border: none; border-radius: 8px;">
+                            <i class="fa-solid fa-ban me-1"></i> ANULAR VENTA / LIBERAR ASIENTO
+                        </button>
+                    </form>
+                    <a href="#" id="modalVerTicketLink" class="btn btn-outline-light btn-sm w-100 py-1 fs-9 border-glass-btn">
+                        <i class="fa-solid fa-receipt me-1"></i> Ver / Imprimir Ticket
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        function limpiarFiltrosRuta() {
+            window.location.href = "@Url.Action("BuscarViajes", new { reset = true })";
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const origenSelect = document.getElementById("origenSelect");
+            const destinoSelect = document.getElementById("destinoSelect");
+            const searchFilterForm = document.getElementById("searchFilterForm");
+
+            if (searchFilterForm && origenSelect && destinoSelect) {
+                origenSelect.addEventListener("change", function() {
+                    const orig = this.value ? this.value.trim() : "";
+                    const dest = destinoSelect.value ? destinoSelect.value.trim() : "";
+                    if (orig && dest && orig.toLowerCase() === dest.toLowerCase()) {
+                        destinoSelect.value = "";
+                    }
+                });
+
+                destinoSelect.addEventListener("change", function() {
+                    const orig = origenSelect.value ? origenSelect.value.trim() : "";
+                    const dest = this.value ? this.value.trim() : "";
+                    if (orig && dest && orig.toLowerCase() === dest.toLowerCase()) {
+                        alert("El origen y el destino no pueden ser la misma ciudad. Por favor elija un destino diferente.");
+                        this.value = "";
+                    }
+                });
+            }
+
+            // Handle date integration
+            const fechaInput = document.getElementById("fechaInput");
+            const selectedDateStr = fechaInput.value; // yyyy-MM-dd
+
+            let currentDate = new Date();
+            if (selectedDateStr) {
+                const parts = selectedDateStr.split('-');
+                currentDate = new Date(parts[0], parts[1] - 1, parts[2]);
+            }
+
+            let displayYear = currentDate.getFullYear();
+            let displayMonth = currentDate.getMonth();
+
+            // Render calendar widget
+            const calendarWidget = document.getElementById("calendarWidget");
+
+            function getMonthName(monthIdx) {
+                const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+                return months[monthIdx];
+            }
+
+            function renderCalendar(year, month) {
+                calendarWidget.innerHTML = "";
+
+                // Header HTML
+                const header = document.createElement("div");
+                header.className = "calendar-header";
+                header.innerHTML = `
+                    <button type="button" class="calendar-nav-btn" id="prevMonthBtn"><i class="fa-solid fa-chevron-left"></i></button>
+                    <span class="calendar-title">${getMonthName(month)} ${year}</span>
+                    <button type="button" class="calendar-nav-btn" id="nextMonthBtn"><i class="fa-solid fa-chevron-right"></i></button>
+                `;
+                calendarWidget.appendChild(header);
+
+                // Grid Container
+                const grid = document.createElement("div");
+                grid.className = "calendar-grid";
+
+                // Days headers
+                const daysAbbr = ["Lu", "Ma", "Mi", "Ju", "Vi", "Sa", "Do"];
+                daysAbbr.forEach(abbr => {
+                    const dayHeader = document.createElement("div");
+                    dayHeader.className = "calendar-day-header";
+                    dayHeader.innerText = abbr;
+                    grid.appendChild(dayHeader);
+                });
+
+                // Calculate first day of the month and total days
+                const firstDay = new Date(year, month, 1);
+                let startOffset = firstDay.getDay() - 1;
+                if (startOffset === -1) startOffset = 6; // Sunday
+
+                const totalDays = new Date(year, month + 1, 0).getDate();
+
+                // Append empty cells for offset
+                for (let i = 0; i < startOffset; i++) {
+                    const emptyCell = document.createElement("div");
+                    emptyCell.className = "calendar-day-cell empty-cell";
+                    grid.appendChild(emptyCell);
+                }
+
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                const minDateAllowed = new Date(today);
+                minDateAllowed.setDate(minDateAllowed.getDate() - 3);
+
+                // Append actual days
+                for (let day = 1; day <= totalDays; day++) {
+                    const cell = document.createElement("div");
+                    cell.className = "calendar-day-cell";
+                    cell.innerText = day;
+
+                    const cellDate = new Date(year, month, day);
+                    cellDate.setHours(0, 0, 0, 0);
+
+                    const cellDateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+                    if (cellDate < minDateAllowed) {
+                        cell.classList.add("empty-cell");
+                        cell.style.opacity = "0.3";
+                        cell.style.cursor = "not-allowed";
+                        cell.title = "No se permite emitir ventas con más de 3 días de antigüedad";
+                    } else {
+                        // Check if selected
+                        if (selectedDateStr === cellDateString) {
+                            cell.classList.add("selected-cell");
+                        }
+
+                        // Check if today
+                        if (today.getDate() === day && today.getMonth() === month && today.getFullYear() === year) {
+                            cell.classList.add("today-cell");
+                        }
+
+                        // Handle cell click
+                        cell.addEventListener("click", function() {
+                            fechaInput.value = cellDateString;
+                            document.getElementById("searchFilterForm").submit();
+                        });
+                    }
+
+                    grid.appendChild(cell);
+                }
+
+                calendarWidget.appendChild(grid);
+
+                // Wire month navigation buttons
+                document.getElementById("prevMonthBtn").addEventListener("click", function(e) {
+                    e.stopPropagation();
+                    let newMonth = month - 1;
+                    let newYear = year;
+                    if (newMonth < 0) {
+                        newMonth = 11;
+                        newYear--;
+                    }
+                    renderCalendar(newYear, newMonth);
+                });
+
+                document.getElementById("nextMonthBtn").addEventListener("click", function(e) {
+                    e.stopPropagation();
+                    let newMonth = month + 1;
+                    let newYear = year;
+                    if (newMonth > 11) {
+                        newMonth = 0;
+                        newYear++;
+                    }
+                    renderCalendar(newYear, newMonth);
+                });
+            }
+
+            renderCalendar(displayYear, displayMonth);
+
+            // Go to Today Button
+            document.getElementById("btnGoToToday").addEventListener("click", function() {
+                const today = new Date();
+                const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+                fechaInput.value = todayStr;
+                document.getElementById("searchFilterForm").submit();
+            });
+
+            // Booking form setup (Multi-Seat selection & shared RUC invoice)
+            const bookingSection = document.getElementById("bookingSection");
+            if (bookingSection) {
+                const seats = document.querySelectorAll(".seat-box.seat-available");
+                const selectedSeatLabel = document.getElementById("selectedSeatLabel");
+                const seatAlert = document.getElementById("seatAlert");
+                const seatSelectedIndicator = document.getElementById("seatSelectedIndicator");
+                const containerPasajeros = document.getElementById("asientosPasajerosContainer");
+                const counterAsientos = document.getElementById("counterAsientos");
+                const btnVenderSubmit = document.getElementById("btnVenderSubmit");
+                const btnReservarSubmit = document.getElementById("btnReservarSubmit");
+
+                let selectedSeatsList = [];
+
+                function calculateTotalSum() {
+                    const priceInputs = document.querySelectorAll("input[name='preciosPagados']");
+                    let totalSum = 0;
+                    priceInputs.forEach(inp => {
+                        let val = parseFloat(inp.value) || 0;
+                        totalSum += val;
+                    });
+                    const priceDisplay = document.getElementById("priceDisplay");
+                    const totalPasajesCount = document.getElementById("totalPasajesCount");
+                    if (priceDisplay) {
+                        priceDisplay.innerText = "S/ " + totalSum.toFixed(2);
+                    }
+                    if (totalPasajesCount) {
+                        totalPasajesCount.innerText = `${priceInputs.length} pasaje(s)`;
+                    }
+                }
+
+                function updatePassengerFormRows() {
+                    containerPasajeros.innerHTML = "";
+
+                    if (selectedSeatsList.length === 0) {
+                        seatAlert.classList.remove("d-none");
+                        seatSelectedIndicator.classList.add("d-none");
+                        btnVenderSubmit.setAttribute("disabled", "true");
+                        btnReservarSubmit.setAttribute("disabled", "true");
+                        counterAsientos.textContent = "0 Asiento(s)";
+                        containerPasajeros.innerHTML = '<p class="text-muted fs-8 text-center py-3 m-0"><i class="fa-solid fa-info-circle me-1"></i> Seleccione un asiento en el mapa interactivo para ingresar los datos del pasajero.</p>';
+                        calculateTotalSum();
+                        return;
+                    }
+
+                    seatAlert.classList.add("d-none");
+                    seatSelectedIndicator.classList.remove("d-none");
+                    btnVenderSubmit.removeAttribute("disabled");
+                    btnReservarSubmit.removeAttribute("disabled");
+
+                    selectedSeatsList.sort((a, b) => a - b);
+                    selectedSeatLabel.innerText = selectedSeatsList.join(", ");
+                    counterAsientos.textContent = `${selectedSeatsList.length} Asiento(s) Seleccionado(s)`;
+
+                    let basePrice = parseFloat('@(selectedViaje?.Precio ?? 0)');
+                    if (isNaN(basePrice) || basePrice < 0) basePrice = 0;
+
+                    const lugaresList = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.LugaresDisponibles as List<string> ?? new List<string>()));
+                    const selectedDestinoGlobal = "@(ViewBag.SelectedDestino ?? "")".trim().toLowerCase();
+                    let destinosOptionsHtml = '';
+                    lugaresList.forEach(l => {
+                        const isSel = (l.trim().toLowerCase() === selectedDestinoGlobal) ? 'selected' : '';
+                        destinosOptionsHtml += `<option value="${l}" ${isSel}>${l}</option>`;
+                    });
+
+                    selectedSeatsList.forEach((numSeat, idx) => {
+                        const cardHtml = `
+                            <div class="p-2.5 bg-dark border-glass rounded mb-2 border-start border-3 border-warning">
+                                <input type="hidden" name="asientos" value="${numSeat}" />
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <span class="fs-8 fw-bold text-warning"><i class="fa-solid fa-chair me-1"></i> Asiento #${numSeat}</span>
+                                    <div class="d-flex align-items-center gap-1">
+                                        <span class="fs-9 text-muted">Precio S/</span>
+                                        <input type="number" step="0.50" min="0" name="preciosPagados" class="form-control form-control-sm bg-dark-input text-success font-monospace fs-9 border-glass-field text-end seat-price-input" style="width: 85px;" value="0.00" required />
+                                    </div>
+                                </div>
+                                <div class="row g-2 mb-1">
+                                    <div class="col-4">
+                                        <select name="tiposDocumento" id="tipoDoc_${numSeat}" class="form-select bg-dark-input text-white border-glass-field fs-9 py-1">
+                                            <option value="DNI" selected>DNI</option>
+                                            <option value="CE">C. Extranjería</option>
+                                            <option value="PASAPORTE">Pasaporte</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-8">
+                                        <div class="input-group input-group-sm">
+                                            <input type="text" name="numerosDocumento" id="numDoc_${numSeat}" class="form-control bg-dark-input text-white border-glass-field font-monospace fs-9" placeholder="N° Documento" maxlength="15" />
+                                            <button class="btn btn-warning py-0 px-2 fs-9" type="button" onclick="consultarDocAsiento(${numSeat})" title="Buscar Reniec">
+                                                <i class="fa-solid fa-magnifying-glass"></i> Reniec
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-1.5">
+                                    <input type="text" name="nombresCompletos" id="nombre_${numSeat}" class="form-control bg-dark-input text-white border-glass-field fs-9 py-1" placeholder="Nombres y Apellidos del Pasajero #${numSeat}" required />
+                                </div>
+                                <div class="d-flex align-items-center gap-1.5 bg-dark-card border-glass p-1.5 rounded">
+                                    <span class="fs-9 text-warning text-nowrap fw-bold"><i class="fa-solid fa-location-dot me-1"></i>Destino / Bajada:</span>
+                                    <select name="destinosPasajeros" class="form-select form-select-sm bg-dark-input text-white border-glass-field fs-9 py-0.5">
+                                        ${destinosOptionsHtml}
+                                    </select>
+                                </div>
+                            </div>
+                        `;
+                        containerPasajeros.insertAdjacentHTML('beforeend', cardHtml);
+                    });
+
+                    // Eventos para auto-formatear a 2 decimales en blur y recalcular suma total en tiempo real
+                    const priceInputs = containerPasajeros.querySelectorAll(".seat-price-input");
+                    priceInputs.forEach(inp => {
+                        inp.addEventListener("blur", function() {
+                            if (this.value !== "") {
+                                this.value = parseFloat(this.value).toFixed(2);
+                            }
+                            calculateTotalSum();
+                        });
+                        inp.addEventListener("input", function() {
+                            calculateTotalSum();
+                        });
+                    });
+
+                    calculateTotalSum();
+                }
+
+                // Handle occupied/reserved seat clicks to pop up detail & cancellation modal
+                @{
+                    var listVentasActivas = ViewBag.VentasActivasDetalle as List<SistemaChotaExpress.Models.Venta> ?? new List<SistemaChotaExpress.Models.Venta>();
+                    var ventasJsonDto = listVentasActivas.Select(v => new {
+                        idVenta = v.Id_Venta,
+                        numeroAsiento = v.NumeroAsiento,
+                        nombrePasajero = v.ObjetoPasajero?.NombreCompleto ?? "PASAJERO",
+                        docPasajero = $"{v.ObjetoPasajero?.TipoDocumento}: {v.ObjetoPasajero?.NumeroDocumento}",
+                        comprobante = $"{v.TipoComprobante} {(string.IsNullOrEmpty(v.RucEmpresa) ? "" : $" (RUC: {v.RucEmpresa})")}",
+                        precio = v.PrecioPagado.ToString("0.00"),
+                        estado = v.Estado
+                    }).ToList();
+                }
+
+                const ventasActivasData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ventasJsonDto));
+
+                const occupiedSeats = document.querySelectorAll(".seat-box.seat-occupied, .seat-box.seat-reserved");
+                occupiedSeats.forEach(seat => {
+                    seat.addEventListener("click", function() {
+                        const seatNum = parseInt(this.getAttribute("data-seat"));
+                        const vta = ventasActivasData.find(v => v.numeroAsiento === seatNum);
+
+                        if (vta) {
+                            document.getElementById("modalAsientoNumero").innerText = vta.numeroAsiento;
+                            document.getElementById("modalAsientoEstado").innerText = vta.estado;
+                            document.getElementById("modalPasajeroNombre").innerText = vta.nombrePasajero;
+                            document.getElementById("modalPasajeroDoc").innerText = vta.docPasajero;
+                            document.getElementById("modalPasajeroComp").innerText = `${vta.comprobante} | S/ ${vta.precio}`;
+                            document.getElementById("modalIdVentaInput").value = vta.idVenta;
+
+                            const btnTicket = document.getElementById("modalVerTicketLink");
+                            if (btnTicket) {
+                                btnTicket.href = `/Venta/Ticket/${vta.idVenta}`;
+                            }
+
+                            const modalEl = document.getElementById("modalDetalleAsientoOcupado");
+                            if (modalEl) {
+                                const bsModal = new bootstrap.Modal(modalEl);
+                                bsModal.show();
+                            }
+                        }
+                    });
+                });
+
+                // Handle seat clicks (multi-selection for available seats)
+                seats.forEach(seat => {
+                    seat.addEventListener("click", function() {
+                        const seatNum = parseInt(this.getAttribute("data-seat"));
+                        if (selectedSeatsList.includes(seatNum)) {
+                            selectedSeatsList = selectedSeatsList.filter(s => s !== seatNum);
+                            this.classList.remove("seat-selected");
+                        } else {
+                            selectedSeatsList.push(seatNum);
+                            this.classList.add("seat-selected");
+                        }
+                        updatePassengerFormRows();
+                    });
+                });
+
+                window.consultarDocAsiento = async function(seatNum) {
+                    const tipo = document.getElementById(`tipoDoc_${seatNum}`).value;
+                    const numero = document.getElementById(`numDoc_${seatNum}`).value.trim();
+                    const nombreInput = document.getElementById(`nombre_${seatNum}`);
+
+                    if (!numero) {
+                        alert("Por favor, ingrese un número de documento.");
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch(`/Documento/Consultar?tipo=${tipo}&numero=${numero}`);
+                        const data = await response.json();
+
+                        if (data.success) {
+                            nombreInput.value = data.nombreCompleto;
+                        } else {
+                            alert(data.mensaje || "No se encontraron datos para este documento. Ingrese el nombre manualmente.");
+                        }
+                    } catch (error) {
+                        console.error("Error al consultar documento: ", error);
+                        alert("Ocurrió un error al consultar el documento. Complete el nombre manualmente.");
+                    }
+                };
+
+                // Invoicing / Comprobante switcher
+                const tipoComprobante = document.getElementById("tipoComprobante");
+                const seccionFactura = document.getElementById("seccionFactura");
+                const rucEmpresa = document.getElementById("rucEmpresa");
+                const razonSocialEmpresa = document.getElementById("razonSocialEmpresa");
+
+                tipoComprobante.addEventListener("change", function() {
+                    if (this.value === "Factura") {
+                        seccionFactura.classList.remove("d-none");
+                        rucEmpresa.setAttribute("required", "true");
+                        razonSocialEmpresa.setAttribute("required", "true");
+                    } else {
+                        seccionFactura.classList.add("d-none");
+                        rucEmpresa.removeAttribute("required");
+                        razonSocialEmpresa.removeAttribute("required");
+                    }
+                });
+
+                // Sunat RUC lookup
+                const btnConsultarRuc = document.getElementById("btnConsultarRuc");
+                const btnRucText = document.getElementById("btnRucText");
+                const btnRucSpinner = document.getElementById("btnRucSpinner");
+                const direccionEmpresa = document.getElementById("direccionEmpresa");
+
+                btnConsultarRuc.addEventListener("click", async function() {
+                    const numero = rucEmpresa.value.trim();
+
+                    if (!numero || numero.length !== 11) {
+                        alert("Debe ingresar un número de RUC válido de 11 dígitos.");
+                        return;
+                    }
+
+                    btnRucText.classList.add("d-none");
+                    btnRucSpinner.classList.remove("d-none");
+                    btnConsultarRuc.setAttribute("disabled", "true");
+
+                    try {
+                        const response = await fetch(`/Documento/Consultar?tipo=RUC&numero=${numero}`);
+                        const data = await response.json();
+
+                        if (data.success) {
+                            razonSocialEmpresa.value = data.nombreCompleto;
+                            if (data.direccion && direccionEmpresa) {
+                                direccionEmpresa.value = data.direccion;
+                            }
+                        } else {
+                            alert(data.mensaje || "No se encontraron datos para este RUC. Complete los datos manualmente.");
+                        }
+                    } catch (error) {
+                        console.error("Error al consultar RUC: ", error);
+                        alert("Ocurrió un error al consultar el RUC. Complete los datos de forma manual.");
+                    } finally {
+                        btnRucText.classList.remove("d-none");
+                        btnRucSpinner.classList.add("d-none");
+                        btnConsultarRuc.removeAttribute("disabled");
+                    }
+                });
+
+                // Discount logic
+                const btnAplicarDescuento = document.getElementById("btnAplicarDescuento");
+                const descuentoInput = document.getElementById("descuentoInput");
+
+                btnAplicarDescuento.addEventListener("click", function() {
+                    const discountVal = parseFloat(descuentoInput.value) || 0;
+                    if (discountVal < 0) {
+                        alert("El descuento no puede ser negativo.");
+                        return;
+                    }
+                    alert("Descuento registrado.");
+                });
+
+                // Handle submits
+                const ventaForm = document.getElementById("ventaForm");
+                const tipoTransaccionInput = document.getElementById("tipoTransaccionInput");
+
+                // Smooth scroll directly to booking section
+                if (bookingSection) {
+                    setTimeout(function() {
+                        bookingSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 100);
+                }
+
+                btnVenderSubmit.addEventListener("click", function() {
+                    if (selectedSeatsList.length === 0) {
+                        alert("Por favor, seleccione al menos un asiento libre.");
+                        return;
+                    }
+                    tipoTransaccionInput.value = "Venta";
+                    ventaForm.submit();
+                });
+
+                btnReservarSubmit.addEventListener("click", function() {
+                    if (selectedSeatsList.length === 0) {
+                        alert("Por favor, seleccione al menos un asiento libre.");
+                        return;
+                    }
+                    tipoTransaccionInput.value = "Reserva";
+                    ventaForm.submit();
+                });
+            }
+        });
+    </script>
+}
+

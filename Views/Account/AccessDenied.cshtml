@@ -1,0 +1,17 @@
+@{
+    ViewData["Title"] = "Acceso Denegado";
+}
+
+<div class="container py-5 text-center" style="max-width: 600px; margin-top: 50px;">
+    <div class="card bg-dark text-white border-danger p-5 shadow-lg" style="border-radius: 20px;">
+        <div class="card-body">
+            <i class="fa-solid fa-triangle-exclamation text-danger mb-4" style="font-size: 5rem;"></i>
+            <h1 class="display-5 fw-bold mb-3" style="color: #ff5e62;">Acceso Restringido</h1>
+            <p class="lead text-muted mb-4">No tienes permisos suficientes para acceder a esta página. Esta sección es exclusiva para la Gerencia de la empresa.</p>
+            <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+                <a href="javascript:history.back()" class="btn btn-outline-light btn-lg px-4 gap-3" style="border-radius: 12px;">Volver</a>
+                <a asp-controller="Home" asp-action="Index" class="btn btn-primary btn-lg px-4" style="background-color: #F37021; border-color: #F37021; border-radius: 12px;">Ir al Inicio</a>
+            </div>
+        </div>
+    </div>
+</div>
