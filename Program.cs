@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using SistemaChotaExpress.Data;
 using SistemaChotaExpress.Models;
 using SistemaChotaExpress.Services;
@@ -34,17 +35,43 @@ builder.Services.AddControllersWithViews(options =>
     });
 });
 
-// 2. REGISTRAR CONEXION EF CORE - POSTGRESQL (Neon.tech en Railway)
-// En Railway: variable de entorno DATABASE_URL con formato PostgreSQL de Neon.tech
-// En desarrollo local: cadena en appsettings.json
-var connectionString =
+// 2. REGISTRAR CONEXION EF CORE - POSTGRESQL (Railway / Local)
+// Resuelve tanto cadenas standard como URIs estilo postgresql://user:pass@host:port/db
+string rawConn =
     Environment.GetEnvironmentVariable("DATABASE_URL")
+    ?? Environment.GetEnvironmentVariable("DATABASE_PUBLIC_URL")
     ?? builder.Configuration.GetConnectionString("CadenaChotaExpress")
-    ?? throw new InvalidOperationException("No se encontro la cadena de conexion de la base de datos.");
+    ?? "";
+
+string finalConn = rawConn;
+if (rawConn.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase) ||
+    rawConn.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase))
+{
+    try
+    {
+        var uri = new Uri(rawConn);
+        var userInfo = uri.UserInfo.Split(':');
+        var csb = new NpgsqlConnectionStringBuilder
+        {
+            Host = uri.Host,
+            Port = uri.Port > 0 ? uri.Port : 5432,
+            Username = Uri.UnescapeDataString(userInfo[0]),
+            Password = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : "",
+            Database = uri.AbsolutePath.TrimStart('/'),
+            SslMode = SslMode.Prefer,
+            TrustServerCertificate = true
+        };
+        finalConn = csb.ConnectionString;
+    }
+    catch { /* Mantener rawConn si falla el parseo */ }
+}
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    options.UseNpgsql(connectionString);
+    if (!string.IsNullOrWhiteSpace(finalConn))
+    {
+        options.UseNpgsql(finalConn);
+    }
 });
 
 // Registrar Servicios de la Aplicacion
@@ -82,7 +109,7 @@ builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 
 var app = builder.Build();
 
-// Aplicar cabeceras de proxy inverso de inmediato (convierte http a https y detecta dominio publico)
+// Aplicar cabeceras de proxy inverso de inmediato
 app.UseForwardedHeaders();
 
 if (!app.Environment.IsDevelopment())
@@ -111,7 +138,6 @@ using (var scope = app.Services.CreateScope())
         var context = services.GetRequiredService<AppDbContext>();
 
         // EnsureCreated crea todas las tablas y columnas del modelo actual en PostgreSQL
-        // (incluyendo TipoComprobante, RucEmpresa, MetodoPago, NombreVehiculo, etc.)
         context.Database.EnsureCreated();
 
         // Asegurar salidas en segundo plano sin bloquear el arranque del servidor web
