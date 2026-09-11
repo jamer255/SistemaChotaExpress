@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SistemaChotaExpress.Services;
@@ -16,11 +16,17 @@ namespace SistemaChotaExpress.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Consultar(string tipo, string numero)
+        public async Task<IActionResult> Consultar(string? tipo, string numero)
         {
-            if (string.IsNullOrWhiteSpace(tipo) || string.IsNullOrWhiteSpace(numero))
+            if (string.IsNullOrWhiteSpace(numero))
             {
-                return Json(new LookupResult { Success = false, Mensaje = "Tipo y número de documento requeridos." });
+                return Json(new LookupResult { Success = false, Mensaje = "Número de documento requerido." });
+            }
+
+            numero = numero.Trim();
+            if (string.IsNullOrWhiteSpace(tipo))
+            {
+                tipo = (numero.Length == 11) ? "RUC" : "DNI";
             }
 
             var result = await _documentLookupService.LookupDocumentAsync(tipo, numero);
