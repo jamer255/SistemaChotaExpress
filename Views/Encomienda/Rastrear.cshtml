@@ -1,0 +1,143 @@
+@model SistemaChotaExpress.Models.Encomienda?
+@{
+    ViewData["Title"] = "Rastrear Encomienda";
+    var badgeColor = Model?.Estado switch {
+        "Registrado"   => "bg-secondary",
+        "En transito"  => "bg-info text-dark",
+        "Entregado"    => "bg-success",
+        "No reclamado" => "bg-danger",
+        "Anulado"      => "bg-dark border border-secondary text-white",
+        _ => "bg-secondary"
+    };
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+
+        <div class="text-center mb-4">
+            <i class="fa-solid fa-magnifying-glass fa-3x text-warning mb-3"></i>
+            <h1 class="h2 text-white fw-bold">Rastrear Encomienda</h1>
+            <p class="text-muted">Ingresa el código de seguimiento para conocer el estado de tu paquete.</p>
+        </div>
+
+        <!-- Formulario de búsqueda -->
+        <div class="card bg-dark border-glass mb-4">
+            <div class="card-body p-4">
+                <form method="get" asp-action="Rastrear">
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text bg-secondary border-0 text-warning">
+                            <i class="fa-solid fa-box"></i>
+                        </span>
+                        <input type="text" name="codigo" class="form-control bg-secondary border-0 text-white fw-bold"
+                               placeholder="Ej: ECE-2026-0001"
+                               value="@ViewBag.CodigoBuscado"
+                               style="text-transform:uppercase; letter-spacing:2px;"
+                               autofocus />
+                        <button type="submit" class="btn btn-warning fw-bold px-4">
+                            <i class="fa-solid fa-magnifying-glass me-1"></i>Rastrear
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        @if (TempData["ErrorRastreo"] != null)
+        {
+            <div class="alert alert-danger border-0 mb-4">
+                <i class="fa-solid fa-triangle-exclamation me-2"></i>@TempData["ErrorRastreo"]
+            </div>
+        }
+
+        @if (Model != null)
+        {
+            <!-- Resultado encontrado -->
+            <div class="card bg-dark border-glass">
+                <div class="card-body">
+                    <!-- Header del resultado -->
+                    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                        <div>
+                            <span class="text-muted small text-uppercase">Código de seguimiento</span>
+                            <div class="text-warning fw-bold fs-4">@Model.CodigoSeguimiento</div>
+                        </div>
+                        <span class="badge @badgeColor fs-6 px-3 py-2">@Model.Estado</span>
+                    </div>
+
+                    <!-- Línea de tiempo -->
+                    @{
+                        var estados = new[] { "Registrado", "En transito", "Entregado" };
+                        int estadoIdx = Array.IndexOf(estados, Model.Estado);
+                    }
+                    <div class="d-flex align-items-center justify-content-center gap-2 flex-wrap mb-4 p-3 rounded" style="background:rgba(255,255,255,0.04)">
+                        @for (int i = 0; i < estados.Length; i++)
+                        {
+                            var activo = i <= estadoIdx && Model.Estado != "Anulado" && Model.Estado != "No reclamado";
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="d-flex flex-column align-items-center">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center"
+                                         style="width:44px;height:44px;background:@(activo ? "#F37021" : "rgba(255,255,255,0.1)");font-size:16px">
+                                        @if (estados[i] == "Registrado")
+                                        { <i class="fa-solid fa-box-open text-white"></i> }
+                                        else if (estados[i] == "En transito")
+                                        { <i class="fa-solid fa-truck-fast text-white"></i> }
+                                        else
+                                        { <i class="fa-solid fa-circle-check text-white"></i> }
+                                    </div>
+                                    <small class="@(activo ? "text-warning fw-bold" : "text-muted") mt-1" style="font-size:11px">@estados[i]</small>
+                                </div>
+                                @if (i < estados.Length - 1)
+                                {
+                                    <div style="height:2px;width:60px;background:@(i < estadoIdx && Model.Estado != "Anulado" ? "#F37021" : "rgba(255,255,255,0.1)")"></div>
+                                }
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Info del paquete (sin datos personales completos) -->
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="p-3 rounded" style="background:rgba(255,165,0,0.06); border:1px solid rgba(255,165,0,0.2)">
+                                <small class="text-muted text-uppercase d-block mb-1">Remitente</small>
+                                <span class="text-white fw-semibold">@Model.NombreRemitente</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 rounded" style="background:rgba(13,202,240,0.06); border:1px solid rgba(13,202,240,0.2)">
+                                <small class="text-muted text-uppercase d-block mb-1">Destinatario</small>
+                                <span class="text-white fw-semibold">@Model.NombreDestinatario</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <small class="text-muted d-block">Descripción del contenido</small>
+                            <span class="text-white">@Model.Descripcion</span>
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted d-block">Ruta</small>
+                            <span class="text-info">@(Model.ObjetoRuta != null ? $"{Model.ObjetoRuta.Origen} → {Model.ObjetoRuta.Destino}" : "-")</span>
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted d-block">Fecha de registro</small>
+                            <span class="text-white">@Model.FechaRegistro.ToString("dd/MM/yyyy")</span>
+                        </div>
+                        @if (Model.FechaEntrega.HasValue)
+                        {
+                            <div class="col-12">
+                                <div class="alert alert-success border-0 mb-0">
+                                    <i class="fa-solid fa-circle-check me-2"></i>
+                                    <strong>¡Entregada!</strong> La encomienda fue entregada el <strong>@Model.FechaEntrega.Value.ToString("dd/MM/yyyy 'a las' HH:mm")</strong>.
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+        else if (ViewBag.CodigoBuscado != null && TempData["ErrorRastreo"] == null)
+        {
+            <div class="text-center text-muted py-4">
+                <i class="fa-solid fa-box-open fa-3x mb-3 opacity-50"></i>
+                <p>Ingresa un código válido para ver el estado del paquete.</p>
+            </div>
+        }
+
+    </div>
+</div>

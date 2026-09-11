@@ -507,5 +507,66 @@ namespace SistemaChotaExpress.Controllers
             TempData["SuccessMessage"] = $"Estado del viaje cambiado a '{estado}' con éxito.";
             return RedirectToAction("Viajes");
         }
+
+        // ==========================================
+        // 6. ENCOMIENDAS (GESTIÓN GERENTE)
+        // ==========================================
+        [HttpGet]
+        public async Task<IActionResult> Encomiendas(string? buscar, string? estado, string? fechaDesde, string? fechaHasta)
+        {
+            try
+            {
+                var query = _context.Encomiendas
+                    .Include(e => e.ObjetoRuta)
+                    .Include(e => e.UsuarioRegistro)
+                    .AsQueryable();
+
+                if (!string.IsNullOrWhiteSpace(buscar))
+                {
+                    buscar = buscar.Trim().ToLower();
+                    query = query.Where(e =>
+                        e.CodigoSeguimiento.ToLower().Contains(buscar) ||
+                        e.NombreRemitente.ToLower().Contains(buscar) ||
+                        e.NombreDestinatario.ToLower().Contains(buscar) ||
+                        (e.DniDestinatario != null && e.DniDestinatario.Contains(buscar)) ||
+                        (e.DniRemitente != null && e.DniRemitente.Contains(buscar)));
+                }
+
+                if (!string.IsNullOrWhiteSpace(estado) && estado != "Todos")
+                    query = query.Where(e => e.Estado == estado);
+
+                if (DateTime.TryParse(fechaDesde, out var desde))
+                    query = query.Where(e => e.FechaRegistro >= desde);
+
+                if (DateTime.TryParse(fechaHasta, out var hasta))
+                    query = query.Where(e => e.FechaRegistro < hasta.AddDays(1));
+
+                var lista = await query.OrderByDescending(e => e.FechaRegistro).ToListAsync();
+
+                ViewBag.Buscar = buscar;
+                ViewBag.EstadoFiltro = estado ?? "Todos";
+                ViewBag.FechaDesde = fechaDesde;
+                ViewBag.FechaHasta = fechaHasta;
+
+                // Estadísticas de resumen
+                ViewBag.TotalEncomiendas = lista.Count;
+                ViewBag.TotalCobrado = lista.Where(e => e.Estado != "Anulado").Sum(e => e.PrecioEnvio);
+                ViewBag.TotalEntregadas = lista.Count(e => e.Estado == "Entregado");
+                ViewBag.TotalPendientes = lista.Count(e => e.Estado == "Registrado" || e.Estado == "En transito");
+
+                return View(lista);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "No se pudieron cargar las encomiendas: " + ex.Message;
+                ViewBag.Buscar = buscar;
+                ViewBag.EstadoFiltro = estado ?? "Todos";
+                ViewBag.TotalEncomiendas = 0;
+                ViewBag.TotalCobrado = 0m;
+                ViewBag.TotalEntregadas = 0;
+                ViewBag.TotalPendientes = 0;
+                return View(new List<Encomienda>());
+            }
+        }
     }
 }

@@ -6,8 +6,10 @@
         "En transito"  => "bg-info text-dark",
         "Entregado"    => "bg-success",
         "No reclamado" => "bg-danger",
+        "Anulado"      => "bg-dark border border-secondary",
         _ => "bg-secondary"
     };
+    bool puedeModificar = Model.Estado != "Entregado" && Model.Estado != "Anulado";
 }
 
 <div class="row mb-3 no-print">
@@ -15,19 +17,70 @@
         <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
             <i class="fa-solid fa-arrow-left me-1"></i> Volver
         </a>
-        <div class="d-flex gap-2">
+        <div class="d-flex gap-2 flex-wrap">
             <button onclick="window.print()" class="btn btn-outline-light btn-sm">
                 <i class="fa-solid fa-print me-1"></i> Imprimir comprobante
             </button>
-            @if (!User.IsInRole("Gerente") && Model.Estado != "Entregado")
+
+            @if (puedeModificar)
             {
-                <form asp-action="MarcarEntregada" asp-route-id="@Model.Id_Encomienda" method="post" class="m-0">
-                    @Html.AntiForgeryToken()
-                    <button type="submit" class="btn btn-success btn-sm fw-bold"
-                            onclick="return confirm('Confirmar entrega de la encomienda?')">
-                        <i class="fa-solid fa-circle-check me-1"></i> Marcar Entregada
-                    </button>
-                </form>
+                @* Editar solo en estado Registrado *@
+                @if (Model.Estado == "Registrado")
+                {
+                    <a asp-action="Editar" asp-route-id="@Model.Id_Encomienda" class="btn btn-outline-warning btn-sm fw-bold">
+                        <i class="fa-solid fa-pen me-1"></i> Editar
+                    </a>
+                }
+
+                @* Botones de cambio de estado *@
+                @if (Model.Estado == "Registrado")
+                {
+                    <form asp-action="CambiarEstado" method="post" class="m-0 d-inline">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.Id_Encomienda" />
+                        <input type="hidden" name="nuevoEstado" value="En transito" />
+                        <button type="submit" class="btn btn-info btn-sm fw-bold text-dark"
+                                onclick="return confirm('¿Marcar esta encomienda como En tránsito?')">
+                            <i class="fa-solid fa-truck-fast me-1"></i> Marcar En tránsito
+                        </button>
+                    </form>
+                }
+
+                @if (Model.Estado == "Registrado" || Model.Estado == "En transito")
+                {
+                    <form asp-action="CambiarEstado" method="post" class="m-0 d-inline">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.Id_Encomienda" />
+                        <input type="hidden" name="nuevoEstado" value="Entregado" />
+                        <button type="submit" class="btn btn-success btn-sm fw-bold"
+                                onclick="return confirm('¿Confirmar entrega de la encomienda?')">
+                            <i class="fa-solid fa-circle-check me-1"></i> Marcar Entregada
+                        </button>
+                    </form>
+
+                    <form asp-action="CambiarEstado" method="post" class="m-0 d-inline">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.Id_Encomienda" />
+                        <input type="hidden" name="nuevoEstado" value="No reclamado" />
+                        <button type="submit" class="btn btn-danger btn-sm fw-bold"
+                                onclick="return confirm('¿Marcar como No Reclamado?')">
+                            <i class="fa-solid fa-circle-xmark me-1"></i> No Reclamado
+                        </button>
+                    </form>
+                }
+
+                @if (User.IsInRole("Gerente"))
+                {
+                    <form asp-action="CambiarEstado" method="post" class="m-0 d-inline">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.Id_Encomienda" />
+                        <input type="hidden" name="nuevoEstado" value="Anulado" />
+                        <button type="submit" class="btn btn-outline-secondary btn-sm"
+                                onclick="return confirm('¿Anular esta encomienda? Esta acción no se puede deshacer.')">
+                            <i class="fa-solid fa-ban me-1"></i> Anular
+                        </button>
+                    </form>
+                }
             }
         </div>
     </div>
@@ -39,6 +92,55 @@
         <i class="fa-solid fa-circle-check me-2"></i>@TempData["Exito"]
     </div>
 }
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger border-0 mb-3 no-print">
+        <i class="fa-solid fa-triangle-exclamation me-2"></i>@TempData["Error"]
+    </div>
+}
+
+<!-- LÍNEA DE TIEMPO DEL ESTADO -->
+@{
+    var estados = new[] { "Registrado", "En transito", "Entregado" };
+    int estadoIdx = Array.IndexOf(estados, Model.Estado);
+}
+<div class="card bg-dark border-glass mb-3 no-print">
+    <div class="card-body py-3">
+        <div class="d-flex align-items-center justify-content-center gap-2 flex-wrap">
+            @for (int i = 0; i < estados.Length; i++)
+            {
+                var activo = i <= estadoIdx && Model.Estado != "Anulado" && Model.Estado != "No reclamado";
+                var esActual = estados[i] == Model.Estado;
+                <div class="d-flex align-items-center gap-2">
+                    <div class="d-flex flex-column align-items-center">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center"
+                             style="width:36px;height:36px;background:@(activo ? "#F37021" : "rgba(255,255,255,0.1)");font-size:14px">
+                            @if (estados[i] == "Registrado")
+                            { <i class="fa-solid fa-box-open text-white"></i> }
+                            else if (estados[i] == "En transito")
+                            { <i class="fa-solid fa-truck-fast text-white"></i> }
+                            else
+                            { <i class="fa-solid fa-circle-check text-white"></i> }
+                        </div>
+                        <small class="@(activo ? "text-warning fw-bold" : "text-muted") mt-1" style="font-size:11px">@estados[i]</small>
+                    </div>
+                    @if (i < estados.Length - 1)
+                    {
+                        <div style="height:2px;width:60px;background:@(i < estadoIdx && Model.Estado != "Anulado" ? "#F37021" : "rgba(255,255,255,0.1)")"></div>
+                    }
+                </div>
+            }
+            @if (Model.Estado == "No reclamado")
+            {
+                <div class="ms-3"><span class="badge bg-danger fs-7 px-3 py-2"><i class="fa-solid fa-circle-xmark me-1"></i>No Reclamado</span></div>
+            }
+            @if (Model.Estado == "Anulado")
+            {
+                <div class="ms-3"><span class="badge bg-secondary fs-7 px-3 py-2"><i class="fa-solid fa-ban me-1"></i>Anulado</span></div>
+            }
+        </div>
+    </div>
+</div>
 
 <!-- COMPROBANTE (imprimible) -->
 <div class="card bg-dark border-glass" id="comprobante">

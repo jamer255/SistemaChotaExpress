@@ -224,6 +224,20 @@
                         <small class="text-muted">Ver pasajes vendidos</small>
                     </div>
                 </a>
+                <a asp-action="Encomiendas" class="btn btn-outline-light text-start py-3 px-3 d-flex align-items-center gap-3 border-glass-btn btn-management">
+                    <div class="m-icon bg-warning-transparent text-warning"><i class="fa-solid fa-boxes-stacked"></i></div>
+                    <div>
+                        <div class="fw-bold">Registro de Encomiendas</div>
+                        <small class="text-muted">Historial y control de paquetes</small>
+                    </div>
+                </a>
+                <a asp-controller="Encomienda" asp-action="Registrar" class="btn btn-outline-light text-start py-3 px-3 d-flex align-items-center gap-3 border-glass-btn btn-management">
+                    <div class="m-icon bg-info-transparent text-info"><i class="fa-solid fa-box"></i></div>
+                    <div>
+                        <div class="fw-bold">Registrar Encomienda</div>
+                        <small class="text-muted">Nuevo envío de paquete</small>
+                    </div>
+                </a>
             </div>
         </div>
     </div>

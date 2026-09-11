@@ -1,17 +1,22 @@
-﻿@model IEnumerable<SistemaChotaExpress.Models.Encomienda>
+@model IEnumerable<SistemaChotaExpress.Models.Encomienda>
 @{
-    ViewData["Title"] = "Encomiendas";
+    ViewData["Title"] = "Registro de Encomiendas";
 }
 
 <div class="row mb-4">
     <div class="col-12 d-flex align-items-center justify-content-between flex-wrap gap-2">
         <div>
-            <h1 class="h2 text-white fw-bold mb-0"><i class="fa-solid fa-box me-2 text-warning"></i>Encomiendas</h1>
-            <p class="text-muted mb-0">Registro y seguimiento de paquetes</p>
+            <h1 class="h2 text-white fw-bold mb-0"><i class="fa-solid fa-boxes-stacked me-2 text-warning"></i>Registro de Encomiendas</h1>
+            <p class="text-muted mb-0">Historial y control de paquetes registrados</p>
         </div>
-        <a asp-action="Registrar" class="btn btn-warning fw-bold px-4">
-            <i class="fa-solid fa-plus me-1"></i> Nueva Encomienda
-        </a>
+        <div class="d-flex gap-2 flex-wrap">
+            <a asp-action="Rastrear" class="btn btn-outline-info btn-sm fw-bold px-3">
+                <i class="fa-solid fa-magnifying-glass me-1"></i> Rastrear por código
+            </a>
+            <a asp-action="Registrar" class="btn btn-warning fw-bold px-4">
+                <i class="fa-solid fa-box me-1"></i> Registrar Encomienda
+            </a>
+        </div>
     </div>
 </div>
 
@@ -21,17 +26,23 @@
         <i class="fa-solid fa-circle-check me-2"></i>@TempData["Exito"]
     </div>
 }
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger border-0 mb-3">
+        <i class="fa-solid fa-triangle-exclamation me-2"></i>@TempData["Error"]
+    </div>
+}
 
 <!-- Filtros -->
 <div class="card bg-dark border-glass mb-4">
     <div class="card-body p-3">
         <form method="get" class="row g-2 align-items-end">
             <div class="col-md-6">
-                <label class="form-label text-muted small">Buscar por codigo, remitente o destinatario</label>
+                <label class="form-label text-muted small">Buscar por código, remitente, destinatario o DNI</label>
                 <div class="input-group">
                     <span class="input-group-text bg-secondary border-0"><i class="fa-solid fa-magnifying-glass text-white"></i></span>
                     <input type="text" name="buscar" class="form-control bg-secondary border-0 text-white"
-                           placeholder="Ej: ECE-2024-0001 o Juan Perez" value="@ViewBag.Buscar" />
+                           placeholder="Ej: ECE-2026-0001 o Juan Perez" value="@ViewBag.Buscar" />
                 </div>
             </div>
             <div class="col-md-4">
@@ -39,17 +50,50 @@
                 <select name="estado" class="form-select bg-secondary border-0 text-white">
                     <option value="Todos" selected="@(ViewBag.EstadoFiltro == "Todos")">Todos</option>
                     <option value="Registrado" selected="@(ViewBag.EstadoFiltro == "Registrado")">Registrado</option>
-                    <option value="En transito" selected="@(ViewBag.EstadoFiltro == "En transito")">En transito</option>
+                    <option value="En transito" selected="@(ViewBag.EstadoFiltro == "En transito")">En tránsito</option>
                     <option value="Entregado" selected="@(ViewBag.EstadoFiltro == "Entregado")">Entregado</option>
                     <option value="No reclamado" selected="@(ViewBag.EstadoFiltro == "No reclamado")">No reclamado</option>
+                    <option value="Anulado" selected="@(ViewBag.EstadoFiltro == "Anulado")">Anulado</option>
                 </select>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-2 d-flex gap-1">
                 <button type="submit" class="btn btn-warning w-100">Buscar</button>
+                <a asp-action="Index" class="btn btn-outline-secondary" title="Limpiar filtros"><i class="fa-solid fa-xmark"></i></a>
             </div>
         </form>
     </div>
 </div>
+
+<!-- KPIs rápidos -->
+@if (Model.Any())
+{
+    <div class="row g-2 mb-3">
+        <div class="col-6 col-md-3">
+            <div class="card bg-dark border-glass p-2 text-center">
+                <small class="text-muted">Total</small>
+                <div class="fw-bold text-white">@Model.Count()</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card bg-dark border-glass p-2 text-center">
+                <small class="text-muted">En tránsito</small>
+                <div class="fw-bold text-info">@Model.Count(e => e.Estado == "En transito")</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card bg-dark border-glass p-2 text-center">
+                <small class="text-muted">Entregadas</small>
+                <div class="fw-bold text-success">@Model.Count(e => e.Estado == "Entregado")</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card bg-dark border-glass p-2 text-center">
+                <small class="text-muted">Total cobrado</small>
+                <div class="fw-bold text-warning">S/ @Model.Where(e => e.Estado != "Anulado").Sum(e => e.PrecioEnvio).ToString("N2")</div>
+            </div>
+        </div>
+    </div>
+}
 
 <!-- Tabla -->
 <div class="card bg-dark border-glass">
@@ -65,23 +109,31 @@
         else
         {
             <div class="table-responsive">
-                <table class="table table-dark table-hover mb-0">
+                <table class="table table-dark table-hover mb-0 align-middle">
                     <thead>
-                        <tr class="text-muted small text-uppercase">
-                            <th>Codigo</th>
+                        <tr class="text-muted small text-uppercase border-secondary">
+                            <th>Código</th>
                             <th>Remitente</th>
                             <th>Destinatario</th>
                             <th>Ruta</th>
                             <th>Precio</th>
                             <th>Estado</th>
                             <th>Fecha</th>
-                            <th></th>
+                            <th class="text-end">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var enc in Model)
                         {
-                            <tr>
+                            var badgeColor = enc.Estado switch {
+                                "Registrado"   => "bg-secondary",
+                                "En transito"  => "bg-info text-dark",
+                                "Entregado"    => "bg-success",
+                                "No reclamado" => "bg-danger",
+                                "Anulado"      => "bg-dark border border-secondary",
+                                _ => "bg-secondary"
+                            };
+                            <tr class="@(enc.Estado == "Anulado" ? "opacity-50" : "")">
                                 <td><span class="badge bg-warning text-dark fw-bold">@enc.CodigoSeguimiento</span></td>
                                 <td>
                                     <div class="fw-semibold">@enc.NombreRemitente</div>
@@ -105,24 +157,43 @@
                                     else { <span class="text-muted">-</span> }
                                 </td>
                                 <td class="fw-bold text-success">S/ @enc.PrecioEnvio.ToString("N2")</td>
-                                <td>
-                                    @{
-                                        var badgeColor = enc.Estado switch {
-                                            "Registrado"  => "bg-secondary",
-                                            "En transito" => "bg-info text-dark",
-                                            "Entregado"   => "bg-success",
-                                            "No reclamado"=> "bg-danger",
-                                            _ => "bg-secondary"
-                                        };
-                                    }
-                                    <span class="badge @badgeColor">@enc.Estado</span>
-                                </td>
+                                <td><span class="badge @badgeColor">@enc.Estado</span></td>
                                 <td><small class="text-muted">@enc.FechaRegistro.ToString("dd/MM/yy HH:mm")</small></td>
-                                <td>
-                                    <a asp-action="Detalle" asp-route-id="@enc.Id_Encomienda"
-                                       class="btn btn-outline-light btn-sm px-2">
-                                        <i class="fa-solid fa-eye"></i>
-                                    </a>
+                                <td class="text-end">
+                                    <div class="d-flex gap-1 justify-content-end">
+                                        <a asp-action="Detalle" asp-route-id="@enc.Id_Encomienda"
+                                           class="btn btn-outline-light btn-sm px-2" title="Ver detalle">
+                                            <i class="fa-solid fa-eye"></i>
+                                        </a>
+                                        @if (enc.Estado == "Registrado")
+                                        {
+                                            <a asp-action="Editar" asp-route-id="@enc.Id_Encomienda"
+                                               class="btn btn-outline-warning btn-sm px-2" title="Editar">
+                                                <i class="fa-solid fa-pen"></i>
+                                            </a>
+                                            <form asp-action="CambiarEstado" method="post" class="m-0">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@enc.Id_Encomienda" />
+                                                <input type="hidden" name="nuevoEstado" value="En transito" />
+                                                <button type="submit" class="btn btn-outline-info btn-sm px-2" title="Marcar En tránsito"
+                                                        onclick="return confirm('¿Marcar como En tránsito?')">
+                                                    <i class="fa-solid fa-truck-fast"></i>
+                                                </button>
+                                            </form>
+                                        }
+                                        @if (enc.Estado == "En transito")
+                                        {
+                                            <form asp-action="CambiarEstado" method="post" class="m-0">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@enc.Id_Encomienda" />
+                                                <input type="hidden" name="nuevoEstado" value="Entregado" />
+                                                <button type="submit" class="btn btn-outline-success btn-sm px-2" title="Marcar Entregada"
+                                                        onclick="return confirm('¿Confirmar entrega?')">
+                                                    <i class="fa-solid fa-circle-check"></i>
+                                                </button>
+                                            </form>
+                                        }
+                                    </div>
                                 </td>
                             </tr>
                         }
@@ -131,7 +202,7 @@
             </div>
             <div class="p-3 border-top border-secondary d-flex justify-content-between align-items-center">
                 <small class="text-muted">@Model.Count() encomienda(s) encontrada(s)</small>
-                <strong class="text-success">Total cobrado: S/ @Model.Sum(e => e.PrecioEnvio).ToString("N2")</strong>
+                <strong class="text-success">Total cobrado: S/ @Model.Where(e => e.Estado != "Anulado").Sum(e => e.PrecioEnvio).ToString("N2")</strong>
             </div>
         }
     </div>

@@ -49,9 +49,7 @@
                                     </a>
                                 </li>
                             }
-
-                            <!-- Inicio solo para Vendedor -->
-                            @if (!User.IsInRole("Gerente"))
+                            else
                             {
                                 <li class="nav-item">
                                     <a class="nav-link nav-link-custom @(ViewContext.RouteData.Values["controller"]?.ToString() == "Venta" && ViewContext.RouteData.Values["action"]?.ToString() == "Inicio" ? "active" : "")" asp-controller="Venta" asp-action="Inicio">
@@ -59,6 +57,8 @@
                                     </a>
                                 </li>
                             }
+
+                            <!-- Pasajes -->
                             <li class="nav-item">
                                 <a class="nav-link nav-link-custom @(ViewContext.RouteData.Values["controller"]?.ToString() == "Venta" && ViewContext.RouteData.Values["action"]?.ToString() == "BuscarViajes" ? "active" : "")" asp-controller="Venta" asp-action="BuscarViajes">
                                     <i class="fa-solid fa-cart-shopping me-1"></i> Vender Pasajes
@@ -69,10 +69,26 @@
                                     <i class="fa-solid fa-list-check me-1"></i> Registro de pasajes vendidos
                                 </a>
                             </li>
+
+                            <!-- Encomiendas (Igual que pasajes) -->
                             <li class="nav-item">
-                                <a class="nav-link nav-link-custom @(ViewContext.RouteData.Values["controller"]?.ToString() == "Encomienda" ? "active" : "")" asp-controller="Encomienda" asp-action="Index">
-                                    <i class="fa-solid fa-box me-1"></i> Encomiendas
+                                <a class="nav-link nav-link-custom @(ViewContext.RouteData.Values["controller"]?.ToString() == "Encomienda" && ViewContext.RouteData.Values["action"]?.ToString() == "Registrar" ? "active" : "")" asp-controller="Encomienda" asp-action="Registrar">
+                                    <i class="fa-solid fa-box me-1"></i> Registrar encomiendas
                                 </a>
+                            </li>
+                            <li class="nav-item">
+                                @if (isGerente)
+                                {
+                                    <a class="nav-link nav-link-custom @(ViewContext.RouteData.Values["controller"]?.ToString() == "Gerente" && ViewContext.RouteData.Values["action"]?.ToString() == "Encomiendas" ? "active" : "")" asp-controller="Gerente" asp-action="Encomiendas">
+                                        <i class="fa-solid fa-boxes-stacked me-1"></i> Registro de encomiendas
+                                    </a>
+                                }
+                                else
+                                {
+                                    <a class="nav-link nav-link-custom @(ViewContext.RouteData.Values["controller"]?.ToString() == "Encomienda" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")" asp-controller="Encomienda" asp-action="Index">
+                                        <i class="fa-solid fa-boxes-stacked me-1"></i> Registro de encomiendas
+                                    </a>
+                                }
                             </li>
                         }
                     </ul>
