@@ -151,5 +151,104 @@ namespace SistemaChotaExpress.Services
                 await context.SaveChangesAsync();
             }
         }
+
+        /// <summary>
+        /// Lista oficial de los 14 lugares autorizados para Tours Chota Express.
+        /// </summary>
+        public static readonly List<string> LugaresOficiales = new()
+        {
+            "Bambamarca",
+            "Cajamarca",
+            "Chiclayo",
+            "Chota",
+            "Cobro",
+            "Coimolache",
+            "Cutervo",
+            "Empalme",
+            "Hualgayoc",
+            "Huambos",
+            "Llama",
+            "Porvenir",
+            "Samangay",
+            "San Antonio"
+        };
+
+        /// <summary>
+        /// Asegura que todas las rutas oficiales para los 14 lugares estén registradas en la base de datos.
+        /// </summary>
+        public static async Task AsegurarRutasOficialesAsync(AppDbContext context)
+        {
+            var pares = new (string Origen, string Destino, double Horas)[]
+            {
+                ("Chota", "Chiclayo", 6.0),
+                ("Chiclayo", "Chota", 6.0),
+                ("Chota", "Cajamarca", 4.0),
+                ("Cajamarca", "Chota", 4.0),
+                ("Chota", "Cutervo", 2.0),
+                ("Cutervo", "Chota", 2.0),
+                ("Chota", "Bambamarca", 1.5),
+                ("Bambamarca", "Chota", 1.5),
+                ("Chota", "Huambos", 2.0),
+                ("Huambos", "Chota", 2.0),
+                ("Chota", "Llama", 2.5),
+                ("Llama", "Chota", 2.5),
+                ("Chota", "Hualgayoc", 2.0),
+                ("Hualgayoc", "Chota", 2.0),
+                ("Chota", "Cobro", 2.0),
+                ("Cobro", "Chota", 2.0),
+                ("Chota", "Samangay", 2.0),
+                ("Samangay", "Chota", 2.0),
+                ("Chota", "Porvenir", 1.5),
+                ("Porvenir", "Chota", 1.5),
+                ("Chota", "San Antonio", 1.5),
+                ("San Antonio", "Chota", 1.5),
+                ("Chota", "Coimolache", 2.5),
+                ("Coimolache", "Chota", 2.5),
+                ("Chota", "Empalme", 2.0),
+                ("Empalme", "Chota", 2.0),
+                ("Cajamarca", "Chiclayo", 7.0),
+                ("Chiclayo", "Cajamarca", 7.0),
+                ("Cajamarca", "Bambamarca", 3.0),
+                ("Bambamarca", "Cajamarca", 3.0),
+                ("Cajamarca", "Hualgayoc", 2.5),
+                ("Hualgayoc", "Cajamarca", 2.5),
+                ("Bambamarca", "Hualgayoc", 1.0),
+                ("Hualgayoc", "Bambamarca", 1.0),
+                ("Chiclayo", "Huambos", 4.0),
+                ("Huambos", "Chiclayo", 4.0),
+                ("Chiclayo", "Llama", 3.5),
+                ("Llama", "Chiclayo", 3.5),
+                ("Chiclayo", "Cutervo", 6.0),
+                ("Cutervo", "Chiclayo", 6.0),
+                ("Empalme", "Bambamarca", 1.0),
+                ("Bambamarca", "Empalme", 1.0),
+                ("Empalme", "Cajamarca", 2.5),
+                ("Cajamarca", "Empalme", 2.5),
+                ("Coimolache", "Hualgayoc", 1.0),
+                ("Hualgayoc", "Coimolache", 1.0)
+            };
+
+            try
+            {
+                var rutasExistentes = await context.Rutas.ToListAsync();
+                var nuevas = new List<Ruta>();
+
+                foreach (var p in pares)
+                {
+                    if (!rutasExistentes.Any(r => r.Origen.Equals(p.Origen, StringComparison.OrdinalIgnoreCase) &&
+                                                 r.Destino.Equals(p.Destino, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        nuevas.Add(new Ruta { Origen = p.Origen, Destino = p.Destino, DuracionHoras = p.Horas });
+                    }
+                }
+
+                if (nuevas.Any())
+                {
+                    await context.Rutas.AddRangeAsync(nuevas);
+                    await context.SaveChangesAsync();
+                }
+            }
+            catch { }
+        }
     }
 }

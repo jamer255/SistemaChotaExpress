@@ -140,45 +140,12 @@ namespace SistemaChotaExpress.Controllers
 
             ViewBag.SelectedFecha = selectedFecha.ToString("yyyy-MM-dd");
 
-            // Lista maestra de TODOS los lugares (independiente de las rutas predefinidas).
-            // Esto permite al trabajador emitir boletos desde cualquier punto de recogida en camino.
-            var todosLosLugares = new List<string>
-            {
-                "Bambamarca",
-                "Bravo 13",
-                "Cajamarca",
-                "Cerro Corona",
-                "Chalamarca",
-                "Chiclayo",
-                "Chiguirip",
-                "Chota",
-                "Cochabamba",
-                "Cutervo",
-                "Empalme",
-                "Hualgayoc",
-                "Huambos",
-                "Huandoy",
-                "Km 24",
-                "Lajas",
-                "Llama",
-                "Miracosta",
-                "Santa Cruz",
-                "Tocmoche"
-            };
+            // Lista oficial de los 14 lugares autorizados para Tours Chota Express
+            var todosLosLugares = GeneradorViajesService.LugaresOficiales.OrderBy(l => l).ToList();
 
-            // Agregar también cualquier lugar que esté en las rutas pero no en la lista maestra
-            var origenesEnRutas = await _context.Rutas.Select(r => r.Origen).Distinct().ToListAsync();
-            var destinosEnRutas = await _context.Rutas.Select(r => r.Destino).Distinct().ToListAsync();
-            var lugaresEnRutas = origenesEnRutas.Union(destinosEnRutas, StringComparer.OrdinalIgnoreCase).ToList();
-
-            var todosLugaresCombinados = todosLosLugares
-                .Union(lugaresEnRutas, StringComparer.OrdinalIgnoreCase)
-                .OrderBy(l => l)
-                .ToList();
-
-            ViewBag.LugaresDisponibles = todosLugaresCombinados;
-            ViewBag.Origines = new SelectList(todosLugaresCombinados, origen);
-            ViewBag.Destinos = new SelectList(todosLugaresCombinados, destino);
+            ViewBag.LugaresDisponibles = todosLosLugares;
+            ViewBag.Origines = new SelectList(todosLosLugares, origen);
+            ViewBag.Destinos = new SelectList(todosLosLugares, destino);
 
             ViewBag.SelectedOrigen = origen ?? string.Empty;
             ViewBag.SelectedDestino = destino ?? string.Empty;

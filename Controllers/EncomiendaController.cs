@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SistemaChotaExpress.Data;
 using SistemaChotaExpress.Models;
+using SistemaChotaExpress.Services;
 
 namespace SistemaChotaExpress.Controllers
 {
@@ -81,6 +82,7 @@ namespace SistemaChotaExpress.Controllers
         [HttpGet]
         public async Task<IActionResult> Registrar()
         {
+            ViewBag.Lugares = GeneradorViajesService.LugaresOficiales.OrderBy(l => l).ToList();
             try
             {
                 var rutas = await _context.Rutas
@@ -99,10 +101,31 @@ namespace SistemaChotaExpress.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Registrar(Encomienda modelo)
+        public async Task<IActionResult> Registrar(Encomienda modelo, string? origenRuta, string? destinoRuta)
         {
             try
             {
+                // Asignar ruta seleccionada de los 14 lugares oficiales
+                if (!string.IsNullOrWhiteSpace(origenRuta) && !string.IsNullOrWhiteSpace(destinoRuta) && !origenRuta.Equals(destinoRuta, StringComparison.OrdinalIgnoreCase))
+                {
+                    var rutaMatch = await _context.Rutas.FirstOrDefaultAsync(r =>
+                        r.Origen.ToLower() == origenRuta.Trim().ToLower() &&
+                        r.Destino.ToLower() == destinoRuta.Trim().ToLower());
+
+                    if (rutaMatch == null)
+                    {
+                        rutaMatch = new Ruta
+                        {
+                            Origen = origenRuta.Trim(),
+                            Destino = destinoRuta.Trim(),
+                            DuracionHoras = 2.0
+                        };
+                        _context.Rutas.Add(rutaMatch);
+                        await _context.SaveChangesAsync();
+                    }
+                    modelo.Id_Ruta = rutaMatch.Id_Ruta;
+                }
+
                 ModelState.Remove("CodigoSeguimiento");
                 ModelState.Remove("Estado");
                 ModelState.Remove("ObjetoRuta");
@@ -110,6 +133,7 @@ namespace SistemaChotaExpress.Controllers
 
                 if (!ModelState.IsValid)
                 {
+                    ViewBag.Lugares = GeneradorViajesService.LugaresOficiales.OrderBy(l => l).ToList();
                     var rutas = await _context.Rutas
                         .Where(r => r.Origen.ToLower() != r.Destino.ToLower())
                         .OrderBy(r => r.Origen).ToListAsync();
@@ -141,6 +165,7 @@ namespace SistemaChotaExpress.Controllers
             catch (Exception ex)
             {
                 ModelState.AddModelError("", "Error al registrar la encomienda: " + ex.Message);
+                ViewBag.Lugares = GeneradorViajesService.LugaresOficiales.OrderBy(l => l).ToList();
                 try
                 {
                     var rutas = await _context.Rutas
@@ -199,7 +224,9 @@ namespace SistemaChotaExpress.Controllers
         {
             try
             {
-                var enc = await _context.Encomiendas.FindAsync(id);
+                var enc = await _context.Encomiendas
+                    .Include(e => e.ObjetoRuta)
+                    .FirstOrDefaultAsync(e => e.Id_Encomienda == id);
                 if (enc == null) return NotFound();
 
                 // Solo se puede editar si está en estado Registrado
@@ -220,6 +247,7 @@ namespace SistemaChotaExpress.Controllers
                         return Forbid();
                 }
 
+                ViewBag.Lugares = GeneradorViajesService.LugaresOficiales.OrderBy(l => l).ToList();
                 var rutas = await _context.Rutas
                     .Where(r => r.Origen.ToLower() != r.Destino.ToLower())
                     .OrderBy(r => r.Origen).ToListAsync();
@@ -235,7 +263,7 @@ namespace SistemaChotaExpress.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Editar(int id, Encomienda modelo)
+        public async Task<IActionResult> Editar(int id, Encomienda modelo, string? origenRuta, string? destinoRuta)
         {
             if (id != modelo.Id_Encomienda)
                 return BadRequest();
@@ -251,6 +279,30 @@ namespace SistemaChotaExpress.Controllers
                     return RedirectToAction("Detalle", new { id });
                 }
 
+                if (!string.IsNullOrWhiteSpace(origenRuta) && !string.IsNullOrWhiteSpace(destinoRuta) && !origenRuta.Equals(destinoRuta, StringComparison.OrdinalIgnoreCase))
+                {
+                    var rutaMatch = await _context.Rutas.FirstOrDefaultAsync(r =>
+                        r.Origen.ToLower() == origenRuta.Trim().ToLower() &&
+                        r.Destino.ToLower() == destinoRuta.Trim().ToLower());
+
+                    if (rutaMatch == null)
+                    {
+                        rutaMatch = new Ruta
+                        {
+                            Origen = origenRuta.Trim(),
+                            Destino = destinoRuta.Trim(),
+                            DuracionHoras = 2.0
+                        };
+                        _context.Rutas.Add(rutaMatch);
+                        await _context.SaveChangesAsync();
+                    }
+                    enc.Id_Ruta = rutaMatch.Id_Ruta;
+                }
+                else if (modelo.Id_Ruta.HasValue)
+                {
+                    enc.Id_Ruta = modelo.Id_Ruta;
+                }
+
                 ModelState.Remove("CodigoSeguimiento");
                 ModelState.Remove("Estado");
                 ModelState.Remove("ObjetoRuta");
@@ -258,6 +310,7 @@ namespace SistemaChotaExpress.Controllers
 
                 if (!ModelState.IsValid)
                 {
+                    ViewBag.Lugares = GeneradorViajesService.LugaresOficiales.OrderBy(l => l).ToList();
                     var rutas = await _context.Rutas
                         .Where(r => r.Origen.ToLower() != r.Destino.ToLower())
                         .OrderBy(r => r.Origen).ToListAsync();

@@ -22,6 +22,6 @@ namespace SistemaChotaExpress.Models
 
         /// <summary>Nombre de la ruta para mostrar en selects y reportes.</summary>
         [NotMapped]
-        public string NombreRuta => $"{Origen} → {Destino} ({DuracionHoras} hrs)";
+        public string NombreRuta => $"{Origen} → {Destino}";
     }
 }
