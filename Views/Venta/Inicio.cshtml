@@ -1,9 +1,11 @@
 @{
     ViewData["Title"] = "Bienvenido";
     var nombre = TempData["BienvenidaLogin"]?.ToString() ?? User.Identity?.Name ?? "Trabajador";
-    var hora   = DateTime.Now.Hour;
-    var saludo = hora < 12 ? "Buenos días" : hora < 19 ? "Buenas tardes" : "Buenas noches";
-    var emoji  = hora < 12 ? "🌅" : hora < 19 ? "☀️" : "🌙";
+    // Hora oficial de Perú (UTC-5)
+    var horaLocal = DateTime.UtcNow.AddHours(-5);
+    var hora   = horaLocal.Hour;
+    var saludo = (hora >= 5 && hora < 12) ? "Buenos días" : (hora >= 12 && hora < 19) ? "Buenas tardes" : "Buenas noches";
+    var emoji  = (hora >= 5 && hora < 12) ? "🌅" : (hora >= 12 && hora < 19) ? "☀️" : "🌙";
     var rol    = User.IsInRole("Gerente") ? "Administrador" : "Vendedor de Agencia";
 }
 
@@ -229,10 +231,10 @@
 
 <div class="inicio-dashboard-container">
 
-    <!-- HERO: LOGO OFICIAL GRANDE & SALUDO -->
+    <!-- HERO: LOGO OFICIAL GRANDE & SALUDO DINÁMICO POR HORA -->
     <div class="hero-header-clean fade-up-item d-1">
         <div>
-            <img src="~/img/logo_chota.jpg" alt="Tours Chota Express S.A.C." class="hero-logo-badge" />
+            <img src="~/img/logo_chota.jpg?v=@DateTime.Now.Ticks" asp-append-version="true" alt="Tours Chota Express S.A.C." class="hero-logo-badge" />
         </div>
         <div class="badge-saludo-chip">
             <span>@emoji</span>
@@ -240,9 +242,9 @@
             <span>•</span>
             <span>@rol</span>
         </div>
-        <h2 class="text-white fw-bold mb-1" style="font-size: clamp(1.5rem, 3.5vw, 2.3rem);">
-            Bienvenido, <span class="nombre-glow">@nombre</span>
-        </h2>
+        <h1 class="text-white fw-bold mb-1" style="font-size: clamp(1.6rem, 3.8vw, 2.5rem);">
+            @saludo, <span class="nombre-glow">@nombre</span>
+        </h1>
         <p class="text-muted small mb-0">
             Selecciona una acción operativa para comenzar:
         </p>
