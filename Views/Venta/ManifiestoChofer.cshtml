@@ -537,7 +537,7 @@
                 : "CAJAMARCA - PORCON - EL COBRO - PUENTE PIEDRA - SAMANGAY - CHOTA Y VICIVERSA")
         </div>
 
-        <!-- 3. CUADROS TÉCNICOS (RUTA / COMBI / CAPACIDAD COMPILADOS CON LA SALIDA) -->
+        <!-- 3. CUADROS TÉCNICOS (RUTA / COMBI / CAPACIDAD EN BLANCO PARA REGISTRAR) -->
         <div class="tech-data-row">
             
             <!-- Cuadro 1: RUTA -->
@@ -548,23 +548,23 @@
                 <div class="tech-box-content">
                     <div class="tech-field">
                         <span class="tech-label">ORIGEN:</span>
-                        <span class="tech-val editable-field" id="valOrigen" contenteditable="true">@(Model.ObjetoRuta?.Origen.ToUpper() ?? "CAJAMARCA")</span>
+                        <span class="tech-val editable-field" id="valOrigen" contenteditable="true"></span>
                     </div>
                     <div class="tech-field">
                         <span class="tech-label">DESTINO:</span>
-                        <span class="tech-val editable-field" id="valDestino" contenteditable="true">@(Model.ObjetoRuta?.Destino.ToUpper() ?? "CHOTA")</span>
+                        <span class="tech-val editable-field" id="valDestino" contenteditable="true"></span>
                     </div>
                     <div class="tech-field">
                         <span class="tech-label">N° RES.:</span>
-                        <span class="tech-val editable-field" id="valRes" contenteditable="true">001-2024-DRTC</span>
+                        <span class="tech-val editable-field" id="valRes" contenteditable="true"></span>
                     </div>
                     <div class="tech-field">
                         <span class="tech-label">FECHA:</span>
-                        <span class="tech-val editable-field" id="valFecha" contenteditable="true">@Model.FechaHoraSalida.ToString("dd/MM/yyyy")</span>
+                        <span class="tech-val editable-field" id="valFecha" contenteditable="true"></span>
                     </div>
                     <div class="tech-field">
                         <span class="tech-label">HORA:</span>
-                        <span class="tech-val editable-field" id="valHora" contenteditable="true">@Model.FechaHoraSalida.ToString("hh:mm tt")</span>
+                        <span class="tech-val editable-field" id="valHora" contenteditable="true"></span>
                     </div>
                 </div>
             </div>
@@ -577,19 +577,19 @@
                 <div class="tech-box-content">
                     <div class="tech-field">
                         <span class="tech-label">CÓDIGO:</span>
-                        <span class="tech-val editable-field" id="valCodigo" contenteditable="true">@(Model.ObjetoBus != null ? $"BUS-{Model.ObjetoBus.Id_Bus:D2}" : "COMBI-01")</span>
+                        <span class="tech-val editable-field" id="valCodigo" contenteditable="true"></span>
                     </div>
                     <div class="tech-field">
                         <span class="tech-label">MODELO:</span>
-                        <span class="tech-val editable-field" id="valModelo" contenteditable="true">@(Model.ObjetoBus?.Modelo ?? "Toyota HiAce")</span>
+                        <span class="tech-val editable-field" id="valModelo" contenteditable="true"></span>
                     </div>
                     <div class="tech-field">
                         <span class="tech-label">PLACA:</span>
-                        <span class="tech-val editable-field font-monospace fw-bold" id="valPlaca" contenteditable="true">@(string.IsNullOrWhiteSpace(Model.PlacaVehiculo) ? (Model.ObjetoBus?.Placa ?? "SIN PLACA") : Model.PlacaVehiculo.ToUpper())</span>
+                        <span class="tech-val editable-field font-monospace fw-bold" id="valPlaca" contenteditable="true"></span>
                     </div>
                     <div class="tech-field">
                         <span class="tech-label">MARCA:</span>
-                        <span class="tech-val editable-field" id="valMarca" contenteditable="true">@(Model.ObjetoBus?.Marca ?? "Toyota")</span>
+                        <span class="tech-val editable-field" id="valMarca" contenteditable="true"></span>
                     </div>
                 </div>
             </div>
@@ -602,36 +602,36 @@
                 <div class="tech-box-content">
                     <div class="tech-field">
                         <span class="tech-label">CAPACIDAD COMBI:</span>
-                        <span class="tech-val editable-field" id="valCapacidad" contenteditable="true">@capacidad</span>
+                        <span class="tech-val editable-field" id="valCapacidad" contenteditable="true"></span>
                     </div>
                     <div class="tech-field">
                         <span class="tech-label">N° PASAJEROS OFICINA:</span>
-                        <span class="tech-val editable-field" id="valPasajerosOficina" contenteditable="true">@vendidosCount</span>
+                        <span class="tech-val editable-field" id="valPasajerosOficina" contenteditable="true"></span>
                     </div>
                     <div class="tech-field">
                         <span class="tech-label">N° TRIPULACIÓN:</span>
-                        <span class="tech-val editable-field" id="valTripulacion" contenteditable="true">1</span>
+                        <span class="tech-val editable-field" id="valTripulacion" contenteditable="true"></span>
                     </div>
                     <div class="tech-field">
                         <span class="tech-label">N° PASAJEROS RUTA:</span>
-                        <span class="tech-val editable-field" id="valPasajerosRuta" contenteditable="true">0</span>
+                        <span class="tech-val editable-field" id="valPasajerosRuta" contenteditable="true"></span>
                     </div>
                 </div>
             </div>
 
         </div>
 
-        <!-- 4. TRIPULACIÓN -->
+        <!-- 4. TRIPULACIÓN (EN BLANCO PARA REGISTRAR) -->
         <div class="crew-section">
             <div class="crew-header">TRIPULACIÓN</div>
             <div class="crew-body">
                 <div class="crew-pilot">
                     <strong class="text-primary">Piloto:</strong>
-                    <span class="fw-bold text-uppercase editable-field flex-grow-1" id="valPiloto" contenteditable="true">@(string.IsNullOrWhiteSpace(Model.NombreConductor) ? (Model.ObjetoBus?.NombreConductor ?? "POR ASIGNAR") : Model.NombreConductor.ToUpper())</span>
+                    <span class="fw-bold text-uppercase editable-field flex-grow-1" id="valPiloto" contenteditable="true">&nbsp;</span>
                 </div>
                 <div class="crew-license">
                     <strong class="text-primary">N° Licencia:</strong>
-                    <span class="font-monospace fw-bold editable-field flex-grow-1" id="valLicencia" contenteditable="true">@(string.IsNullOrWhiteSpace(Model.ObjetoBus?.NumeroLicencia) ? "Q12345678" : Model.ObjetoBus.NumeroLicencia.ToUpper())</span>
+                    <span class="font-monospace fw-bold editable-field flex-grow-1" id="valLicencia" contenteditable="true">&nbsp;</span>
                 </div>
             </div>
         </div>
