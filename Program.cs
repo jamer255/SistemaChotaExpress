@@ -164,10 +164,14 @@ using (var scope = app.Services.CreateScope())
                     ""Observaciones"" character varying(300),
                     ""FechaRegistro"" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     ""FechaEntrega"" timestamp without time zone,
+                    ""TurnoSalida"" character varying(50),
+                    ""NombreConductor"" character varying(100),
                     ""Id_Usuario"" integer
                 );
                 CREATE INDEX IF NOT EXISTS ""IX_Encomiendas_Id_Ruta"" ON ""Encomiendas"" (""Id_Ruta"");
                 CREATE INDEX IF NOT EXISTS ""IX_Encomiendas_Id_Usuario"" ON ""Encomiendas"" (""Id_Usuario"");
+                ALTER TABLE ""Encomiendas"" ADD COLUMN IF NOT EXISTS ""TurnoSalida"" character varying(50);
+                ALTER TABLE ""Encomiendas"" ADD COLUMN IF NOT EXISTS ""NombreConductor"" character varying(100);
             ");
         }
         catch (Exception exTable)

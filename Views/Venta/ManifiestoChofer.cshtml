@@ -291,6 +291,9 @@
             <button onclick="window.print();" class="btn btn-primary fw-bold px-4 py-2" style="background-color: #f37021; border-color: #f37021;">
                 <i class="fa-solid fa-print me-1"></i> Imprimir Manifiesto para Chofer
             </button>
+            <button onclick="enviarWhatsApp();" class="btn btn-success fw-bold px-3 py-2 ms-2 shadow-sm">
+                <i class="fa-brands fa-whatsapp me-1"></i> Compartir por WhatsApp
+            </button>
             <button onclick="window.close();" class="btn btn-outline-secondary fw-bold px-3 py-2 ms-2">
                 <i class="fa-solid fa-xmark me-1"></i> Cerrar
             </button>
@@ -318,33 +321,76 @@
         <!-- Trip Metadata -->
         <div class="meta-box">
             <div class="row g-2">
+                <!-- Fila 1: ORIGEN / DESTINO / FECHA / HORA -->
                 <div class="col-3">
-                    <div class="meta-label">Ruta de Viaje:</div>
+                    <div class="meta-label">&#x1F4CD; ORIGEN:</div>
                     <div class="meta-value text-primary">
-                        @(Model.ObjetoRuta?.Origen?.ToUpper() ?? "ORIGEN") → @(Model.ObjetoRuta?.Destino?.ToUpper() ?? "DESTINO")
+                        @(Model.ObjetoRuta?.Origen?.ToUpper() ?? "—")
                     </div>
                 </div>
                 <div class="col-3">
-                    <div class="meta-label">Fecha y Hora de Salida:</div>
+                    <div class="meta-label">&#x1F3C1; DESTINO:</div>
+                    <div class="meta-value text-primary">
+                        @(Model.ObjetoRuta?.Destino?.ToUpper() ?? "—")
+                    </div>
+                </div>
+                <div class="col-3">
+                    <div class="meta-label">&#x1F4C5; FECHA:</div>
                     <div class="meta-value">
-                        @Model.FechaHoraSalida.ToString("dd/MM/yyyy - hh:mm tt")
+                        @Model.FechaHoraSalida.ToString("dd/MM/yyyy")
                     </div>
                 </div>
                 <div class="col-3">
-                    <div class="meta-label">Vehículo / Placa:</div>
+                    <div class="meta-label">&#x23F0; HORA DE SALIDA:</div>
+                    <div class="meta-value" style="color:#f37021; font-size:1rem;">
+                        @Model.FechaHoraSalida.ToString("hh:mm tt")
+                    </div>
+                </div>
+
+                <!-- Fila 2: MODELO / MARCA / PLACA / CAPACIDAD -->
+                <div class="col-3 pt-2 border-top border-light">
+                    <div class="meta-label">&#x1F697; MODELO:</div>
                     <div class="meta-value font-monospace">
-                        @(Model.ObjetoBus?.NombreVehiculo ?? "Combi Express") | <span class="badge bg-dark">@(string.IsNullOrWhiteSpace(Model.PlacaVehiculo) ? "SIN PLACA" : Model.PlacaVehiculo.ToUpper())</span>
+                        @(Model.ObjetoBus?.Modelo ?? "—")
                     </div>
                 </div>
-                <div class="col-3">
-                    <div class="meta-label">Conductor Asignado:</div>
+                <div class="col-3 pt-2 border-top border-light">
+                    <div class="meta-label">&#x1F3F7;&#xFE0F; MARCA:</div>
+                    <div class="meta-value">
+                        @(Model.ObjetoBus?.Marca ?? "—")
+                    </div>
+                </div>
+                <div class="col-3 pt-2 border-top border-light">
+                    <div class="meta-label">&#x1F6E2;&#xFE0F; PLACA:</div>
+                    <div class="meta-value font-monospace">
+                        <span class="badge bg-dark px-2">@(string.IsNullOrWhiteSpace(Model.PlacaVehiculo) ? "SIN PLACA" : Model.PlacaVehiculo.ToUpper())</span>
+                    </div>
+                </div>
+                <div class="col-3 pt-2 border-top border-light">
+                    <div class="meta-label">&#x1F4BA; CAPACIDAD COMBI:</div>
+                    <div class="meta-value">
+                        @(Model.ObjetoBus?.Capacidad.ToString() ?? "15") asientos
+                    </div>
+                </div>
+
+                <!-- Fila 3: PILOTO / N° LICENCIA -->
+                <div class="col-5 pt-2 border-top border-light">
+                    <div class="meta-label">&#x1F9D1;&#x200D;&#x1F4BC; PILOTO (Conductor):</div>
                     <div class="meta-value text-uppercase">
                         @(string.IsNullOrWhiteSpace(Model.NombreConductor) ? "POR ASIGNAR" : Model.NombreConductor)
                     </div>
                 </div>
-                <div class="col-12 mt-2 pt-2 border-top border-light d-flex justify-content-between align-items-center">
+                <div class="col-4 pt-2 border-top border-light">
+                    <div class="meta-label">&#x1F4DD; N° LICENCIA DE CONDUCIR:</div>
+                    <div class="meta-value font-monospace">
+                        @(string.IsNullOrWhiteSpace(Model.ObjetoBus?.NumeroLicencia) ? "—" : Model.ObjetoBus.NumeroLicencia.ToUpper())
+                    </div>
+                </div>
+
+                <!-- Totales -->
+                <div class="col-12 mt-1 pt-2 border-top border-light d-flex justify-content-between align-items-center">
                     <div class="fs-8">
-                        <strong>Capacidad Total:</strong> 15 asientos &nbsp;|&nbsp; 
+                        <strong>Capacidad Total:</strong> @(Model.ObjetoBus?.Capacidad ?? 15) asientos &nbsp;|&nbsp;
                         <strong class="text-success">Vendidos:</strong> @vendidosCount &nbsp;|&nbsp;
                         <strong class="text-warning">Reservados:</strong> @reservadosCount &nbsp;|&nbsp;
                         <strong class="text-secondary">Libres:</strong> @libresCount
@@ -563,3 +609,59 @@
         }
     }
 }
+
+<script>
+    function enviarWhatsApp() {
+        let telefono = prompt("📱 Ingresa el número de WhatsApp del conductor o destinatario (opcional, ej: 987654321):\n(Si lo dejas en blanco, podrás elegir cualquier contacto o grupo en WhatsApp)", "");
+        if (telefono === null) return; // Si cancela el prompt
+
+        let texto = "*MANIFIESTO DE PASAJEROS - CHOTA EXPRESS*\n";
+        texto += "--------------------------------------\n";
+        texto += "*📍 Ruta:* @(Model.ObjetoRuta?.Origen) ➔ @(Model.ObjetoRuta?.Destino)\n";
+        texto += "*📅 Fecha:* @Model.FechaHoraSalida.ToString("dd/MM/yyyy")\n";
+        texto += "*⏰ Salida:* @Model.FechaHoraSalida.ToString("hh:mm tt")\n";
+        texto += "*🚗 Placa:* @(string.IsNullOrWhiteSpace(Model.PlacaVehiculo) ? "SIN PLACA" : Model.PlacaVehiculo.ToUpper())\n";
+        texto += "*👨‍✈️ Chofer:* @(string.IsNullOrWhiteSpace(Model.NombreConductor) ? "POR ASIGNAR" : Model.NombreConductor.ToUpper())\n";
+        texto += "--------------------------------------\n";
+        
+        texto += "*ASIENTOS VENDIDOS Y RESERVADOS:*\n";
+        
+        let hayPasajeros = false;
+        
+        @foreach (var vta in ventas)
+        {
+            var pasName = vta.ObjetoPasajero?.NombreCompleto ?? "Pasajero";
+            var tipoDoc = vta.ObjetoPasajero?.TipoDocumento ?? "DNI";
+            var numDoc = vta.ObjetoPasajero?.NumeroDocumento ?? "-";
+            var est = vta.Estado == "Vendido" ? "✅" : "⏳ (Reserva)";
+            var dest = Model.ObjetoRuta?.Destino ?? "";
+            if (!string.IsNullOrWhiteSpace(vta.Observaciones))
+            {
+                if (vta.Observaciones.Contains("Bajada:")) dest = vta.Observaciones.Split('|')[0].Replace("Bajada:", "").Trim();
+                else if (vta.Observaciones.Contains("Destino:")) dest = vta.Observaciones.Split('|')[0].Replace("Destino:", "").Trim();
+            }
+
+            <text>
+            texto += "[#@vta.NumeroAsiento] @pasName - @tipoDoc @numDoc - Dest: @dest @est\n";
+            hayPasajeros = true;
+            </text>
+        }
+        
+        if (!hayPasajeros) {
+            texto += "Ningún pasaje registrado en este turno.\n";
+        }
+        
+        texto += "--------------------------------------\n";
+        texto += "Resumen: @vendidosCount Vendidos | @reservadosCount Reservados | @libresCount Libres\n";
+
+        let phoneParam = "";
+        if (telefono && telefono.trim() !== "") {
+            let limpio = telefono.replace(/\D/g, "");
+            if (limpio.length === 9) limpio = "51" + limpio;
+            phoneParam = "phone=" + limpio + "&";
+        }
+
+        let url = "https://api.whatsapp.com/send?" + phoneParam + "text=" + encodeURIComponent(texto);
+        window.open(url, "_blank");
+    }
+</script>

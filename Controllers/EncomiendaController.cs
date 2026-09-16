@@ -83,6 +83,22 @@ namespace SistemaChotaExpress.Controllers
         public async Task<IActionResult> Registrar()
         {
             ViewBag.Lugares = GeneradorViajesService.LugaresOficiales.OrderBy(l => l).ToList();
+            var totalCount = await _context.Encomiendas.CountAsync();
+            ViewBag.SiguienteNumero = totalCount + 1;
+
+            try
+            {
+                ViewBag.Conductores = await _context.Buses
+                    .Where(b => !string.IsNullOrWhiteSpace(b.NombreConductor))
+                    .Select(b => b.NombreConductor!)
+                    .Distinct()
+                    .ToListAsync();
+            }
+            catch
+            {
+                ViewBag.Conductores = new List<string>();
+            }
+
             try
             {
                 var rutas = await _context.Rutas
@@ -138,13 +154,15 @@ namespace SistemaChotaExpress.Controllers
                         .Where(r => r.Origen.ToLower() != r.Destino.ToLower())
                         .OrderBy(r => r.Origen).ToListAsync();
                     ViewBag.Rutas = new SelectList(rutas, "Id_Ruta", "NombreRuta", modelo.Id_Ruta);
+                    var countActual = await _context.Encomiendas.CountAsync();
+                    ViewBag.SiguienteNumero = countActual + 1;
                     return View(modelo);
                 }
 
-                // Generar código de seguimiento correlativo único
-                var anio = DateTime.Now.Year;
-                var countTotal = await _context.Encomiendas.CountAsync();
-                modelo.CodigoSeguimiento = $"ECE-{anio}-{(countTotal + 1):D4}";
+                // Generar número correlativo que inicia estrictamente desde el 1
+                var totalEncomiendas = await _context.Encomiendas.CountAsync();
+                int siguienteNumero = totalEncomiendas + 1;
+                modelo.CodigoSeguimiento = $"ENC-{siguienteNumero:D4}";
                 modelo.FechaRegistro = DateTime.Now;
                 modelo.Estado = "Registrado";
 
@@ -159,13 +177,15 @@ namespace SistemaChotaExpress.Controllers
                 _context.Encomiendas.Add(modelo);
                 await _context.SaveChangesAsync();
 
-                TempData["Exito"] = $"¡Encomienda registrada con éxito! Código: {modelo.CodigoSeguimiento}";
+                TempData["Exito"] = $"¡Encomienda N° {siguienteNumero} registrada con éxito! Código: {modelo.CodigoSeguimiento}";
                 return RedirectToAction("Detalle", new { id = modelo.Id_Encomienda });
             }
             catch (Exception ex)
             {
                 ModelState.AddModelError("", "Error al registrar la encomienda: " + ex.Message);
                 ViewBag.Lugares = GeneradorViajesService.LugaresOficiales.OrderBy(l => l).ToList();
+                var countActual = await _context.Encomiendas.CountAsync();
+                ViewBag.SiguienteNumero = countActual + 1;
                 try
                 {
                     var rutas = await _context.Rutas
@@ -248,6 +268,18 @@ namespace SistemaChotaExpress.Controllers
                 }
 
                 ViewBag.Lugares = GeneradorViajesService.LugaresOficiales.OrderBy(l => l).ToList();
+                try
+                {
+                    ViewBag.Conductores = await _context.Buses
+                        .Where(b => !string.IsNullOrWhiteSpace(b.NombreConductor))
+                        .Select(b => b.NombreConductor!)
+                        .Distinct()
+                        .ToListAsync();
+                }
+                catch
+                {
+                    ViewBag.Conductores = new List<string>();
+                }
                 var rutas = await _context.Rutas
                     .Where(r => r.Origen.ToLower() != r.Destino.ToLower())
                     .OrderBy(r => r.Origen).ToListAsync();
@@ -329,6 +361,8 @@ namespace SistemaChotaExpress.Controllers
                 enc.PesoKg               = modelo.PesoKg;
                 enc.PrecioEnvio          = modelo.PrecioEnvio;
                 enc.Id_Ruta              = modelo.Id_Ruta;
+                enc.TurnoSalida          = modelo.TurnoSalida;
+                enc.NombreConductor      = modelo.NombreConductor;
                 enc.Observaciones        = modelo.Observaciones;
 
                 await _context.SaveChangesAsync();
@@ -428,6 +462,129 @@ namespace SistemaChotaExpress.Controllers
 
             ViewBag.CodigoBuscado = codigo;
             return View(enc);
+        }
+
+        // =============================================
+        // 7. IMPRIMIR TICKET (80mm)
+        // =============================================
+        [HttpGet]
+        public async Task<IActionResult> Ticket(int id)
+        {
+            try
+            {
+                var enc = await _context.Encomiendas
+                    .Include(e => e.ObjetoRuta)
+                    .Include(e => e.UsuarioRegistro)
+                    .FirstOrDefaultAsync(e => e.Id_Encomienda == id);
+
+                if (enc == null) return NotFound();
+
+                // Vendedor solo puede ver las suyas
+                if (!User.IsInRole("Gerente"))
+                {
+                    var emailActual = User.FindFirstValue(ClaimTypes.Email);
+                    var nombreActual = User.Identity?.Name;
+                    var usuarioActual = await _context.Usuarios
+                        .FirstOrDefaultAsync(u => u.Email == emailActual || u.Name == nombreActual);
+                    if (usuarioActual != null && enc.Id_Usuario.HasValue && enc.Id_Usuario != usuarioActual.Id_Usuario)
+                        return Forbid();
+                }
+
+                return View(enc);
+            }
+            catch (Exception)
+            {
+                return NotFound();
+            }
+        }
+        // =============================================
+        // 8. MANIFIESTO DE ENCOMIENDAS POR TURNO (CARGA)
+        // =============================================
+        [HttpGet]
+        public async Task<IActionResult> ManifiestoTurno(int? viajeId, string? origen, string? destino, DateTime? fecha, string? hora)
+        {
+            try
+            {
+                ViewBag.Lugares = GeneradorViajesService.LugaresOficiales.OrderBy(l => l).ToList();
+
+                Viaje? viaje = null;
+                DateTime fechaFiltro = (fecha ?? DateTime.Today).Date;
+                string horaFiltro = string.IsNullOrWhiteSpace(hora) ? "08:00" : hora.Trim();
+                string origenFiltro = string.IsNullOrWhiteSpace(origen) ? "Chota" : origen.Trim();
+                string destinoFiltro = string.IsNullOrWhiteSpace(destino) ? "Cajamarca" : destino.Trim();
+
+                if (viajeId.HasValue && viajeId.Value > 0)
+                {
+                    viaje = await _context.Viajes
+                        .Include(v => v.ObjetoRuta)
+                        .Include(v => v.ObjetoBus)
+                        .FirstOrDefaultAsync(v => v.Id_Viaje == viajeId.Value);
+
+                    if (viaje != null)
+                    {
+                        fechaFiltro = viaje.FechaHoraSalida.Date;
+                        horaFiltro = viaje.FechaHoraSalida.ToString("HH:mm");
+                        if (viaje.ObjetoRuta != null)
+                        {
+                            origenFiltro = viaje.ObjetoRuta.Origen;
+                            destinoFiltro = viaje.ObjetoRuta.Destino;
+                        }
+                    }
+                }
+                else
+                {
+                    // Buscar si existe un viaje programado para esa ruta, fecha y hora
+                    var viajesEncontrados = await _context.Viajes
+                        .Include(v => v.ObjetoRuta)
+                        .Include(v => v.ObjetoBus)
+                        .Where(v => v.FechaHoraSalida.Date == fechaFiltro &&
+                                    v.ObjetoRuta != null &&
+                                    v.ObjetoRuta.Origen.ToLower() == origenFiltro.ToLower() &&
+                                    v.ObjetoRuta.Destino.ToLower() == destinoFiltro.ToLower())
+                        .ToListAsync();
+
+                    viaje = viajesEncontrados.FirstOrDefault(v => v.FechaHoraSalida.ToString("HH:mm") == horaFiltro)
+                            ?? viajesEncontrados.FirstOrDefault();
+                }
+
+                // Obtener las encomiendas para esta ruta y turno de salida
+                var query = _context.Encomiendas
+                    .Include(e => e.UsuarioRegistro)
+                    .Include(e => e.ObjetoRuta)
+                    .AsQueryable();
+
+                // Filtrar por fecha de registro (o fecha asignada)
+                query = query.Where(e => e.FechaRegistro.Date == fechaFiltro);
+
+                // Filtrar por turno horario (e.g. "08:00")
+                if (!string.IsNullOrWhiteSpace(horaFiltro))
+                {
+                    query = query.Where(e => e.TurnoSalida == horaFiltro);
+                }
+
+                // Filtrar por ruta
+                if (!string.IsNullOrWhiteSpace(origenFiltro) && !string.IsNullOrWhiteSpace(destinoFiltro))
+                {
+                    query = query.Where(e => e.ObjetoRuta != null &&
+                                             e.ObjetoRuta.Origen.ToLower() == origenFiltro.ToLower() &&
+                                             e.ObjetoRuta.Destino.ToLower() == destinoFiltro.ToLower());
+                }
+
+                var encomiendas = await query.OrderBy(e => e.Id_Encomienda).ToListAsync();
+
+                ViewBag.Viaje = viaje;
+                ViewBag.FechaFiltro = fechaFiltro;
+                ViewBag.HoraFiltro = horaFiltro;
+                ViewBag.OrigenFiltro = origenFiltro;
+                ViewBag.DestinoFiltro = destinoFiltro;
+
+                return View(encomiendas);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Ocurrió un error al cargar el manifiesto de encomiendas: " + ex.Message;
+                return RedirectToAction("Index");
+            }
         }
     }
 }

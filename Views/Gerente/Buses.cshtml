@@ -99,12 +99,35 @@
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label text-muted fs-8 font-weight-600">Nombre del Conductor (Chofer)</label>
+                    <label class="form-label text-muted fs-8 font-weight-600">Nombre del Conductor (Chofer / Piloto)</label>
                     <input type="text" name="NombreConductor" class="form-control bg-dark-input text-white border-glass-field" placeholder="Ej. Juan Pérez" />
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label text-muted fs-8 font-weight-600">Modelo / Marca</label>
+                    <label class="form-label text-muted fs-8 font-weight-600">N° Licencia de Conducir</label>
+                    <input type="text" name="NumeroLicencia" class="form-control bg-dark-input text-white border-glass-field font-monospace text-uppercase" placeholder="Ej. Q50348826" maxlength="20" />
+                    <small class="text-muted fs-9">Número de licencia del piloto (aparece en el manifiesto)</small>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-muted fs-8 font-weight-600">Marca del Vehículo</label>
+                    <select name="Marca" class="form-select bg-dark-input text-white border-glass-field">
+                        <option value="Toyota">Toyota</option>
+                        <option value="Hyundai">Hyundai</option>
+                        <option value="Kia">Kia</option>
+                        <option value="Nissan">Nissan</option>
+                        <option value="Mitsubishi">Mitsubishi</option>
+                        <option value="Ford">Ford</option>
+                        <option value="Chevrolet">Chevrolet</option>
+                        <option value="Isuzu">Isuzu</option>
+                        <option value="Mercedes-Benz">Mercedes-Benz</option>
+                        <option value="Volkswagen">Volkswagen</option>
+                        <option value="Otra">Otra</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-muted fs-8 font-weight-600">Modelo</label>
                     <input type="text" name="Modelo" class="form-control bg-dark-input text-white border-glass-field" placeholder="Ej. Toyota HiAce" required />
                 </div>
 

@@ -59,12 +59,20 @@ namespace SistemaChotaExpress.Models
         [Display(Name = "Precio del envío (S/)")]
         public decimal PrecioEnvio { get; set; }
 
-        // --- RUTA ---
+        // --- RUTA Y TURNO ---
         [Display(Name = "Ruta de envío")]
         public int? Id_Ruta { get; set; }
         [ForeignKey("Id_Ruta")]
         [ValidateNever]
         public virtual Ruta? ObjetoRuta { get; set; }
+
+        [StringLength(50)]
+        [Display(Name = "Hora de Salida")]
+        public string? TurnoSalida { get; set; }
+
+        [StringLength(100)]
+        [Display(Name = "Conductor / Chofer")]
+        public string? NombreConductor { get; set; }
 
         // --- ESTADO ---
         [ValidateNever]

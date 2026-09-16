@@ -1,0 +1,180 @@
+@model SistemaChotaExpress.Models.Encomienda
+@{
+    Layout = null; // No usamos el layout principal porque esto es solo para imprimir
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ticket @Model.CodigoSeguimiento</title>
+    <style>
+        /* Estilos optimizados para impresora térmica de 80mm */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Consolas', 'Courier New', monospace;
+        }
+        body {
+            background-color: #fff;
+            color: #000;
+            width: 80mm;
+            margin: 0 auto;
+            padding: 5mm;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .font-bold { font-weight: bold; }
+        .font-lg { font-size: 14px; }
+        .font-xl { font-size: 16px; }
+        .mb-1 { margin-bottom: 2px; }
+        .mb-2 { margin-bottom: 5px; }
+        .mb-3 { margin-bottom: 10px; }
+        .mt-2 { margin-top: 5px; }
+        
+        .divider {
+            border-top: 1px dashed #000;
+            margin: 5px 0;
+        }
+        
+        .logo-placeholder {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2px;
+        }
+
+        .label { font-weight: bold; }
+
+        @@media print {
+            .no-print { display: none !important; }
+            body { padding: 0; margin: 0; }
+            /* Forza corte de papel en algunas impresoras */
+            html, body { height: 99%; page-break-after: avoid; page-break-before: avoid; }
+        }
+    </style>
+</head>
+<body onload="window.print()">
+    <!-- Botón para imprimir manualmente si no funciona onload -->
+    <div class="text-center mb-3 no-print">
+        <button onclick="window.print()" style="padding: 10px; cursor: pointer;">Imprimir Ticket</button>
+        <button onclick="window.close()" style="padding: 10px; cursor: pointer;">Cerrar</button>
+    </div>
+
+    <!-- Encabezado del ticket -->
+    <div class="text-center mb-2">
+        <div class="logo-placeholder">CHOTA EXPRESS</div>
+        <div>Tours Chota Express S.A.C.</div>
+        <div>RUC: 20601234567</div> <!-- Asegúrate de cambiar esto por el RUC real si lo tienen -->
+        <div>Chota - Perú</div>
+    </div>
+    
+    <div class="text-center font-bold font-lg mb-2">
+        ENCOMIENDA
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Datos generales -->
+    <div class="row">
+        <span>Fecha: @Model.FechaRegistro.ToString("dd/MM/yyyy HH:mm")</span>
+    </div>
+    <div class="row font-bold font-lg mt-2">
+        <span>CÓDIGO:</span>
+        <span>@Model.CodigoSeguimiento</span>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Origen y Destino -->
+    <div class="row font-bold font-lg mb-1">
+        <span>RUTA:</span>
+    </div>
+    <div class="text-center font-bold font-xl mb-2">
+        @(Model.ObjetoRuta?.Origen ?? "N/A") ➔ @(Model.ObjetoRuta?.Destino ?? "N/A")
+    </div>
+    
+    <div class="row font-bold">
+        <span>HORA SALIDA:</span>
+        <span>@(Model.TurnoSalida ?? "Sin turno")</span>
+    </div>
+    @if (!string.IsNullOrWhiteSpace(Model.NombreConductor))
+    {
+        <div class="row font-bold">
+            <span>CHOFER:</span>
+            <span>@Model.NombreConductor</span>
+        </div>
+    }
+
+    <div class="divider"></div>
+
+    <!-- Remitente -->
+    <div class="mb-2">
+        <div class="label">REMITENTE:</div>
+        <div>@Model.NombreRemitente</div>
+        @if (!string.IsNullOrEmpty(Model.DniRemitente))
+        { <div>DNI/RUC: @Model.DniRemitente</div> }
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Destinatario -->
+    <div class="mb-2">
+        <div class="label">DESTINATARIO:</div>
+        <div>@Model.NombreDestinatario</div>
+        @if (!string.IsNullOrEmpty(Model.DniDestinatario))
+        { <div>DNI/RUC: @Model.DniDestinatario</div> }
+        @if (!string.IsNullOrEmpty(Model.TelefonoDestinatario))
+        { <div>Telf: @Model.TelefonoDestinatario</div> }
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Paquete -->
+    <div class="mb-2">
+        <div class="label">DESCRIPCIÓN:</div>
+        <div>@Model.Descripcion</div>
+        <div class="row mt-2">
+            <span>PESO:</span>
+            <span>@(Model.PesoKg.HasValue ? $"{Model.PesoKg:N1} kg" : "-")</span>
+        </div>
+        <div class="row font-bold font-lg mt-2">
+            <span>TOTAL PAGADO:</span>
+            <span>S/ @Model.PrecioEnvio.ToString("N2")</span>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.Observaciones))
+    {
+        <div class="divider"></div>
+        <div class="mb-2">
+            <div class="label">OBSERVACIONES:</div>
+            <div>@Model.Observaciones</div>
+        </div>
+    }
+
+    <div class="divider"></div>
+
+    <!-- Pie de página -->
+    <div class="text-center mb-3 mt-2">
+        <div>Atendido por: @(Model.UsuarioRegistro?.Name ?? "Sistema")</div>
+        <br />
+        <div class="font-bold">¡Gracias por su preferencia!</div>
+        <div style="font-size: 10px; margin-top: 5px;">
+            Conserve este ticket. Es indispensable presentarlo para el recojo de la encomienda.
+        </div>
+    </div>
+    
+    <!-- Espacio final para asegurar el corte correcto en impresoras térmicas -->
+    <div style="margin-top: 30px;">.</div>
+
+</body>
+</html>

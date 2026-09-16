@@ -90,6 +90,11 @@
                                     </a>
                                 }
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link nav-link-custom @(ViewContext.RouteData.Values["controller"]?.ToString() == "Encomienda" && ViewContext.RouteData.Values["action"]?.ToString() == "ManifiestoTurno" ? "active" : "")" asp-controller="Encomienda" asp-action="ManifiestoTurno">
+                                    <i class="fa-solid fa-clipboard-list me-1"></i> Manifiesto por turno
+                                </a>
+                            </li>
                         }
                     </ul>
                     

@@ -10,6 +10,9 @@
             <p class="text-muted mb-0">Historial y control de paquetes registrados</p>
         </div>
         <div class="d-flex gap-2 flex-wrap">
+            <a asp-action="ManifiestoTurno" class="btn btn-outline-warning btn-sm fw-bold px-3">
+                <i class="fa-solid fa-clipboard-list me-1"></i> Manifiesto por Turno
+            </a>
             <a asp-action="Rastrear" class="btn btn-outline-info btn-sm fw-bold px-3">
                 <i class="fa-solid fa-magnifying-glass me-1"></i> Rastrear por código
             </a>
@@ -112,10 +115,12 @@
                 <table class="table table-dark table-hover mb-0 align-middle">
                     <thead>
                         <tr class="text-muted small text-uppercase border-secondary">
+                            <th style="width: 50px;">#</th>
                             <th>Código</th>
                             <th>Remitente</th>
                             <th>Destinatario</th>
                             <th>Ruta</th>
+                            <th>Turno</th>
                             <th>Precio</th>
                             <th>Estado</th>
                             <th>Fecha</th>
@@ -123,6 +128,7 @@
                         </tr>
                     </thead>
                     <tbody>
+                        @{ int numItem = 1; }
                         @foreach (var enc in Model)
                         {
                             var badgeColor = enc.Estado switch {
@@ -134,6 +140,7 @@
                                 _ => "bg-secondary"
                             };
                             <tr class="@(enc.Estado == "Anulado" ? "opacity-50" : "")">
+                                <td class="text-muted font-monospace fw-bold">@(numItem++)</td>
                                 <td><span class="badge bg-warning text-dark fw-bold">@enc.CodigoSeguimiento</span></td>
                                 <td>
                                     <div class="fw-semibold">@enc.NombreRemitente</div>
@@ -155,6 +162,22 @@
                                         <small><i class="fa-solid fa-route me-1 text-info"></i>@enc.ObjetoRuta.Origen → @enc.ObjetoRuta.Destino</small>
                                     }
                                     else { <span class="text-muted">-</span> }
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(enc.TurnoSalida))
+                                    {
+                                        <span class="badge bg-dark border border-secondary text-warning font-monospace"><i class="fa-regular fa-clock me-1"></i>@enc.TurnoSalida</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small">Sin turno</span>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(enc.NombreConductor))
+                                    {
+                                        <div class="text-muted fs-9 text-uppercase mt-1" style="font-size: 0.72rem;">
+                                            <i class="fa-solid fa-user-tie me-1 text-warning"></i>@enc.NombreConductor
+                                        </div>
+                                    }
                                 </td>
                                 <td class="fw-bold text-success">S/ @enc.PrecioEnvio.ToString("N2")</td>
                                 <td><span class="badge @badgeColor">@enc.Estado</span></td>
