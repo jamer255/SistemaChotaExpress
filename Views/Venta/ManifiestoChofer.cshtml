@@ -23,7 +23,7 @@
     <style>
         @@page {
             size: A4 portrait;
-            margin: 5mm 8mm;
+            margin: 5mm 7mm 4mm 7mm;
         }
 
         * {
@@ -35,7 +35,7 @@
             background-color: #cbd5e1;
             color: #000000;
             margin: 0;
-            padding: 12px;
+            padding: 10px;
             font-size: 11px;
         }
 
@@ -50,27 +50,31 @@
             box-shadow: 0 4px 14px rgba(0,0,0,0.3);
         }
 
-        /* Hoja A4 Oficial */
+        /* Hoja A4 Oficial - Altura Completa 297mm */
         .a4-sheet {
             width: 210mm;
+            height: 288mm;
             max-width: 100%;
             margin: 0 auto;
             background: #ffffff;
-            padding: 8mm 10mm;
+            padding: 7mm 8mm 5mm 8mm;
             box-shadow: 0 2px 20px rgba(0,0,0,0.15);
             border: 1px solid #94a3b8;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
             position: relative;
         }
 
-        /* Encabezado Oficial con Logos y Combi Ordenado */
+        /* Encabezado Oficial */
         .manifest-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
             border-bottom: 2px solid #1e3a8a;
-            padding-bottom: 6px;
-            margin-bottom: 6px;
-            gap: 12px;
+            padding-bottom: 5px;
+            margin-bottom: 4px;
+            gap: 10px;
         }
 
         .header-company-block {
@@ -81,7 +85,7 @@
             font-size: 9.5pt;
             font-weight: 800;
             color: #1e3a8a;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.4px;
             text-transform: uppercase;
             margin-bottom: 1px;
             line-height: 1.1;
@@ -91,7 +95,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            margin: 2px 0 3px 0;
+            margin: 1px 0 3px 0;
         }
 
         .header-brand-row img.logo-img {
@@ -101,7 +105,7 @@
         }
 
         .header-brand-row .brand-text {
-            font-size: 15pt;
+            font-size: 15.5pt;
             font-weight: 900;
             color: #1e3a8a;
             letter-spacing: 0.3px;
@@ -110,7 +114,7 @@
         }
 
         .header-brand-row .sac-tag {
-            font-size: 9.5pt;
+            font-size: 10pt;
             font-weight: 800;
             color: #1e3a8a;
             margin-left: 2px;
@@ -123,7 +127,7 @@
         }
 
         .header-address-block {
-            font-size: 6.8pt;
+            font-size: 6.7pt;
             color: #0f172a;
             line-height: 1.35;
         }
@@ -137,12 +141,12 @@
             width: 215px;
             flex-shrink: 0;
             text-align: center;
-            padding-left: 10px;
+            padding-left: 8px;
             border-left: 1px solid #cbd5e1;
         }
 
         .ruc-badge {
-            font-size: 10.5pt;
+            font-size: 11pt;
             font-weight: 900;
             color: #1e3a8a;
             margin-bottom: 1px;
@@ -150,7 +154,7 @@
         }
 
         .doc-title {
-            font-size: 12pt;
+            font-size: 12.5pt;
             font-weight: 900;
             color: #1e3a8a;
             text-transform: uppercase;
@@ -174,9 +178,9 @@
             background-color: #eff6ff;
             color: #1e3a8a;
             text-align: center;
-            font-size: 8pt;
+            font-size: 8.2pt;
             font-weight: 800;
-            padding: 3.5px 6px;
+            padding: 3px 6px;
             letter-spacing: 0.2px;
             margin-bottom: 5px;
             text-transform: uppercase;
@@ -191,46 +195,53 @@
 
         .tech-box {
             flex: 1;
-            border: 1.2px solid #1e3a8a;
+            border: 1.3px solid #1e3a8a;
             border-radius: 4px;
             display: flex;
             overflow: hidden;
-            height: 104px;
+            height: 112px;
         }
 
         .tech-box-side-label {
             background-color: #1e3a8a;
             color: #ffffff;
-            font-size: 6.8pt;
+            font-size: 6.5pt;
             font-weight: 800;
-            width: 24px;
-            min-width: 24px;
+            width: 22px;
+            min-width: 22px;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: center;
-            writing-mode: vertical-rl;
-            transform: rotate(180deg);
+            justify-content: space-around;
             text-transform: uppercase;
-            letter-spacing: 1.5px;
-            padding: 2px 0;
+            letter-spacing: 1px;
+            padding: 4px 0;
             text-align: center;
+            user-select: none;
+        }
+
+        .tech-box-side-label span {
+            display: block;
+            line-height: 1;
         }
 
         .tech-box-content {
             flex: 1;
-            padding: 3px 6px;
+            padding: 4px 6px;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
-            font-size: 7.3pt;
+            justify-content: space-around;
+            font-size: 7.5pt;
+            background: #ffffff;
         }
 
         .tech-field {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px dashed #cbd5e1;
-            padding: 1px 0;
+            border-bottom: 1px dotted #94a3b8;
+            padding: 1.5px 0;
+            min-height: 20px;
         }
 
         .tech-field:last-child {
@@ -240,17 +251,21 @@
         .tech-label {
             font-weight: 800;
             color: #1e3a8a;
-            font-size: 6.8pt;
+            font-size: 7pt;
+            white-space: nowrap;
         }
 
         .tech-val {
             font-weight: 700;
             color: #000000;
             text-align: right;
-            font-size: 7.3pt;
+            font-size: 7.8pt;
+            flex: 1;
+            margin-left: 6px;
+            min-height: 16px;
         }
 
-        /* Campos Editables para rellenar al vuelo */
+        /* Campos Editables para rellenar */
         .editable-field {
             outline: none;
             padding: 1px 3px;
@@ -264,7 +279,7 @@
 
         /* Sección Tripulación */
         .crew-section {
-            border: 1.2px solid #1e3a8a;
+            border: 1.3px solid #1e3a8a;
             border-radius: 4px;
             margin-bottom: 5px;
             overflow: hidden;
@@ -283,10 +298,11 @@
 
         .crew-body {
             display: flex;
-            padding: 3px 8px;
-            font-size: 7.8pt;
+            padding: 4px 8px;
+            font-size: 8pt;
             background: #ffffff;
             align-items: center;
+            min-height: 26px;
         }
 
         .crew-pilot {
@@ -301,17 +317,24 @@
             display: flex;
             align-items: center;
             gap: 6px;
-            border-left: 1px dashed #cbd5e1;
+            border-left: 1px dotted #94a3b8;
             padding-left: 10px;
         }
 
-        /* Tabla de Pasajeros */
+        /* Tabla de Pasajeros - Altura completa A4 */
+        .table-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 4px;
+        }
+
         .passenger-table {
             width: 100%;
+            height: 100%;
             border-collapse: collapse;
-            font-size: 7.5pt;
+            font-size: 7.8pt;
             border: 1.5px solid #1e3a8a;
-            margin-bottom: 6px;
         }
 
         .passenger-table th {
@@ -319,17 +342,19 @@
             color: #ffffff;
             font-weight: 800;
             text-transform: uppercase;
-            padding: 3px 4px;
+            padding: 3.5px 4px;
             border: 1px solid #1e3a8a;
             text-align: center;
-            font-size: 7.2pt;
+            font-size: 7.5pt;
+            height: 22px;
         }
 
         .passenger-table td {
-            padding: 2.5px 4px;
+            padding: 2px 4px;
             border: 1px solid #cbd5e1;
             vertical-align: middle;
-            height: 22.5px;
+            height: calc((288mm - 198mm) / 16); /* Distribuir simétricamente en el alto A4 */
+            min-height: 22px;
         }
 
         .passenger-table tr:nth-child(even) td {
@@ -338,11 +363,11 @@
 
         .col-num { width: 24px; text-align: center; font-weight: 800; color: #1e3a8a; }
         .col-name { width: 38%; font-weight: 700; text-transform: uppercase; }
-        .col-doc { width: 14%; text-align: center; font-family: monospace; font-size: 7.8pt; }
-        .col-ticket { width: 12%; text-align: center; font-family: monospace; font-size: 7.2pt; }
+        .col-doc { width: 14%; text-align: center; font-family: monospace; font-size: 8pt; }
+        .col-ticket { width: 12%; text-align: center; font-family: monospace; font-size: 7.5pt; }
         .col-seat { width: 10%; text-align: center; font-weight: 800; }
         .col-price { width: 10%; text-align: right; font-weight: 700; }
-        .col-obs { width: 16%; font-size: 6.8pt; }
+        .col-obs { width: 16%; font-size: 7pt; }
 
         /* Pie de página oficial */
         .manifest-footer {
@@ -371,12 +396,13 @@
             text-transform: uppercase;
         }
 
-        /* Ajustes de Impresión Limpia A4 */
+        /* Ajustes de Impresión Limpia A4 Completa */
         @@media print {
-            body {
+            html, body {
                 background: #ffffff !important;
                 padding: 0 !important;
                 margin: 0 !important;
+                height: 100% !important;
             }
 
             .no-print {
@@ -388,6 +414,8 @@
                 box-shadow: none !important;
                 padding: 0 !important;
                 width: 100% !important;
+                height: 100% !important;
+                max-height: 292mm !important;
             }
 
             .editable-field {
@@ -426,21 +454,31 @@
 
     <!-- BARRA DE CONTROL Y ACCIONES (NO IMPRIMIBLE) -->
     <div class="no-print">
-        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
             <div>
-                <h6 class="fw-bold mb-0 text-warning"><i class="fa-solid fa-file-lines me-2"></i>Manifiesto Oficial de Pasajeros - SUTRAN / MTC</h6>
-                <small class="text-white-50 fs-9"><i class="fa-solid fa-pen me-1"></i>Puedes hacer clic en cualquier dato (placa, ruta, chofer, etc.) para editarlo antes de imprimir.</small>
+                <h6 class="fw-bold mb-0 text-warning"><i class="fa-solid fa-file-lines me-2"></i>Manifiesto Oficial de Pasajeros (Hoja A4 Completa)</h6>
+                <small class="text-white-50 fs-9">Campos en blanco listos para rellenar a mano con lapicero o digitalmente con un clic.</small>
+            </div>
+
+            <!-- Botones Rápidos de Llenado -->
+            <div class="d-flex align-items-center gap-2">
+                <button type="button" class="btn btn-xs btn-outline-warning" onclick="cargarDatosDelTurno()" title="Rellenar automáticamente con los datos registrados del viaje">
+                    <i class="fa-solid fa-wand-magic-sparkles me-1"></i> Cargar Datos del Turno
+                </button>
+                <button type="button" class="btn btn-xs btn-outline-danger" onclick="limpiarCamposEnBlanco()" title="Dejar todos los campos en blanco">
+                    <i class="fa-solid fa-eraser me-1"></i> Dejar en Blanco
+                </button>
             </div>
             
             <!-- Selector de Permiso de Ruta -->
             <div class="d-flex align-items-center gap-2">
-                <span class="small fw-bold text-white fs-9"><i class="fa-solid fa-route text-warning me-1"></i>Ruta:</span>
+                <span class="small fw-bold text-white fs-9"><i class="fa-solid fa-route text-warning me-1"></i>Permiso:</span>
                 <div class="btn-group" role="group">
                     <button type="button" id="btnRutaCutervo" class="btn btn-xs @(esRutaCutervo ? "btn-warning text-dark fw-bold" : "btn-outline-light")" onclick="cambiarRutaPermiso('cutervo')">
-                        Cutervo (Completo)
+                        Hasta Cutervo
                     </button>
                     <button type="button" id="btnRutaChota" class="btn btn-xs @(!esRutaCutervo ? "btn-warning text-dark fw-bold" : "btn-outline-light")" onclick="cambiarRutaPermiso('chota')">
-                        Chota
+                        Hasta Chota
                     </button>
                 </div>
             </div>
@@ -448,7 +486,7 @@
             <!-- Botones de Acción -->
             <div class="d-flex gap-2">
                 <button onclick="window.print();" class="btn btn-sm btn-warning fw-bold text-dark px-3 shadow-sm">
-                    <i class="fa-solid fa-print me-1"></i> Imprimir A4
+                    <i class="fa-solid fa-print me-1"></i> Imprimir Hoja A4
                 </button>
                 <button onclick="enviarWhatsApp();" class="btn btn-sm btn-success fw-bold px-3 shadow-sm">
                     <i class="fa-brands fa-whatsapp me-1"></i> WhatsApp
@@ -460,10 +498,10 @@
         </div>
     </div>
 
-    <!-- DOCUMENTO FÍSICO OFICIAL EN HOJA A4 -->
+    <!-- DOCUMENTO FÍSICO OFICIAL EN HOJA A4 COMPLETA -->
     <div class="a4-sheet">
         
-        <!-- 1. ENCABEZADO FISCAL CON LOGO OFICIAL Y FOTO DE LA COMBI ORDENADO -->
+        <!-- 1. ENCABEZADO FISCAL CON LOGO OFICIAL Y FOTO DE LA COMBI -->
         <div class="manifest-header">
             <!-- Bloque Empresa, Marca, Logo, Combi y Domicilios -->
             <div class="header-company-block">
@@ -496,169 +534,165 @@
                 : "CAJAMARCA - PORCON - EL COBRO - PUENTE PIEDRA - SAMANGAY - CHOTA Y VICIVERSA")
         </div>
 
-        <!-- 3. CUADROS TÉCNICOS (RUTA / COMBI / CAPACIDAD COMPLETA) -->
+        <!-- 3. CUADROS TÉCNICOS (RUTA / COMBI / CAPACIDAD EN BLANCO PARA LLENAR) -->
         <div class="tech-data-row">
             
             <!-- Cuadro 1: RUTA -->
             <div class="tech-box">
-                <div class="tech-box-side-label">R u t a</div>
+                <div class="tech-box-side-label" title="Ruta">
+                    <span>R</span><span>U</span><span>T</span><span>A</span>
+                </div>
                 <div class="tech-box-content">
                     <div class="tech-field">
                         <span class="tech-label">ORIGEN:</span>
-                        <span class="tech-val editable-field" id="valOrigen" contenteditable="true">@(Model.ObjetoRuta?.Origen.ToUpper() ?? "CAJAMARCA")</span>
+                        <span class="tech-val editable-field" id="valOrigen" contenteditable="true"></span>
                     </div>
                     <div class="tech-field">
                         <span class="tech-label">DESTINO:</span>
-                        <span class="tech-val editable-field" id="valDestino" contenteditable="true">@(Model.ObjetoRuta?.Destino.ToUpper() ?? "CHOTA")</span>
+                        <span class="tech-val editable-field" id="valDestino" contenteditable="true"></span>
                     </div>
                     <div class="tech-field">
                         <span class="tech-label">N° RES.:</span>
-                        <span class="tech-val editable-field" contenteditable="true">001-2024-DRTC</span>
+                        <span class="tech-val editable-field" id="valRes" contenteditable="true"></span>
                     </div>
                     <div class="tech-field">
                         <span class="tech-label">FECHA:</span>
-                        <span class="tech-val editable-field" contenteditable="true">@Model.FechaHoraSalida.ToString("dd/MM/yyyy")</span>
+                        <span class="tech-val editable-field" id="valFecha" contenteditable="true"></span>
                     </div>
                     <div class="tech-field">
                         <span class="tech-label">HORA:</span>
-                        <span class="tech-val editable-field" contenteditable="true">@Model.FechaHoraSalida.ToString("hh:mm tt")</span>
+                        <span class="tech-val editable-field" id="valHora" contenteditable="true"></span>
                     </div>
                 </div>
             </div>
 
             <!-- Cuadro 2: COMBI -->
             <div class="tech-box">
-                <div class="tech-box-side-label">C o m b i</div>
+                <div class="tech-box-side-label" title="Combi">
+                    <span>C</span><span>O</span><span>M</span><span>B</span><span>I</span>
+                </div>
                 <div class="tech-box-content">
                     <div class="tech-field">
                         <span class="tech-label">CÓDIGO:</span>
-                        <span class="tech-val editable-field" contenteditable="true">@(Model.ObjetoBus != null ? $"BUS-{Model.ObjetoBus.Id_Bus:D2}" : "COMBI-01")</span>
+                        <span class="tech-val editable-field" id="valCodigo" contenteditable="true"></span>
                     </div>
                     <div class="tech-field">
                         <span class="tech-label">MODELO:</span>
-                        <span class="tech-val editable-field" contenteditable="true">@(Model.ObjetoBus?.Modelo ?? "Toyota HiAce")</span>
+                        <span class="tech-val editable-field" id="valModelo" contenteditable="true"></span>
                     </div>
                     <div class="tech-field">
                         <span class="tech-label">PLACA:</span>
-                        <span class="tech-val editable-field font-monospace fw-bold text-primary" id="valPlaca" contenteditable="true">@(string.IsNullOrWhiteSpace(Model.PlacaVehiculo) ? (Model.ObjetoBus?.Placa ?? "SIN PLACA") : Model.PlacaVehiculo.ToUpper())</span>
+                        <span class="tech-val editable-field font-monospace fw-bold" id="valPlaca" contenteditable="true"></span>
                     </div>
                     <div class="tech-field">
                         <span class="tech-label">MARCA:</span>
-                        <span class="tech-val editable-field" contenteditable="true">@(Model.ObjetoBus?.Marca ?? "Toyota")</span>
-                    </div>
-                    <div class="tech-field">
-                        <span class="tech-label">ESTADO:</span>
-                        <span class="tech-val editable-field" contenteditable="true">OPERATIVO</span>
+                        <span class="tech-val editable-field" id="valMarca" contenteditable="true"></span>
                     </div>
                 </div>
             </div>
 
-            <!-- Cuadro 3: CAPACIDAD (PALABRA COMPLETA) -->
+            <!-- Cuadro 3: CAPACIDAD COMPLETA -->
             <div class="tech-box">
-                <div class="tech-box-side-label" title="Capacidad">Capacidad</div>
+                <div class="tech-box-side-label" title="Capacidad">
+                    <span>C</span><span>A</span><span>P</span><span>A</span><span>C</span><span>I</span><span>D</span><span>A</span><span>D</span>
+                </div>
                 <div class="tech-box-content">
                     <div class="tech-field">
                         <span class="tech-label">CAPACIDAD COMBI:</span>
-                        <span class="tech-val editable-field" contenteditable="true">@capacidad</span>
+                        <span class="tech-val editable-field" id="valCapacidad" contenteditable="true"></span>
                     </div>
                     <div class="tech-field">
                         <span class="tech-label">N° PASAJEROS OFICINA:</span>
-                        <span class="tech-val editable-field" contenteditable="true">@vendidosCount</span>
+                        <span class="tech-val editable-field" id="valPasajerosOficina" contenteditable="true"></span>
                     </div>
                     <div class="tech-field">
                         <span class="tech-label">N° TRIPULACIÓN:</span>
-                        <span class="tech-val editable-field" contenteditable="true">1</span>
+                        <span class="tech-val editable-field" id="valTripulacion" contenteditable="true"></span>
                     </div>
                     <div class="tech-field">
                         <span class="tech-label">N° PASAJEROS RUTA:</span>
-                        <span class="tech-val editable-field" contenteditable="true">0</span>
-                    </div>
-                    <div class="tech-field">
-                        <span class="tech-label">ASIENTOS LIBRES:</span>
-                        <span class="tech-val editable-field" contenteditable="true">@libresCount</span>
+                        <span class="tech-val editable-field" id="valPasajerosRuta" contenteditable="true"></span>
                     </div>
                 </div>
             </div>
 
         </div>
 
-        <!-- 4. TRIPULACIÓN (EDITABLE) -->
+        <!-- 4. TRIPULACIÓN (EN BLANCO PARA LLENAR) -->
         <div class="crew-section">
             <div class="crew-header">TRIPULACIÓN</div>
             <div class="crew-body">
                 <div class="crew-pilot">
                     <strong class="text-primary">Piloto:</strong>
-                    <span class="fw-bold text-uppercase editable-field flex-grow-1" id="valPiloto" contenteditable="true">
-                        @(string.IsNullOrWhiteSpace(Model.NombreConductor) ? (Model.ObjetoBus?.NombreConductor ?? "POR ASIGNAR") : Model.NombreConductor.ToUpper())
-                    </span>
+                    <span class="fw-bold text-uppercase editable-field flex-grow-1" id="valPiloto" contenteditable="true">&nbsp;</span>
                 </div>
                 <div class="crew-license">
                     <strong class="text-primary">N° Licencia:</strong>
-                    <span class="font-monospace fw-bold editable-field" id="valLicencia" contenteditable="true">
-                        @(string.IsNullOrWhiteSpace(Model.ObjetoBus?.NumeroLicencia) ? "POR ASIGNAR" : Model.ObjetoBus.NumeroLicencia.ToUpper())
-                    </span>
+                    <span class="font-monospace fw-bold editable-field flex-grow-1" id="valLicencia" contenteditable="true">&nbsp;</span>
                 </div>
             </div>
         </div>
 
-        <!-- 5. TABLA OFICIAL DE 16 PASAJEROS (SIN CROQUIS) -->
-        <table class="passenger-table">
-            <thead>
-                <tr>
-                    <th class="col-num">#</th>
-                    <th class="col-name">PASAJERO</th>
-                    <th class="col-doc">N° Doc.</th>
-                    <th class="col-ticket">N° Pasaje</th>
-                    <th class="col-seat">Asiento</th>
-                    <th class="col-price">Precio</th>
-                    <th class="col-obs">Observaciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                @{
-                    for (int i = 1; i <= 16; i++)
-                    {
-                        var vta = (ventas != null && i <= ventas.Count) ? ventas[i - 1] : null;
-
-                        if (vta != null)
+        <!-- 5. TABLA OFICIAL DE 16 PASAJEROS (HOJA COMPLETA) -->
+        <div class="table-wrapper">
+            <table class="passenger-table">
+                <thead>
+                    <tr>
+                        <th class="col-num">#</th>
+                        <th class="col-name">PASAJERO</th>
+                        <th class="col-doc">N° Doc.</th>
+                        <th class="col-ticket">N° Pasaje</th>
+                        <th class="col-seat">Asiento</th>
+                        <th class="col-price">Precio</th>
+                        <th class="col-obs">Observaciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaPasajerosBody">
+                    @{
+                        for (int i = 1; i <= 16; i++)
                         {
-                            var pasName = vta.ObjetoPasajero?.NombreCompleto ?? "Pasajero";
-                            var numDoc = vta.ObjetoPasajero?.NumeroDocumento ?? "-";
-                            var ticketNum = $"#P-{vta.Id_Venta:D5}";
-                            var asiento = $"#{vta.NumeroAsiento}";
-                            var precio = $"S/ {vta.PrecioPagado:0.00}";
-                            var obs = vta.Estado == "Reservado" ? "RESERVA" : "";
-                            if (!string.IsNullOrWhiteSpace(vta.Observaciones))
+                            var vta = (ventas != null && i <= ventas.Count) ? ventas[i - 1] : null;
+
+                            if (vta != null)
                             {
-                                obs = string.IsNullOrEmpty(obs) ? vta.Observaciones : $"{obs} - {vta.Observaciones}";
-                            }
+                                var pasName = vta.ObjetoPasajero?.NombreCompleto ?? "Pasajero";
+                                var numDoc = vta.ObjetoPasajero?.NumeroDocumento ?? "-";
+                                var ticketNum = $"#P-{vta.Id_Venta:D5}";
+                                var asiento = $"#{vta.NumeroAsiento}";
+                                var precio = $"S/ {vta.PrecioPagado:0.00}";
+                                var obs = vta.Estado == "Reservado" ? "RESERVA" : "";
+                                if (!string.IsNullOrWhiteSpace(vta.Observaciones))
+                                {
+                                    obs = string.IsNullOrEmpty(obs) ? vta.Observaciones : $"{obs} - {vta.Observaciones}";
+                                }
 
-                            <tr>
-                                <td class="col-num">@i</td>
-                                <td class="col-name editable-field" contenteditable="true">@pasName</td>
-                                <td class="col-doc editable-field" contenteditable="true">@numDoc</td>
-                                <td class="col-ticket editable-field" contenteditable="true">@ticketNum</td>
-                                <td class="col-seat editable-field" contenteditable="true">@asiento</td>
-                                <td class="col-price editable-field" contenteditable="true">@precio</td>
-                                <td class="col-obs editable-field" contenteditable="true">@obs</td>
-                            </tr>
-                        }
-                        else
-                        {
-                            <tr>
-                                <td class="col-num">@i</td>
-                                <td class="col-name editable-field" contenteditable="true">&nbsp;</td>
-                                <td class="col-doc editable-field" contenteditable="true">&nbsp;</td>
-                                <td class="col-ticket editable-field" contenteditable="true">&nbsp;</td>
-                                <td class="col-seat editable-field" contenteditable="true">&nbsp;</td>
-                                <td class="col-price editable-field" contenteditable="true">&nbsp;</td>
-                                <td class="col-obs editable-field" contenteditable="true">&nbsp;</td>
-                            </tr>
+                                <tr>
+                                    <td class="col-num">@i</td>
+                                    <td class="col-name editable-field" contenteditable="true">@pasName</td>
+                                    <td class="col-doc editable-field" contenteditable="true">@numDoc</td>
+                                    <td class="col-ticket editable-field" contenteditable="true">@ticketNum</td>
+                                    <td class="col-seat editable-field" contenteditable="true">@asiento</td>
+                                    <td class="col-price editable-field" contenteditable="true">@precio</td>
+                                    <td class="col-obs editable-field" contenteditable="true">@obs</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td class="col-num">@i</td>
+                                    <td class="col-name editable-field" contenteditable="true">&nbsp;</td>
+                                    <td class="col-doc editable-field" contenteditable="true">&nbsp;</td>
+                                    <td class="col-ticket editable-field" contenteditable="true">&nbsp;</td>
+                                    <td class="col-seat editable-field" contenteditable="true">&nbsp;</td>
+                                    <td class="col-price editable-field" contenteditable="true">&nbsp;</td>
+                                    <td class="col-obs editable-field" contenteditable="true">&nbsp;</td>
+                                </tr>
+                            }
                         }
                     }
-                }
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        </div>
 
         <!-- 6. PIE DE PÁGINA OFICIAL -->
         <div class="manifest-footer">
@@ -672,8 +706,9 @@
 
     </div>
 
-    <!-- SCRIPTS INTERACTIVOS (CAMBIO DE RUTA Y WHATSAPP) -->
+    <!-- SCRIPTS INTERACTIVOS (CAMBIO DE RUTA, AUTOCOMPLETAR Y WHATSAPP) -->
     <script>
+        // Alternar el permiso de ruta oficial
         function cambiarRutaPermiso(tipo) {
             const banner = document.getElementById('bannerRutaPermiso');
             const btnCutervo = document.getElementById('btnRutaCutervo');
@@ -690,13 +725,58 @@
             }
         }
 
+        // Cargar los datos del turno registrado en el sistema
+        function cargarDatosDelTurno() {
+            document.getElementById('valOrigen').innerText = "@(Model.ObjetoRuta?.Origen.ToUpper() ?? "CAJAMARCA")";
+            document.getElementById('valDestino').innerText = "@(Model.ObjetoRuta?.Destino.ToUpper() ?? "CHOTA")";
+            document.getElementById('valRes').innerText = "001-2024-DRTC";
+            document.getElementById('valFecha').innerText = "@Model.FechaHoraSalida.ToString("dd/MM/yyyy")";
+            document.getElementById('valHora').innerText = "@Model.FechaHoraSalida.ToString("hh:mm tt")";
+            
+            document.getElementById('valCodigo').innerText = "@(Model.ObjetoBus != null ? $"BUS-{Model.ObjetoBus.Id_Bus:D2}" : "COMBI-01")";
+            document.getElementById('valModelo').innerText = "@(Model.ObjetoBus?.Modelo ?? "Toyota HiAce")";
+            document.getElementById('valPlaca').innerText = "@(string.IsNullOrWhiteSpace(Model.PlacaVehiculo) ? (Model.ObjetoBus?.Placa ?? "SIN PLACA") : Model.PlacaVehiculo.ToUpper())";
+            document.getElementById('valMarca').innerText = "@(Model.ObjetoBus?.Marca ?? "Toyota")";
+            
+            document.getElementById('valCapacidad').innerText = "@capacidad";
+            document.getElementById('valPasajerosOficina').innerText = "@vendidosCount";
+            document.getElementById('valTripulacion').innerText = "1";
+            document.getElementById('valPasajerosRuta').innerText = "0";
+
+            document.getElementById('valPiloto').innerText = "@(string.IsNullOrWhiteSpace(Model.NombreConductor) ? (Model.ObjetoBus?.NombreConductor ?? "POR ASIGNAR") : Model.NombreConductor.ToUpper())";
+            document.getElementById('valLicencia').innerText = "@(string.IsNullOrWhiteSpace(Model.ObjetoBus?.NumeroLicencia) ? "POR ASIGNAR" : Model.ObjetoBus.NumeroLicencia.ToUpper())";
+        }
+
+        // Dejar todos los campos técnicos en blanco para llenar a mano recién
+        function limpiarCamposEnBlanco() {
+            document.getElementById('valOrigen').innerText = "";
+            document.getElementById('valDestino').innerText = "";
+            document.getElementById('valRes').innerText = "";
+            document.getElementById('valFecha').innerText = "";
+            document.getElementById('valHora').innerText = "";
+            
+            document.getElementById('valCodigo').innerText = "";
+            document.getElementById('valModelo').innerText = "";
+            document.getElementById('valPlaca').innerText = "";
+            document.getElementById('valMarca').innerText = "";
+            
+            document.getElementById('valCapacidad').innerText = "";
+            document.getElementById('valPasajerosOficina').innerText = "";
+            document.getElementById('valTripulacion').innerText = "";
+            document.getElementById('valPasajerosRuta').innerText = "";
+
+            document.getElementById('valPiloto').innerText = "";
+            document.getElementById('valLicencia').innerText = "";
+        }
+
+        // Enviar resumen a WhatsApp
         function enviarWhatsApp() {
             const rutaTexto = document.getElementById('bannerRutaPermiso').innerText.trim();
-            const origenVal = document.getElementById('valOrigen').innerText.trim();
-            const destinoVal = document.getElementById('valDestino').innerText.trim();
-            const placaVal = document.getElementById('valPlaca').innerText.trim();
-            const pilotoVal = document.getElementById('valPiloto').innerText.trim();
-            const licenciaVal = document.getElementById('valLicencia').innerText.trim();
+            const origenVal = document.getElementById('valOrigen').innerText.trim() || "@(Model.ObjetoRuta?.Origen.ToUpper() ?? "CAJAMARCA")";
+            const destinoVal = document.getElementById('valDestino').innerText.trim() || "@(Model.ObjetoRuta?.Destino.ToUpper() ?? "CHOTA")";
+            const placaVal = document.getElementById('valPlaca').innerText.trim() || "@(string.IsNullOrWhiteSpace(Model.PlacaVehiculo) ? "SIN PLACA" : Model.PlacaVehiculo.ToUpper())";
+            const pilotoVal = document.getElementById('valPiloto').innerText.trim() || "@(string.IsNullOrWhiteSpace(Model.NombreConductor) ? "POR ASIGNAR" : Model.NombreConductor.ToUpper())";
+            const licenciaVal = document.getElementById('valLicencia').innerText.trim() || "@(Model.ObjetoBus?.NumeroLicencia ?? "—")";
 
             let texto = "*EMPRESA DE TRANSPORTES TURS CHOTA EXPRESS S.A.C.*\n";
             texto += "*MANIFIESTO OFICIAL DE PASAJEROS*\n";
