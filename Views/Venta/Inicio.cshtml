@@ -56,22 +56,6 @@
         to { background-position: 200% center; }
     }
 
-    .badge-saludo-chip {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 5px 14px;
-        border-radius: 99px;
-        background: rgba(243, 112, 33, 0.12);
-        border: 1px solid rgba(243, 112, 33, 0.3);
-        color: #f37021;
-        font-weight: 700;
-        font-size: 0.82rem;
-        letter-spacing: 0.6px;
-        text-transform: uppercase;
-        margin-bottom: 0.5rem;
-    }
-
     /* Títulos de Categoría */
     .grid-section-label {
         font-size: 0.9rem;
@@ -236,14 +220,8 @@
         <div>
             <img src="~/img/logo_chota.jpg?v=@DateTime.Now.Ticks" asp-append-version="true" alt="Tours Chota Express S.A.C." class="hero-logo-badge" />
         </div>
-        <div class="badge-saludo-chip">
-            <span>@emoji</span>
-            <span>@saludo</span>
-            <span>•</span>
-            <span>@rol</span>
-        </div>
-        <h1 class="text-white fw-bold mb-1" style="font-size: clamp(1.6rem, 3.8vw, 2.5rem);">
-            @saludo, <span class="nombre-glow">@nombre</span>
+        <h1 class="text-white fw-bold mb-2" style="font-size: clamp(1.7rem, 4vw, 2.7rem);">
+            <span>@emoji</span> @saludo, <span class="nombre-glow">@nombre</span>
         </h1>
         <p class="text-muted small mb-0">
             Selecciona una acción operativa para comenzar:
