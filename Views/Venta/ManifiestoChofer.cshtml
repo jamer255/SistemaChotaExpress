@@ -62,7 +62,7 @@
             position: relative;
         }
 
-        /* Encabezado Oficial con Logos y Combi */
+        /* Encabezado Oficial con Logos y Combi Ordenado */
         .manifest-header {
             display: flex;
             align-items: center;
@@ -70,74 +70,87 @@
             border-bottom: 2px solid #1e3a8a;
             padding-bottom: 6px;
             margin-bottom: 6px;
-            gap: 8px;
+            gap: 12px;
         }
 
-        .header-logo-left {
-            width: 95px;
-            flex-shrink: 0;
-            text-align: center;
-        }
-
-        .header-logo-left img {
-            max-width: 90px;
-            max-height: 48px;
-            object-fit: contain;
-            display: block;
-            margin: 0 auto;
-        }
-
-        .header-center-info {
+        .header-company-block {
             flex: 1;
-            padding: 0 4px;
         }
 
-        .company-title {
-            font-size: 11.5pt;
-            font-weight: 900;
+        .header-top-sub {
+            font-size: 9.5pt;
+            font-weight: 800;
             color: #1e3a8a;
-            letter-spacing: -0.2px;
-            margin: 0 0 2px 0;
+            letter-spacing: 0.5px;
             text-transform: uppercase;
+            margin-bottom: 1px;
             line-height: 1.1;
         }
 
-        .company-subtitle {
-            font-size: 6.8pt;
-            color: #1e293b;
-            line-height: 1.25;
-            margin: 0;
+        .header-brand-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 2px 0 3px 0;
         }
 
-        .header-combi-photo {
-            width: 95px;
-            flex-shrink: 0;
-            text-align: center;
-        }
-
-        .header-combi-photo img {
-            max-width: 92px;
-            max-height: 48px;
+        .header-brand-row img.logo-img {
+            height: 38px;
+            max-width: 80px;
             object-fit: contain;
-            display: block;
-            margin: 0 auto;
+        }
+
+        .header-brand-row .brand-text {
+            font-size: 15pt;
+            font-weight: 900;
+            color: #1e3a8a;
+            letter-spacing: 0.3px;
+            line-height: 1;
+            text-transform: uppercase;
+        }
+
+        .header-brand-row .sac-tag {
+            font-size: 9.5pt;
+            font-weight: 800;
+            color: #1e3a8a;
+            margin-left: 2px;
+        }
+
+        .header-brand-row img.combi-img {
+            height: 38px;
+            max-width: 85px;
+            object-fit: contain;
+        }
+
+        .header-address-block {
+            font-size: 6.8pt;
+            color: #0f172a;
+            line-height: 1.35;
+        }
+
+        .header-address-block strong {
+            color: #1e3a8a;
+            font-weight: 800;
         }
 
         .header-right-box {
-            text-align: right;
-            min-width: 195px;
+            width: 215px;
             flex-shrink: 0;
+            text-align: center;
+            padding-left: 10px;
+            border-left: 1px solid #cbd5e1;
         }
 
         .ruc-badge {
-            font-size: 10pt;
-            font-weight: 800;
+            font-size: 10.5pt;
+            font-weight: 900;
             color: #1e3a8a;
             margin-bottom: 1px;
+            letter-spacing: 0.5px;
         }
 
         .doc-title {
-            font-size: 11.5pt;
+            font-size: 12pt;
             font-weight: 900;
             color: #1e3a8a;
             text-transform: uppercase;
@@ -147,11 +160,11 @@
         }
 
         .serie-numero {
-            font-size: 12pt;
+            font-size: 13pt;
             font-weight: 800;
             color: #dc2626;
-            letter-spacing: 1px;
-            margin-top: 1px;
+            letter-spacing: 1.5px;
+            margin-top: 2px;
             font-family: 'Courier New', Courier, monospace;
         }
 
@@ -450,26 +463,22 @@
     <!-- DOCUMENTO FÍSICO OFICIAL EN HOJA A4 -->
     <div class="a4-sheet">
         
-        <!-- 1. ENCABEZADO FISCAL CON LOGO OFICIAL Y FOTO DE LA COMBI -->
+        <!-- 1. ENCABEZADO FISCAL CON LOGO OFICIAL Y FOTO DE LA COMBI ORDENADO -->
         <div class="manifest-header">
-            <!-- Logo Oficial de Tours Chota Express -->
-            <div class="header-logo-left">
-                <img src="~/img/logo_manifiesto.png" alt="Logo Chota Express" />
-            </div>
-
-            <!-- Datos de la Empresa y Terminales -->
-            <div class="header-center-info">
-                <h1 class="company-title">EMPRESA DE MULTISERVICIOS Y TRANSPORTES TURS CHOTA EXPRESS S.A.C.</h1>
-                <div class="company-subtitle">
-                    <strong>DOMICILIO FISCAL:</strong> Cal. Sara Macdougall N° 218 - Bar. San José - Cajamarca - Cajamarca - Cajamarca<br />
-                    <strong>CAJAMARCA:</strong> JR. ANGAMOS N° 970 - TELF.: 076-267458 CEL.: 951314266 - CAJAMARCA<br />
-                    <strong>CUTERVO:</strong> JR. COMERCIO N° 1116 - CUTERVO &nbsp;|&nbsp; <strong>CHOTA:</strong> JR. GREGORIO MALCA N° 445 - CHOTA
+            <!-- Bloque Empresa, Marca, Logo, Combi y Domicilios -->
+            <div class="header-company-block">
+                <div class="header-top-sub">EMPRESA DE MULTISERVICIOS Y TRANSPORTES</div>
+                <div class="header-brand-row">
+                    <img src="~/img/logo_manifiesto.png" alt="Logo Chota Express" class="logo-img" />
+                    <span class="brand-text">TURS CHOTA EXPRESS</span>
+                    <span class="sac-tag">S.A.C.</span>
+                    <img src="~/img/combi_manifiesto.png" alt="Combi Oficial Chota Express" class="combi-img" />
                 </div>
-            </div>
-
-            <!-- Foto de la Combi Oficial -->
-            <div class="header-combi-photo">
-                <img src="~/img/combi_manifiesto.png" alt="Combi Oficial Chota Express" />
+                <div class="header-address-block">
+                    <div><strong>DOMICILIO FISCAL:</strong> Cal. Sara Macdougall N° 218 - Bar. San José - Cajamarca - Cajamarca - Cajamarca</div>
+                    <div><strong>CAJAMARCA:</strong> JR. ANGAMOS N° 970 - TELF.: 076-267458 CEL.: 951314266 - CAJAMARCA</div>
+                    <div><strong>CUTERVO:</strong> JR. COMERCIO N° 1116 - CUTERVO &nbsp;|&nbsp; <strong>CHOTA:</strong> JR. GREGORIO MALCA N° 445 - CHOTA</div>
+                </div>
             </div>
 
             <!-- RUC y Serie del Manifiesto -->
