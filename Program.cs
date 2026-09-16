@@ -172,12 +172,14 @@ using (var scope = app.Services.CreateScope())
                 CREATE INDEX IF NOT EXISTS ""IX_Encomiendas_Id_Usuario"" ON ""Encomiendas"" (""Id_Usuario"");
                 ALTER TABLE ""Encomiendas"" ADD COLUMN IF NOT EXISTS ""TurnoSalida"" character varying(50);
                 ALTER TABLE ""Encomiendas"" ADD COLUMN IF NOT EXISTS ""NombreConductor"" character varying(100);
+                ALTER TABLE ""Buses"" ADD COLUMN IF NOT EXISTS ""NumeroLicencia"" character varying(20);
+                ALTER TABLE ""Buses"" ADD COLUMN IF NOT EXISTS ""Marca"" character varying(50) DEFAULT 'Toyota';
             ");
         }
         catch (Exception exTable)
         {
             var logger = services.GetRequiredService<ILogger<Program>>();
-            logger.LogWarning(exTable, "Aviso verificando/creando tabla Encomiendas");
+            logger.LogWarning(exTable, "Aviso verificando/creando tablas y columnas de base de datos");
         }
 
         // Asegurar salidas en segundo plano sin bloquear el arranque del servidor web
