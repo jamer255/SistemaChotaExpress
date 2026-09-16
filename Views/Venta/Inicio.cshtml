@@ -14,30 +14,31 @@
     }
 
     .inicio-dashboard-container {
-        max-width: 1140px;
+        max-width: 1100px;
         margin: 0 auto;
-        padding: 1.2rem 1rem 2.5rem;
+        padding: 1.5rem 1rem 3rem;
     }
 
-    /* Hero Header Compacto y Ordenado */
+    /* Hero Header: Logo Grande y Saludo */
     .hero-header-clean {
         text-align: center;
-        margin-bottom: 1.8rem;
+        margin-bottom: 2.2rem;
     }
 
     .hero-logo-badge {
-        max-width: 210px;
+        max-width: 310px;
         height: auto;
-        border-radius: 12px;
-        padding: 6px 14px;
+        border-radius: 16px;
+        padding: 10px 22px;
         background: #ffffff;
-        box-shadow: 0 4px 16px rgba(243, 112, 33, 0.18), 0 2px 6px rgba(0,0,0,0.08);
+        box-shadow: 0 8px 26px rgba(243, 112, 33, 0.2), 0 2px 8px rgba(0,0,0,0.08);
         display: inline-block;
-        margin-bottom: 0.75rem;
-        transition: transform 0.25s ease;
+        margin-bottom: 1.2rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
     .hero-logo-badge:hover {
-        transform: scale(1.03);
+        transform: scale(1.025);
+        box-shadow: 0 12px 32px rgba(243, 112, 33, 0.28);
     }
 
     .nombre-glow {
@@ -57,26 +58,26 @@
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        padding: 4px 12px;
+        padding: 5px 14px;
         border-radius: 99px;
         background: rgba(243, 112, 33, 0.12);
-        border: 1px solid rgba(243, 112, 33, 0.28);
+        border: 1px solid rgba(243, 112, 33, 0.3);
         color: #f37021;
         font-weight: 700;
-        font-size: 0.8rem;
-        letter-spacing: 0.5px;
+        font-size: 0.82rem;
+        letter-spacing: 0.6px;
         text-transform: uppercase;
-        margin-bottom: 0.4rem;
+        margin-bottom: 0.5rem;
     }
 
-    /* Sección de Categorías */
+    /* Títulos de Categoría */
     .grid-section-label {
-        font-size: 0.88rem;
+        font-size: 0.9rem;
         font-weight: 800;
         letter-spacing: 1px;
         text-transform: uppercase;
         color: #f37021;
-        margin-bottom: 0.9rem;
+        margin-bottom: 1rem;
         display: flex;
         align-items: center;
         gap: 8px;
@@ -88,15 +89,15 @@
         background: linear-gradient(90deg, rgba(243, 112, 33, 0.35), transparent);
     }
 
-    /* Tarjetas Uniformes (Mismo tamaño y altura) */
+    /* Tarjetas Uniformes */
     .modulo-card-unified {
-        border-radius: 16px;
-        padding: 1.35rem 1.2rem;
+        border-radius: 18px;
+        padding: 1.5rem 1.4rem;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
         height: 100%;
-        min-height: 200px;
+        min-height: 190px;
         text-decoration: none;
         border: 1px solid rgba(255, 255, 255, 0.08);
         background: rgba(30, 41, 59, 0.65);
@@ -119,33 +120,32 @@
     }
     .modulo-card-unified:hover {
         transform: translateY(-5px);
-        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
+        box-shadow: 0 14px 30px rgba(0, 0, 0, 0.25);
         border-color: rgba(243, 112, 33, 0.45);
     }
 
-    /* Variantes de color temático */
-    .card-pasajes-vender::before   { background: linear-gradient(90deg, #f37021, #fb923c); }
-    .card-pasajes-historial::before{ background: linear-gradient(90deg, #10b981, #34d399); }
-    .card-flota-combi::before      { background: linear-gradient(90deg, #f37021, #e11d48); }
-    .card-encomienda-reg::before   { background: linear-gradient(90deg, #0284c7, #38bdf8); }
-    .card-encomienda-hist::before  { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
-    .card-encomienda-manif::before { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
+    /* Variantes de color */
+    .card-pasajes-vender::before    { background: linear-gradient(90deg, #f37021, #fb923c); }
+    .card-pasajes-historial::before { background: linear-gradient(90deg, #10b981, #34d399); }
+    .card-encomienda-reg::before    { background: linear-gradient(90deg, #0284c7, #38bdf8); }
+    .card-encomienda-hist::before   { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+    .card-encomienda-manif::before  { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
 
     .card-top-row {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 0.9rem;
+        margin-bottom: 1rem;
     }
 
     .icon-box-sm {
-        width: 48px;
-        height: 48px;
-        border-radius: 12px;
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.35rem;
+        font-size: 1.45rem;
         transition: transform 0.25s ease;
     }
     .modulo-card-unified:hover .icon-box-sm {
@@ -159,11 +159,11 @@
     .icon-purple { background: rgba(139, 92, 246, 0.14); color: #8b5cf6; }
 
     .pill-badge {
-        font-size: 0.68rem;
+        font-size: 0.7rem;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        padding: 3px 8px;
+        padding: 3px 9px;
         border-radius: 6px;
     }
     .pill-orange { background: rgba(243, 112, 33, 0.15); color: #f37021; }
@@ -171,23 +171,22 @@
     .pill-blue   { background: rgba(2, 132, 199, 0.15); color: #0284c7; }
     .pill-amber  { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
     .pill-purple { background: rgba(139, 92, 246, 0.15); color: #8b5cf6; }
-    .pill-rose   { background: rgba(225, 29, 72, 0.15);  color: #f43f5e; }
 
     .card-title-text {
-        font-size: 1.05rem;
+        font-size: 1.12rem;
         font-weight: 700;
         color: #ffffff;
-        margin-bottom: 0.3rem;
+        margin-bottom: 0.35rem;
     }
     .card-desc-text {
-        font-size: 0.82rem;
+        font-size: 0.84rem;
         color: #94a3b8;
-        line-height: 1.35;
-        margin-bottom: 0.9rem;
+        line-height: 1.4;
+        margin-bottom: 1rem;
         flex-grow: 1;
     }
     .card-btn-action {
-        font-size: 0.8rem;
+        font-size: 0.82rem;
         font-weight: 700;
         display: inline-flex;
         align-items: center;
@@ -195,57 +194,15 @@
         transition: gap 0.2s ease;
     }
     .modulo-card-unified:hover .card-btn-action {
-        gap: 9px;
+        gap: 10px;
     }
 
-    /* Tarjeta Especial de la Combi en el Mismo Tamaño */
-    .card-combi-compact {
-        padding: 0;
-        overflow: hidden;
-    }
-    .card-combi-img-wrap {
-        height: 105px;
-        width: 100%;
-        overflow: hidden;
-        position: relative;
-    }
-    .card-combi-img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        object-position: center 60%;
-        transition: transform 0.4s ease;
-    }
-    .card-combi-compact:hover .card-combi-img {
-        transform: scale(1.06);
-    }
-    .card-combi-img-badge {
-        position: absolute;
-        bottom: 6px;
-        left: 8px;
-        background: rgba(15, 23, 42, 0.85);
-        backdrop-filter: blur(4px);
-        color: #fbbf24;
-        font-size: 0.68rem;
-        font-weight: 700;
-        padding: 2px 8px;
-        border-radius: 4px;
-        border: 1px solid rgba(251, 191, 36, 0.3);
-    }
-    .card-combi-body {
-        padding: 0.9rem 1.1rem 1.1rem;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        flex-grow: 1;
-    }
-
-    /* Modo Claro */
+    /* Soporte para Modo Claro */
     [data-theme="light"] .modulo-card-unified,
     body:not(.dark-mode) .modulo-card-unified {
         background: #ffffff;
         border-color: #e2e8f0;
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
     }
     [data-theme="light"] .card-title-text,
     body:not(.dark-mode) .card-title-text {
@@ -256,7 +213,7 @@
         color: #64748b;
     }
 
-    /* Animación */
+    /* Animación de entrada */
     .fade-up-item {
         animation: fadeUpQuick 0.45s ease forwards;
         opacity: 0;
@@ -272,7 +229,7 @@
 
 <div class="inicio-dashboard-container">
 
-    <!-- HERO COMPACTO: LOGO Y SALUDO -->
+    <!-- HERO: LOGO OFICIAL GRANDE & SALUDO -->
     <div class="hero-header-clean fade-up-item d-1">
         <div>
             <img src="~/img/logo_chota.jpg" alt="Tours Chota Express S.A.C." class="hero-logo-badge" />
@@ -283,7 +240,7 @@
             <span>•</span>
             <span>@rol</span>
         </div>
-        <h2 class="text-white fw-bold mb-1" style="font-size: clamp(1.4rem, 3.2vw, 2.1rem);">
+        <h2 class="text-white fw-bold mb-1" style="font-size: clamp(1.5rem, 3.5vw, 2.3rem);">
             Bienvenido, <span class="nombre-glow">@nombre</span>
         </h2>
         <p class="text-muted small mb-0">
@@ -291,16 +248,16 @@
         </p>
     </div>
 
-    <!-- FILA 1: TRANSPORTE DE PASAJEROS & UNIDADES (3 TARJETAS ALINEADAS) -->
+    <!-- SECCIÓN 1: VENTA DE PASAJES (2 TARJETAS AMPLIAS) -->
     <div class="grid-section-label fade-up-item d-2">
         <i class="fa-solid fa-users text-warning"></i>
-        <span>Módulos de Pasajes & Flota</span>
+        <span>Venta y Control de Pasajes</span>
     </div>
 
-    <div class="row g-3 mb-4 fade-up-item d-2">
+    <div class="row g-3 g-lg-4 mb-4 fade-up-item d-2">
         
         <!-- 1. Vender Pasajes -->
-        <div class="col-12 col-md-4">
+        <div class="col-12 col-md-6">
             <a asp-controller="Venta" asp-action="BuscarViajes" class="modulo-card-unified card-pasajes-vender">
                 <div>
                     <div class="card-top-row">
@@ -311,18 +268,18 @@
                     </div>
                     <div class="card-title-text">Vender Pasajes</div>
                     <div class="card-desc-text">
-                        Emisión rápida con croquis interactivo de asientos, asignación de turnos y pasajeros.
+                        Emisión rápida de boletos con croquis interactivo de asientos en combi, selección de turno y registro de pasajero.
                     </div>
                 </div>
                 <div class="card-btn-action text-warning">
-                    <span>Emitir pasaje</span>
+                    <span>Emitir pasajes</span>
                     <i class="fa-solid fa-arrow-right"></i>
                 </div>
             </a>
         </div>
 
         <!-- 2. Registro de Pasajes Vendidos -->
-        <div class="col-12 col-md-4">
+        <div class="col-12 col-md-6">
             <a asp-controller="Venta" asp-action="MisVentas" class="modulo-card-unified card-pasajes-historial">
                 <div>
                     <div class="card-top-row">
@@ -331,9 +288,9 @@
                         </div>
                         <span class="pill-badge pill-green">Historial</span>
                     </div>
-                    <div class="card-title-text">Registro de Pasajes</div>
+                    <div class="card-title-text">Registro de Pasajes Vendidos</div>
                     <div class="card-desc-text">
-                        Consulta de boletos vendidos, reimpresión de comprobantes y control por turno.
+                        Consulta general de boletos emitidos, búsqueda por DNI o fecha, reimpresión y control de ventas por turno.
                     </div>
                 </div>
                 <div class="card-btn-action text-success">
@@ -343,46 +300,17 @@
             </a>
         </div>
 
-        <!-- 3. Flota Oficial Combi (Tarjeta con Imagen Armónica del Mismo Tamaño) -->
-        <div class="col-12 col-md-4">
-            <div class="modulo-card-unified card-flota-combi card-combi-compact">
-                <div class="card-combi-img-wrap">
-                    <img src="~/img/combi_inicio.jpg" alt="Toyota HiAce Chota Express" class="card-combi-img" />
-                    <span class="card-combi-img-badge">
-                        <i class="fa-solid fa-van-shuttle me-1"></i> Toyota HiAce
-                    </span>
-                </div>
-                <div class="card-combi-body">
-                    <div>
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="pill-badge pill-rose">Flota Oficial</span>
-                            <small class="text-success fw-bold" style="font-size: 0.72rem;">
-                                <i class="fa-solid fa-circle text-success fs-9 me-1"></i> En Servicio
-                            </small>
-                        </div>
-                        <div class="card-title-text" style="font-size: 0.98rem;">Tours Chota Express</div>
-                        <div class="card-desc-text" style="font-size: 0.78rem; margin-bottom: 0.5rem;">
-                            Rutas Chota — Cajamarca — Cutervo. Salidas continuas con control SUTRAN.
-                        </div>
-                    </div>
-                    <div class="card-btn-action text-danger" style="font-size: 0.75rem;">
-                        <i class="fa-solid fa-shield-halved me-1"></i> Unidades Certificadas
-                    </div>
-                </div>
-            </div>
-        </div>
-
     </div>
 
-    <!-- FILA 2: SERVICIO DE ENCOMIENDAS & CARGA (3 TARJETAS ALINEADAS) -->
+    <!-- SECCIÓN 2: ENCOMIENDAS & CARGA (3 TARJETAS ALINEADAS) -->
     <div class="grid-section-label fade-up-item d-3">
-        <i class="fa-solid fa-box text-info"></i>
-        <span>Módulos de Encomiendas & Carga</span>
+        <i class="fa-solid fa-boxes-stacked text-info"></i>
+        <span>Servicio de Encomiendas & Carga</span>
     </div>
 
-    <div class="row g-3 mb-4 fade-up-item d-3">
+    <div class="row g-3 g-lg-4 mb-4 fade-up-item d-3">
 
-        <!-- 4. Registrar Encomiendas -->
+        <!-- 3. Registrar Encomiendas -->
         <div class="col-12 col-md-4">
             <a asp-controller="Encomienda" asp-action="Registrar" class="modulo-card-unified card-encomienda-reg">
                 <div>
@@ -394,7 +322,7 @@
                     </div>
                     <div class="card-title-text">Registrar Encomiendas</div>
                     <div class="card-desc-text">
-                        Recepción de paquetes, registro de remitente y destinatario, y emisión de guías.
+                        Recepción de nuevos paquetes, registro de remitente y destinatario, tarifas y emisión de guías.
                     </div>
                 </div>
                 <div class="card-btn-action text-info">
@@ -404,7 +332,7 @@
             </a>
         </div>
 
-        <!-- 5. Registro de Encomiendas -->
+        <!-- 4. Registro de Encomiendas -->
         <div class="col-12 col-md-4">
             <a asp-controller="Encomienda" asp-action="Index" class="modulo-card-unified card-encomienda-hist">
                 <div>
@@ -412,11 +340,11 @@
                         <div class="icon-box-sm icon-amber">
                             <i class="fa-solid fa-boxes-stacked"></i>
                         </div>
-                        <span class="pill-badge pill-amber">Envíos</span>
+                        <span class="pill-badge pill-amber">Control</span>
                     </div>
                     <div class="card-title-text">Registro de Encomiendas</div>
                     <div class="card-desc-text">
-                        Listado de paquetes en tránsito y entregados, búsqueda por guía y filtros por fecha.
+                        Listado completo de paquetes recibidos, seguimiento de envíos y control de entregas.
                     </div>
                 </div>
                 <div class="card-btn-action text-warning">
@@ -426,7 +354,7 @@
             </a>
         </div>
 
-        <!-- 6. Manifiesto de Encomiendas por Turno -->
+        <!-- 5. Manifiesto de Encomiendas por Turno -->
         <div class="col-12 col-md-4">
             <a asp-controller="Encomienda" asp-action="ManifiestoTurno" class="modulo-card-unified card-encomienda-manif">
                 <div>
@@ -438,7 +366,7 @@
                     </div>
                     <div class="card-title-text">Manifiesto por Turno</div>
                     <div class="card-desc-text">
-                        Generación e impresión oficial de la hoja de ruta y carga de encomiendas por combi.
+                        Generación e impresión oficial de la hoja de ruta y carga de encomiendas por combi de salida.
                     </div>
                 </div>
                 <div class="card-btn-action" style="color: #a78bfa;">
@@ -450,14 +378,14 @@
 
     </div>
 
-    <!-- PIE DISCRETO -->
-    <div class="text-center pt-2 text-muted fade-up-item d-3" style="font-size: 0.78rem;">
+    <!-- FOOTER INFORMACIÓN DE SESIÓN -->
+    <div class="text-center pt-3 text-muted fade-up-item d-3" style="font-size: 0.8rem;">
         <div>
             <i class="fa-regular fa-clock me-1 text-warning"></i>
             Sesión iniciada el <strong>@DateTime.Now.ToString("dd/MM/yyyy")</strong> a las <strong>@DateTime.Now.ToString("hh:mm tt")</strong>
         </div>
         <div class="opacity-75 mt-1">
-            Tours Chota Express S.A.C. &copy; @DateTime.Now.Year — Transporte Interprovincial
+            Tours Chota Express S.A.C. &copy; @DateTime.Now.Year — Transporte Interprovincial de Pasajeros y Carga
         </div>
     </div>
 
