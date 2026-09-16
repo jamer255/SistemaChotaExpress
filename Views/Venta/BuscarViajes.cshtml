@@ -1289,9 +1289,9 @@
                                     </div>
                                     <div class="col-8">
                                         <div class="input-group input-group-sm">
-                                            <input type="text" name="numerosDocumento" id="numDoc_${numSeat}" class="form-control bg-dark-input text-white border-glass-field font-monospace fs-9" placeholder="N° Documento" maxlength="15" />
-                                            <button class="btn btn-warning py-0 px-2 fs-9" type="button" onclick="consultarDocAsiento(${numSeat})" title="Buscar Reniec">
-                                                <i class="fa-solid fa-magnifying-glass"></i> Reniec
+                                            <input type="text" name="numerosDocumento" id="numDoc_${numSeat}" class="form-control bg-dark-input text-white border-glass-field font-monospace fs-9" placeholder="N° Documento" maxlength="15" autocomplete="off" />
+                                            <button class="btn btn-warning py-0 px-2 fs-9" type="button" id="btnDoc_${numSeat}" onclick="consultarDocAsiento(${numSeat})" title="Buscar Documento">
+                                                <i class="fa-solid fa-magnifying-glass"></i> <span id="lblBtnDoc_${numSeat}">Buscar</span>
                                             </button>
                                         </div>
                                     </div>
@@ -1308,6 +1308,58 @@
                             </div>
                         `;
                         containerPasajeros.insertAdjacentHTML('beforeend', cardHtml);
+                    });
+
+                    // Listeners de auto-consulta inmediata al ingresar documento
+                    selectedSeats.forEach(numSeat => {
+                        const docInp = document.getElementById(`numDoc_${numSeat}`);
+                        const selDoc = document.getElementById(`tipoDoc_${numSeat}`);
+                        const lblBtn = document.getElementById(`lblBtnDoc_${numSeat}`);
+                        if (!docInp || !selDoc) return;
+
+                        selDoc.addEventListener('change', function() {
+                            if (this.value === 'CE') {
+                                docInp.placeholder = 'N° Carnet Extr.';
+                                if (lblBtn) lblBtn.textContent = 'CE';
+                            } else if (this.value === 'DNI') {
+                                docInp.placeholder = '8 dígitos DNI';
+                                if (lblBtn) lblBtn.textContent = 'DNI';
+                            } else {
+                                docInp.placeholder = 'N° Pasaporte';
+                                if (lblBtn) lblBtn.textContent = 'Buscar';
+                            }
+                        });
+
+                        let debounceDoc;
+                        docInp.addEventListener('input', function() {
+                            clearTimeout(debounceDoc);
+                            const val = this.value.trim();
+                            // Si escribe 9 dígitos o empieza con 00, cambiar a CE automáticamente
+                            if (selDoc.value === 'DNI' && (val.length === 9 || (val.startsWith('00') && val.length >= 7))) {
+                                selDoc.value = 'CE';
+                                if (lblBtn) lblBtn.textContent = 'CE';
+                            }
+                            const tipo = selDoc.value;
+                            if ((tipo === 'DNI' && val.length === 8) || (tipo === 'CE' && val.length >= 8 && val.length <= 12)) {
+                                debounceDoc = setTimeout(() => {
+                                    consultarDocAsiento(numSeat, true);
+                                }, 300);
+                            }
+                        });
+
+                        docInp.addEventListener('blur', function() {
+                            const val = this.value.trim();
+                            if (val.length >= 8) {
+                                consultarDocAsiento(numSeat, true);
+                            }
+                        });
+
+                        docInp.addEventListener('keydown', function(e) {
+                            if (e.key === 'Enter') {
+                                e.preventDefault();
+                                consultarDocAsiento(numSeat, false);
+                            }
+                        });
                     });
 
                     // Eventos para auto-formatear a 2 decimales en blur y recalcular suma total en tiempo real
@@ -1386,28 +1438,56 @@
                     });
                 });
 
-                window.consultarDocAsiento = async function(seatNum) {
-                    const tipo = document.getElementById(`tipoDoc_${seatNum}`).value;
-                    const numero = document.getElementById(`numDoc_${seatNum}`).value.trim();
+                window.consultarDocAsiento = async function(seatNum, isAuto = false) {
+                    const selDoc = document.getElementById(`tipoDoc_${seatNum}`);
+                    const numDoc = document.getElementById(`numDoc_${seatNum}`);
                     const nombreInput = document.getElementById(`nombre_${seatNum}`);
+                    const btn = document.getElementById(`btnDoc_${seatNum}`);
+
+                    if (!selDoc || !numDoc || !nombreInput) return;
+
+                    let tipo = selDoc.value;
+                    const numero = numDoc.value.trim();
 
                     if (!numero) {
-                        alert("Por favor, ingrese un número de documento.");
+                        if (!isAuto) alert("Por favor, ingrese un número de documento.");
                         return;
                     }
 
+                    // Auto-cambiar a CE si tiene 9 dígitos o formato de carnet
+                    if (tipo === 'DNI' && (numero.length === 9 || numero.startsWith('00'))) {
+                        tipo = 'CE';
+                        selDoc.value = 'CE';
+                    }
+
+                    if (btn) {
+                        btn.disabled = true;
+                        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+                    }
+
                     try {
-                        const response = await fetch(`/Documento/Consultar?tipo=${tipo}&numero=${numero}`);
+                        const response = await fetch(`/Documento/Consultar?tipo=${encodeURIComponent(tipo)}&numero=${encodeURIComponent(numero)}`);
                         const data = await response.json();
 
-                        if (data.success) {
+                        if (data.success && data.nombreCompleto) {
                             nombreInput.value = data.nombreCompleto;
+                            nombreInput.style.borderColor = '#20c997';
+                            setTimeout(() => { nombreInput.style.borderColor = ''; }, 2500);
                         } else {
-                            alert(data.mensaje || "No se encontraron datos para este documento. Ingrese el nombre manualmente.");
+                            if (!isAuto) {
+                                alert(data.mensaje || "No se encontraron datos para este documento. Ingrese el nombre manualmente.");
+                            }
                         }
                     } catch (error) {
                         console.error("Error al consultar documento: ", error);
-                        alert("Ocurrió un error al consultar el documento. Complete el nombre manualmente.");
+                        if (!isAuto) {
+                            alert("Ocurrió un error al consultar el documento. Complete el nombre manualmente.");
+                        }
+                    } finally {
+                        if (btn) {
+                            btn.disabled = false;
+                            btn.innerHTML = `<i class="fa-solid fa-magnifying-glass"></i> <span id="lblBtnDoc_${seatNum}">${tipo === 'CE' ? 'CE' : (tipo === 'DNI' ? 'DNI' : 'Buscar')}</span>`;
+                        }
                     }
                 };
 

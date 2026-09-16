@@ -45,13 +45,14 @@
                             <select asp-for="TipoDocumento" id="cboTipoDoc" class="form-select bg-secondary border-0 text-white">
                                 <option value="DNI">DNI (8 dígitos)</option>
                                 <option value="RUC">RUC (11 dígitos)</option>
+                                <option value="CE">C. Extranjería (CE)</option>
                             </select>
                         </div>
                         <div class="col-sm-8">
                             <label asp-for="NumeroDocumento" class="form-label text-muted small fw-bold">N° de Documento</label>
                             <div class="input-group">
                                 <input asp-for="NumeroDocumento" id="txtNumeroDoc" class="form-control bg-secondary border-0 text-white"
-                                       placeholder="Ingrese DNI o RUC" maxlength="11" autocomplete="off" />
+                                       placeholder="Ingrese DNI, RUC o CE" maxlength="12" autocomplete="off" />
                                 <button type="button" id="btnBuscarDoc" class="btn btn-warning fw-bold px-3">
                                     <i class="fa-solid fa-magnifying-glass me-1"></i> Buscar
                                 </button>
@@ -218,6 +219,10 @@
                 statusDiv.innerHTML = '<span class="text-warning"><i class="fa-solid fa-triangle-exclamation me-1"></i> El RUC debe tener 11 dígitos.</span>';
                 return;
             }
+            if (tipo === 'CE' && (doc.length < 8 || doc.length > 12)) {
+                statusDiv.innerHTML = '<span class="text-warning"><i class="fa-solid fa-triangle-exclamation me-1"></i> El C. Extranjería debe tener entre 8 y 12 caracteres.</span>';
+                return;
+            }
 
             btn.disabled = true;
             statusDiv.innerHTML = `<span class="text-info"><i class="fa-solid fa-spinner fa-spin me-1"></i> Consultando ${tipo}...</span>`;
@@ -228,7 +233,7 @@
 
                 if (data.success && data.nombreCompleto) {
                     nombreInput.value = data.nombreCompleto;
-                    const entidad = tipo === 'RUC' ? 'SUNAT' : 'RENIEC';
+                    const entidad = tipo === 'RUC' ? 'SUNAT' : (tipo === 'CE' ? 'Migraciones' : 'RENIEC');
                     statusDiv.innerHTML = `<span class="text-success"><i class="fa-solid fa-circle-check me-1"></i> Encontrado en ${entidad}: <strong>${data.nombreCompleto}</strong></span>`;
                 } else {
                     statusDiv.innerHTML = `<span class="text-warning"><i class="fa-solid fa-circle-info me-1"></i> ${data.mensaje || 'No se encontró. Ingrese el nombre manualmente.'}</span>`;
@@ -244,10 +249,19 @@
         document.addEventListener("DOMContentLoaded", function () {
             document.getElementById('btnBuscarDoc')?.addEventListener('click', buscarClienteDoc);
             
+            let debounceProforma;
             document.getElementById('txtNumeroDoc')?.addEventListener('input', function () {
+                clearTimeout(debounceProforma);
                 const tipo = document.getElementById('cboTipoDoc').value;
                 const len = this.value.trim().length;
-                if ((tipo === 'DNI' && len === 8) || (tipo === 'RUC' && len === 11)) {
+                if ((tipo === 'DNI' && len === 8) || (tipo === 'RUC' && len === 11) || (tipo === 'CE' && len >= 8 && len <= 12)) {
+                    debounceProforma = setTimeout(buscarClienteDoc, 300);
+                }
+            });
+
+            document.getElementById('txtNumeroDoc')?.addEventListener('blur', function () {
+                const len = this.value.trim().length;
+                if (len >= 8) {
                     buscarClienteDoc();
                 }
             });

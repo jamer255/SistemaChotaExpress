@@ -94,11 +94,11 @@
                 <div class="card-body">
                     <div class="row g-2 mb-3">
                         <div class="col-sm-6">
-                            <label asp-for="DniRemitente" class="form-label text-muted small fw-bold">DNI (8 dígitos)</label>
+                            <label asp-for="DniRemitente" class="form-label text-muted small fw-bold">DNI (8 d.) / C. Extranjería</label>
                             <div class="input-group">
                                 <input asp-for="DniRemitente" id="txtDniRemitente" class="form-control bg-secondary border-0 text-white"
-                                       placeholder="Ej: 72345678" maxlength="8" autocomplete="off" />
-                                <button type="button" id="btnBuscarDniRemitente" class="btn btn-warning fw-bold px-2" title="Buscar RENIEC">
+                                       placeholder="Ej: 72345678 o 001077238" maxlength="12" autocomplete="off" />
+                                <button type="button" id="btnBuscarDniRemitente" class="btn btn-warning fw-bold px-2" title="Buscar RENIEC / Migraciones">
                                     <i class="fa-solid fa-magnifying-glass"></i>
                                 </button>
                             </div>
@@ -119,7 +119,7 @@
                     <div class="mb-3">
                         <label asp-for="NombreRemitente" class="form-label text-muted small fw-bold">Nombre Completo / Razón Social <span class="text-danger">*</span></label>
                         <input asp-for="NombreRemitente" id="txtNombreRemitente" class="form-control bg-secondary border-0 text-white"
-                               placeholder="Se completa automáticamente al buscar DNI o RUC" required />
+                               placeholder="Se completa automáticamente al buscar DNI, CE o RUC" required />
                         <span asp-validation-for="NombreRemitente" class="text-danger small"></span>
                     </div>
 
@@ -141,11 +141,11 @@
                 <div class="card-body">
                     <div class="row g-2 mb-3">
                         <div class="col-sm-6">
-                            <label asp-for="DniDestinatario" class="form-label text-muted small fw-bold">DNI (8 dígitos)</label>
+                            <label asp-for="DniDestinatario" class="form-label text-muted small fw-bold">DNI (8 d.) / C. Extranjería</label>
                             <div class="input-group">
                                 <input asp-for="DniDestinatario" id="txtDniDestinatario" class="form-control bg-secondary border-0 text-white"
-                                       placeholder="Ej: 72345678" maxlength="8" autocomplete="off" />
-                                <button type="button" id="btnBuscarDniDestinatario" class="btn btn-info fw-bold text-white px-2" title="Buscar RENIEC">
+                                       placeholder="Ej: 72345678 o 001077238" maxlength="12" autocomplete="off" />
+                                <button type="button" id="btnBuscarDniDestinatario" class="btn btn-info fw-bold text-white px-2" title="Buscar RENIEC / Migraciones">
                                     <i class="fa-solid fa-magnifying-glass"></i>
                                 </button>
                             </div>
@@ -363,7 +363,7 @@
             document.getElementById('txtClaveEnvio').value = aleatorio;
         }
 
-        // Búsqueda de documento (DNI 8 dígitos con RENIEC o RUC 11 dígitos con SUNAT)
+        // Búsqueda de documento (DNI, CE o RUC)
         async function consultarDoc(tipo, inputId, nombreInputId, statusId, btnId) {
             const input = document.getElementById(inputId);
             const nombreInput = document.getElementById(nombreInputId);
@@ -376,12 +376,21 @@
                 return;
             }
 
+            // Auto-detectar Carnet de Extranjería si tiene 9 dígitos o empieza con 00
+            if (tipo === 'DNI' && (doc.length === 9 || doc.startsWith('00') || doc.length > 8)) {
+                tipo = 'CE';
+            }
+
             if (tipo === 'DNI' && doc.length !== 8) {
                 statusDiv.innerHTML = '<span class="text-warning"><i class="fa-solid fa-triangle-exclamation me-1"></i> El DNI debe tener 8 dígitos.</span>';
                 return;
             }
             if (tipo === 'RUC' && doc.length !== 11) {
                 statusDiv.innerHTML = '<span class="text-warning"><i class="fa-solid fa-triangle-exclamation me-1"></i> El RUC debe tener 11 dígitos.</span>';
+                return;
+            }
+            if (tipo === 'CE' && (doc.length < 8 || doc.length > 12)) {
+                statusDiv.innerHTML = '<span class="text-warning"><i class="fa-solid fa-triangle-exclamation me-1"></i> El C. Extranjería debe tener entre 8 y 12 caracteres.</span>';
                 return;
             }
 
@@ -394,7 +403,7 @@
 
                 if (data.success && data.nombreCompleto) {
                     nombreInput.value = data.nombreCompleto;
-                    const entidad = tipo === 'RUC' ? 'SUNAT' : 'RENIEC';
+                    const entidad = tipo === 'RUC' ? 'SUNAT' : (tipo === 'CE' ? 'Migraciones' : 'RENIEC');
                     statusDiv.innerHTML = `<span class="text-success"><i class="fa-solid fa-circle-check me-1"></i> Encontrado en ${entidad}: <strong>${data.nombreCompleto}</strong></span>`;
                 } else {
                     statusDiv.innerHTML = `<span class="text-warning"><i class="fa-solid fa-circle-info me-1"></i> ${data.mensaje || 'No se encontró. Ingrese el nombre manualmente.'}</span>`;
@@ -418,8 +427,19 @@
             document.getElementById('btnBuscarDniRemitente')?.addEventListener('click', () => {
                 consultarDoc('DNI', 'txtDniRemitente', 'txtNombreRemitente', 'statusRemitente', 'btnBuscarDniRemitente');
             });
+            let debounceRemDni;
             document.getElementById('txtDniRemitente')?.addEventListener('input', function() {
-                if (this.value.trim().length === 8) {
+                clearTimeout(debounceRemDni);
+                const len = this.value.trim().length;
+                if (len === 8 || len === 9) {
+                    debounceRemDni = setTimeout(() => {
+                        consultarDoc('DNI', 'txtDniRemitente', 'txtNombreRemitente', 'statusRemitente', 'btnBuscarDniRemitente');
+                    }, 300);
+                }
+            });
+            document.getElementById('txtDniRemitente')?.addEventListener('blur', function() {
+                const len = this.value.trim().length;
+                if (len >= 8) {
                     consultarDoc('DNI', 'txtDniRemitente', 'txtNombreRemitente', 'statusRemitente', 'btnBuscarDniRemitente');
                 }
             });
@@ -437,8 +457,19 @@
             document.getElementById('btnBuscarDniDestinatario')?.addEventListener('click', () => {
                 consultarDoc('DNI', 'txtDniDestinatario', 'txtNombreDestinatario', 'statusDestinatario', 'btnBuscarDniDestinatario');
             });
+            let debounceDestDni;
             document.getElementById('txtDniDestinatario')?.addEventListener('input', function() {
-                if (this.value.trim().length === 8) {
+                clearTimeout(debounceDestDni);
+                const len = this.value.trim().length;
+                if (len === 8 || len === 9) {
+                    debounceDestDni = setTimeout(() => {
+                        consultarDoc('DNI', 'txtDniDestinatario', 'txtNombreDestinatario', 'statusDestinatario', 'btnBuscarDniDestinatario');
+                    }, 300);
+                }
+            });
+            document.getElementById('txtDniDestinatario')?.addEventListener('blur', function() {
+                const len = this.value.trim().length;
+                if (len >= 8) {
                     consultarDoc('DNI', 'txtDniDestinatario', 'txtNombreDestinatario', 'statusDestinatario', 'btnBuscarDniDestinatario');
                 }
             });
