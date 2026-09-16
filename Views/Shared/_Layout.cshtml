@@ -36,15 +36,19 @@
                         @if (User.Identity?.IsAuthenticated == true)
                         {
                             var isGerente = User.IsInRole("Gerente");
+                            var currentCtrl = ViewContext.RouteData.Values["controller"]?.ToString();
+                            var currentAct = ViewContext.RouteData.Values["action"]?.ToString();
+                            var isInicio = currentCtrl == "Venta" && currentAct == "Inicio";
+
                             if (isGerente)
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link nav-link-custom @(ViewContext.RouteData.Values["controller"]?.ToString() == "Gerente" && ViewContext.RouteData.Values["action"]?.ToString() == "Dashboard" ? "active" : "")" asp-controller="Gerente" asp-action="Dashboard">
+                                    <a class="nav-link nav-link-custom @(currentCtrl == "Gerente" && currentAct == "Dashboard" ? "active" : "")" asp-controller="Gerente" asp-action="Dashboard">
                                         <i class="fa-solid fa-chart-pie me-1"></i> Dashboard
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link nav-link-custom @(ViewContext.RouteData.Values["controller"]?.ToString() == "Gerente" && ViewContext.RouteData.Values["action"]?.ToString() == "Trabajadores" ? "active" : "")" asp-controller="Gerente" asp-action="Trabajadores">
+                                    <a class="nav-link nav-link-custom @(currentCtrl == "Gerente" && currentAct == "Trabajadores" ? "active" : "")" asp-controller="Gerente" asp-action="Trabajadores">
                                         <i class="fa-solid fa-user-tie me-1"></i> Cuentas
                                     </a>
                                 </li>
@@ -52,49 +56,52 @@
                             else
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link nav-link-custom @(ViewContext.RouteData.Values["controller"]?.ToString() == "Venta" && ViewContext.RouteData.Values["action"]?.ToString() == "Inicio" ? "active" : "")" asp-controller="Venta" asp-action="Inicio">
+                                    <a class="nav-link nav-link-custom @(isInicio ? "active" : "")" asp-controller="Venta" asp-action="Inicio">
                                         <i class="fa-solid fa-house me-1"></i> Inicio
                                     </a>
                                 </li>
                             }
 
-                            <!-- Pasajes -->
-                            <li class="nav-item">
-                                <a class="nav-link nav-link-custom @(ViewContext.RouteData.Values["controller"]?.ToString() == "Venta" && ViewContext.RouteData.Values["action"]?.ToString() == "BuscarViajes" ? "active" : "")" asp-controller="Venta" asp-action="BuscarViajes">
-                                    <i class="fa-solid fa-cart-shopping me-1"></i> Vender Pasajes
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link nav-link-custom @(ViewContext.RouteData.Values["controller"]?.ToString() == "Venta" && ViewContext.RouteData.Values["action"]?.ToString() == "MisVentas" ? "active" : "")" asp-controller="Venta" asp-action="MisVentas">
-                                    <i class="fa-solid fa-list-check me-1"></i> Registro de pasajes vendidos
-                                </a>
-                            </li>
+                            @if (!isInicio)
+                            {
+                                <!-- Pasajes -->
+                                <li class="nav-item">
+                                    <a class="nav-link nav-link-custom @(currentCtrl == "Venta" && currentAct == "BuscarViajes" ? "active" : "")" asp-controller="Venta" asp-action="BuscarViajes">
+                                        <i class="fa-solid fa-cart-shopping me-1"></i> Vender Pasajes
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link nav-link-custom @(currentCtrl == "Venta" && currentAct == "MisVentas" ? "active" : "")" asp-controller="Venta" asp-action="MisVentas">
+                                        <i class="fa-solid fa-list-check me-1"></i> Registro de pasajes vendidos
+                                    </a>
+                                </li>
 
-                            <!-- Encomiendas (Igual que pasajes) -->
-                            <li class="nav-item">
-                                <a class="nav-link nav-link-custom @(ViewContext.RouteData.Values["controller"]?.ToString() == "Encomienda" && ViewContext.RouteData.Values["action"]?.ToString() == "Registrar" ? "active" : "")" asp-controller="Encomienda" asp-action="Registrar">
-                                    <i class="fa-solid fa-box me-1"></i> Registrar encomiendas
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                @if (isGerente)
-                                {
-                                    <a class="nav-link nav-link-custom @(ViewContext.RouteData.Values["controller"]?.ToString() == "Gerente" && ViewContext.RouteData.Values["action"]?.ToString() == "Encomiendas" ? "active" : "")" asp-controller="Gerente" asp-action="Encomiendas">
-                                        <i class="fa-solid fa-boxes-stacked me-1"></i> Registro de encomiendas
+                                <!-- Encomiendas (Igual que pasajes) -->
+                                <li class="nav-item">
+                                    <a class="nav-link nav-link-custom @(currentCtrl == "Encomienda" && currentAct == "Registrar" ? "active" : "")" asp-controller="Encomienda" asp-action="Registrar">
+                                        <i class="fa-solid fa-box me-1"></i> Registrar encomiendas
                                     </a>
-                                }
-                                else
-                                {
-                                    <a class="nav-link nav-link-custom @(ViewContext.RouteData.Values["controller"]?.ToString() == "Encomienda" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")" asp-controller="Encomienda" asp-action="Index">
-                                        <i class="fa-solid fa-boxes-stacked me-1"></i> Registro de encomiendas
+                                </li>
+                                <li class="nav-item">
+                                    @if (isGerente)
+                                    {
+                                        <a class="nav-link nav-link-custom @(currentCtrl == "Gerente" && currentAct == "Encomiendas" ? "active" : "")" asp-controller="Gerente" asp-action="Encomiendas">
+                                            <i class="fa-solid fa-boxes-stacked me-1"></i> Registro de encomiendas
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <a class="nav-link nav-link-custom @(currentCtrl == "Encomienda" && currentAct == "Index" ? "active" : "")" asp-controller="Encomienda" asp-action="Index">
+                                            <i class="fa-solid fa-boxes-stacked me-1"></i> Registro de encomiendas
+                                        </a>
+                                    }
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link nav-link-custom @(currentCtrl == "Encomienda" && currentAct == "ManifiestoTurno" ? "active" : "")" asp-controller="Encomienda" asp-action="ManifiestoTurno">
+                                        <i class="fa-solid fa-clipboard-list me-1"></i> Manifiesto de encomiendas por turno
                                     </a>
-                                }
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link nav-link-custom @(ViewContext.RouteData.Values["controller"]?.ToString() == "Encomienda" && ViewContext.RouteData.Values["action"]?.ToString() == "ManifiestoTurno" ? "active" : "")" asp-controller="Encomienda" asp-action="ManifiestoTurno">
-                                    <i class="fa-solid fa-clipboard-list me-1"></i> Manifiesto de encomiendas por turno
-                                </a>
-                            </li>
+                                </li>
+                            }
                         }
                     </ul>
                     
