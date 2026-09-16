@@ -21,8 +21,12 @@ namespace SistemaChotaExpress.Models
         public string NombreRemitente { get; set; } = string.Empty;
 
         [StringLength(15)]
-        [Display(Name = "DNI/RUC del Remitente")]
+        [Display(Name = "DNI del Remitente")]
         public string? DniRemitente { get; set; }
+
+        [StringLength(15)]
+        [Display(Name = "RUC del Remitente (Opcional)")]
+        public string? RucRemitente { get; set; }
 
         [StringLength(15)]
         [Display(Name = "Teléfono del Remitente")]
@@ -35,8 +39,12 @@ namespace SistemaChotaExpress.Models
         public string NombreDestinatario { get; set; } = string.Empty;
 
         [StringLength(15)]
-        [Display(Name = "DNI/RUC del Destinatario")]
+        [Display(Name = "DNI del Destinatario")]
         public string? DniDestinatario { get; set; }
+
+        [StringLength(15)]
+        [Display(Name = "RUC del Destinatario (Opcional)")]
+        public string? RucDestinatario { get; set; }
 
         [StringLength(15)]
         [Display(Name = "Teléfono del Destinatario")]
@@ -58,6 +66,15 @@ namespace SistemaChotaExpress.Models
         [Column(TypeName = "decimal(10,2)")]
         [Display(Name = "Precio del envío (S/)")]
         public decimal PrecioEnvio { get; set; }
+
+        // --- SEGURIDAD Y PAGO ---
+        [StringLength(20)]
+        [Display(Name = "Clave de Envío / Recojo")]
+        public string? ClaveEnvio { get; set; }
+
+        [StringLength(30)]
+        [Display(Name = "Método de Pago")]
+        public string MetodoPago { get; set; } = "Efectivo";
 
         // --- RUTA Y TURNO ---
         [Display(Name = "Ruta de envío")]

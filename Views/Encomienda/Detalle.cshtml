@@ -176,7 +176,9 @@
                     <h6 class="text-warning mb-3"><i class="fa-solid fa-user me-2"></i>Remitente</h6>
                     <p class="mb-1 text-white fw-semibold">@Model.NombreRemitente</p>
                     @if (!string.IsNullOrEmpty(Model.DniRemitente))
-                    { <p class="mb-1 text-muted small">DNI/RUC: @Model.DniRemitente</p> }
+                    { <p class="mb-1 text-muted small"><strong>DNI:</strong> @Model.DniRemitente</p> }
+                    @if (!string.IsNullOrEmpty(Model.RucRemitente))
+                    { <p class="mb-1 text-muted small"><strong>RUC:</strong> @Model.RucRemitente</p> }
                     @if (!string.IsNullOrEmpty(Model.TelefonoRemitente))
                     { <p class="mb-0 text-muted small"><i class="fa-solid fa-phone me-1"></i>@Model.TelefonoRemitente</p> }
                 </div>
@@ -188,19 +190,21 @@
                     <h6 class="text-info mb-3"><i class="fa-solid fa-user-check me-2"></i>Destinatario</h6>
                     <p class="mb-1 text-white fw-semibold">@Model.NombreDestinatario</p>
                     @if (!string.IsNullOrEmpty(Model.DniDestinatario))
-                    { <p class="mb-1 text-muted small">DNI/RUC: @Model.DniDestinatario</p> }
+                    { <p class="mb-1 text-muted small"><strong>DNI:</strong> @Model.DniDestinatario</p> }
+                    @if (!string.IsNullOrEmpty(Model.RucDestinatario))
+                    { <p class="mb-1 text-muted small"><strong>RUC:</strong> @Model.RucDestinatario</p> }
                     @if (!string.IsNullOrEmpty(Model.TelefonoDestinatario))
                     { <p class="mb-0 text-muted small"><i class="fa-solid fa-phone me-1"></i>@Model.TelefonoDestinatario</p> }
                 </div>
             </div>
 
-            <!-- Detalle del paquete -->
+            <!-- Detalle del paquete, pago y seguridad -->
             <div class="col-12">
                 <div class="card bg-secondary border-0">
                     <div class="card-body">
-                        <div class="row">
+                        <div class="row g-3">
                             <div class="col-md-3">
-                                <small class="text-muted text-uppercase">Descripcion</small>
+                                <small class="text-muted text-uppercase">Descripción</small>
                                 <p class="text-white mb-0 fw-semibold">@Model.Descripcion</p>
                             </div>
                             <div class="col-md-2 text-center">
@@ -216,19 +220,29 @@
                                 </p>
                             </div>
                             <div class="col-md-2 text-center">
-                                <small class="text-muted text-uppercase">Hora de Salida</small>
-                                <p class="text-warning mb-0 small fw-semibold">
-                                    @(string.IsNullOrEmpty(Model.TurnoSalida) ? "Sin turno" : Model.TurnoSalida)
+                                <small class="text-muted text-uppercase">Clave de Recojo</small>
+                                <p class="text-warning mb-0 fw-bold font-monospace fs-5">
+                                    @(string.IsNullOrWhiteSpace(Model.ClaveEnvio) ? "-" : Model.ClaveEnvio)
                                 </p>
                             </div>
                             <div class="col-md-3 text-center">
-                                <small class="text-muted text-uppercase">Conductor / Chofer</small>
-                                <p class="text-white mb-0 small fw-semibold text-uppercase">
-                                    @(string.IsNullOrWhiteSpace(Model.NombreConductor) ? "Por asignar" : Model.NombreConductor)
+                                <small class="text-muted text-uppercase">Método de Pago</small>
+                                <p class="text-white mb-0 fw-bold">
+                                    <span class="badge bg-dark px-3 py-2 border border-warning text-warning">
+                                        <i class="fa-solid fa-money-bill-wave me-1"></i>@(Model.MetodoPago ?? "Efectivo")
+                                    </span>
                                 </p>
                             </div>
-                            <div class="col-12 mt-2 pt-2 border-top border-dark d-flex justify-content-between align-items-center">
-                                <small class="text-muted text-uppercase">Precio de envio</small>
+                            <div class="col-md-6">
+                                <small class="text-muted text-uppercase">Hora de Salida / Conductor</small>
+                                <p class="text-white mb-0 small">
+                                    <i class="fa-solid fa-clock text-warning me-1"></i>@(string.IsNullOrEmpty(Model.TurnoSalida) ? "Sin turno" : Model.TurnoSalida)
+                                    <span class="mx-2">•</span>
+                                    <i class="fa-solid fa-user-tie text-info me-1"></i>@(string.IsNullOrWhiteSpace(Model.NombreConductor) ? "Por asignar" : Model.NombreConductor)
+                                </p>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <small class="text-muted text-uppercase d-block">Precio de Envío</small>
                                 <p class="text-success fw-bold fs-4 mb-0">S/ @Model.PrecioEnvio.ToString("N2")</p>
                             </div>
                         </div>

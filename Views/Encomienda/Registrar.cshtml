@@ -21,11 +21,41 @@
         background: rgba(255, 255, 255, 0.22);
         color: #ffffff;
     }
-    .btn-teal-active {
+    .payment-pill-btn {
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 0.88rem;
+        padding: 8px 14px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        background: rgba(255, 255, 255, 0.05);
+        color: #cbd5e1;
+    }
+    .payment-pill-btn:hover {
+        background: rgba(255, 255, 255, 0.15);
+        color: #fff;
+    }
+    .payment-pill-btn.active-efectivo {
         background: #10b981 !important;
-        color: #ffffff !important;
+        color: #fff !important;
         border-color: #10b981 !important;
-        box-shadow: 0 0 10px rgba(16, 185, 129, 0.45);
+        box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+    }
+    .payment-pill-btn.active-yape {
+        background: #7c3aed !important;
+        color: #fff !important;
+        border-color: #7c3aed !important;
+        box-shadow: 0 0 12px rgba(124, 58, 237, 0.45);
+    }
+    .payment-pill-btn.active-plin {
+        background: #0284c7 !important;
+        color: #fff !important;
+        border-color: #0284c7 !important;
+        box-shadow: 0 0 12px rgba(2, 132, 199, 0.45);
     }
 </style>
 
@@ -37,7 +67,7 @@
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
             <div>
                 <h1 class="h2 text-white fw-bold mb-0"><i class="fa-solid fa-box me-2 text-warning"></i>Registrar Encomienda</h1>
-                <p class="text-muted mb-0">Ingresa el DNI o RUC para autocompletar los datos de la persona o empresa</p>
+                <p class="text-muted mb-0">Registra remitente y destinatario con DNI y RUC habilitados, clave de entrega y pago Yape/Plin</p>
             </div>
             <div class="text-end">
                 <span class="badge bg-warning text-dark font-monospace fs-6 px-3 py-2 shadow-sm border border-warning">
@@ -48,14 +78,13 @@
     </div>
 </div>
 
-
-<form asp-action="Registrar" method="post">
+<form asp-action="Registrar" method="post" id="formEncomienda">
     @Html.AntiForgeryToken()
     <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
     <div class="row g-4">
 
-        <!-- REMITENTE -->
+        <!-- REMITENTE (QUIEN ENVÍA) -->
         <div class="col-md-6">
             <div class="card bg-dark border-glass h-100">
                 <div class="card-header bg-transparent border-secondary d-flex justify-content-between align-items-center">
@@ -63,33 +92,46 @@
                     <span class="badge bg-secondary fs-9"><i class="fa-solid fa-bolt me-1 text-warning"></i>Autocompletado</span>
                 </div>
                 <div class="card-body">
-                    <div class="mb-3">
-                        <label asp-for="DniRemitente" class="form-label text-muted small">DNI (8 dígitos) o RUC (11 dígitos)</label>
-                        <div class="input-group">
-                            <input asp-for="DniRemitente" id="txtDniRemitente" class="form-control bg-secondary border-0 text-white"
-                                   placeholder="Ej: 72345678 o 20601234567" maxlength="11" autocomplete="off" />
-                            <button type="button" id="btnBuscarRemitente" class="btn btn-warning fw-bold px-3">
-                                <span id="txtBtnRemitente"><i class="fa-solid fa-magnifying-glass me-1"></i> Buscar</span>
-                                <span id="spinnerRemitente" class="spinner-border spinner-border-sm d-none" role="status"></span>
-                            </button>
+                    <div class="row g-2 mb-3">
+                        <div class="col-sm-6">
+                            <label asp-for="DniRemitente" class="form-label text-muted small fw-bold">DNI (8 dígitos)</label>
+                            <div class="input-group">
+                                <input asp-for="DniRemitente" id="txtDniRemitente" class="form-control bg-secondary border-0 text-white"
+                                       placeholder="Ej: 72345678" maxlength="8" autocomplete="off" />
+                                <button type="button" id="btnBuscarDniRemitente" class="btn btn-warning fw-bold px-2" title="Buscar RENIEC">
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                </button>
+                            </div>
                         </div>
-                        <div id="statusRemitente" class="small mt-1"></div>
+                        <div class="col-sm-6">
+                            <label asp-for="RucRemitente" class="form-label text-muted small fw-bold">RUC (11 dígitos, Opcional)</label>
+                            <div class="input-group">
+                                <input asp-for="RucRemitente" id="txtRucRemitente" class="form-control bg-secondary border-0 text-white"
+                                       placeholder="Ej: 20601234567" maxlength="11" autocomplete="off" />
+                                <button type="button" id="btnBuscarRucRemitente" class="btn btn-outline-warning fw-bold px-2" title="Buscar SUNAT">
+                                    <i class="fa-solid fa-building"></i>
+                                </button>
+                            </div>
+                        </div>
                     </div>
+                    <div id="statusRemitente" class="small mb-2"></div>
+
                     <div class="mb-3">
-                        <label asp-for="NombreRemitente" class="form-label text-muted small">Nombre Completo / Razón Social <span class="text-danger">*</span></label>
+                        <label asp-for="NombreRemitente" class="form-label text-muted small fw-bold">Nombre Completo / Razón Social <span class="text-danger">*</span></label>
                         <input asp-for="NombreRemitente" id="txtNombreRemitente" class="form-control bg-secondary border-0 text-white"
-                               placeholder="Se completa automáticamente al ingresar DNI o RUC" />
+                               placeholder="Se completa automáticamente al buscar DNI o RUC" required />
                         <span asp-validation-for="NombreRemitente" class="text-danger small"></span>
                     </div>
-                    <div class="mb-3">
-                        <label asp-for="TelefonoRemitente" class="form-label text-muted small">Teléfono / Celular</label>
+
+                    <div class="mb-2">
+                        <label asp-for="TelefonoRemitente" class="form-label text-muted small fw-bold">Teléfono / Celular Remitente</label>
                         <input asp-for="TelefonoRemitente" class="form-control bg-secondary border-0 text-white" placeholder="Ej: 987654321 (opcional)" />
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- DESTINATARIO -->
+        <!-- DESTINATARIO (QUIEN RECIBE) -->
         <div class="col-md-6">
             <div class="card bg-dark border-glass h-100">
                 <div class="card-header bg-transparent border-secondary d-flex justify-content-between align-items-center">
@@ -97,73 +139,120 @@
                     <span class="badge bg-secondary fs-9"><i class="fa-solid fa-bolt me-1 text-info"></i>Autocompletado</span>
                 </div>
                 <div class="card-body">
-                    <div class="mb-3">
-                        <label asp-for="DniDestinatario" class="form-label text-muted small">DNI (8 dígitos) o RUC (11 dígitos)</label>
-                        <div class="input-group">
-                            <input asp-for="DniDestinatario" id="txtDniDestinatario" class="form-control bg-secondary border-0 text-white"
-                                   placeholder="Ej: 72345678 o 20601234567" maxlength="11" autocomplete="off" />
-                            <button type="button" id="btnBuscarDestinatario" class="btn btn-info fw-bold text-white px-3">
-                                <span id="txtBtnDestinatario"><i class="fa-solid fa-magnifying-glass me-1"></i> Buscar</span>
-                                <span id="spinnerDestinatario" class="spinner-border spinner-border-sm d-none" role="status"></span>
-                            </button>
+                    <div class="row g-2 mb-3">
+                        <div class="col-sm-6">
+                            <label asp-for="DniDestinatario" class="form-label text-muted small fw-bold">DNI (8 dígitos)</label>
+                            <div class="input-group">
+                                <input asp-for="DniDestinatario" id="txtDniDestinatario" class="form-control bg-secondary border-0 text-white"
+                                       placeholder="Ej: 72345678" maxlength="8" autocomplete="off" />
+                                <button type="button" id="btnBuscarDniDestinatario" class="btn btn-info fw-bold text-white px-2" title="Buscar RENIEC">
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                </button>
+                            </div>
                         </div>
-                        <div id="statusDestinatario" class="small mt-1"></div>
+                        <div class="col-sm-6">
+                            <label asp-for="RucDestinatario" class="form-label text-muted small fw-bold">RUC (11 dígitos, Opcional)</label>
+                            <div class="input-group">
+                                <input asp-for="RucDestinatario" id="txtRucDestinatario" class="form-control bg-secondary border-0 text-white"
+                                       placeholder="Ej: 20601234567" maxlength="11" autocomplete="off" />
+                                <button type="button" id="btnBuscarRucDestinatario" class="btn btn-outline-info fw-bold px-2" title="Buscar SUNAT">
+                                    <i class="fa-solid fa-building"></i>
+                                </button>
+                            </div>
+                        </div>
                     </div>
+                    <div id="statusDestinatario" class="small mb-2"></div>
+
                     <div class="mb-3">
-                        <label asp-for="NombreDestinatario" class="form-label text-muted small">Nombre Completo / Razón Social <span class="text-danger">*</span></label>
+                        <label asp-for="NombreDestinatario" class="form-label text-muted small fw-bold">Nombre Completo / Razón Social <span class="text-danger">*</span></label>
                         <input asp-for="NombreDestinatario" id="txtNombreDestinatario" class="form-control bg-secondary border-0 text-white"
-                               placeholder="Se completa automáticamente al ingresar DNI o RUC" />
+                               placeholder="Se completa automáticamente al buscar DNI o RUC" required />
                         <span asp-validation-for="NombreDestinatario" class="text-danger small"></span>
                     </div>
-                    <div class="mb-3">
-                        <label asp-for="TelefonoDestinatario" class="form-label text-muted small">Teléfono / Celular</label>
+
+                    <div class="mb-2">
+                        <label asp-for="TelefonoDestinatario" class="form-label text-muted small fw-bold">Teléfono / Celular Destinatario</label>
                         <input asp-for="TelefonoDestinatario" class="form-control bg-secondary border-0 text-white" placeholder="Recomendado para contactar la entrega" />
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- PAQUETE Y RUTA -->
+        <!-- DATOS DEL PAQUETE, PAGO Y SEGURIDAD -->
         <div class="col-12">
             <div class="card bg-dark border-glass">
                 <div class="card-header bg-transparent border-secondary">
-                    <h6 class="text-white mb-0"><i class="fa-solid fa-box-open me-2"></i>Datos del Paquete</h6>
+                    <h6 class="text-white mb-0"><i class="fa-solid fa-box-open me-2 text-warning"></i>Datos del Paquete, Pago y Seguridad</h6>
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
-                        <div class="col-md-6">
-                            <label asp-for="Descripcion" class="form-label text-muted small"></label>
+                        
+                        <!-- Descripción -->
+                        <div class="col-md-5">
+                            <label asp-for="Descripcion" class="form-label text-muted small fw-bold">Descripción del Contenido <span class="text-danger">*</span></label>
                             <input asp-for="Descripcion" class="form-control bg-secondary border-0 text-white"
-                                   placeholder="Ej: Ropa, documentos, electrodoméstico..." />
+                                   placeholder="Ej: Ropa, documentos, repuestos, caja..." required />
                             <span asp-validation-for="Descripcion" class="text-danger small"></span>
                         </div>
-                        <div class="col-md-3">
-                            <label asp-for="PesoKg" class="form-label text-muted small"></label>
+
+                        <!-- Peso -->
+                        <div class="col-md-2">
+                            <label asp-for="PesoKg" class="form-label text-muted small fw-bold">Peso (kg)</label>
                             <div class="input-group">
                                 <input asp-for="PesoKg" type="number" step="0.1" min="0.1"
                                        class="form-control bg-secondary border-0 text-white" placeholder="0.0" />
                                 <span class="input-group-text bg-secondary border-0 text-muted">kg</span>
                             </div>
                         </div>
-                        <div class="col-md-3">
-                            <label asp-for="PrecioEnvio" class="form-label text-muted small"></label>
+
+                        <!-- Precio -->
+                        <div class="col-md-2">
+                            <label asp-for="PrecioEnvio" class="form-label text-warning small fw-bold">Precio Envío (S/) <span class="text-danger">*</span></label>
                             <div class="input-group">
                                 <span class="input-group-text bg-secondary border-0 text-muted">S/</span>
                                 <input asp-for="PrecioEnvio" type="number" step="0.50" min="0.01"
-                                       class="form-control bg-secondary border-0 text-white" placeholder="0.00" />
+                                       class="form-control bg-secondary border-0 text-white fw-bold fs-5 text-warning" placeholder="0.00" required />
                             </div>
                             <span asp-validation-for="PrecioEnvio" class="text-danger small"></span>
                         </div>
-                        <!-- Cuadrito opcional: Horario de Salida -->
+
+                        <!-- Método de Pago: Efectivo, Yape, Plin -->
                         <div class="col-md-3">
-                            <label asp-for="TurnoSalida" class="form-label text-muted small"><i class="fa-solid fa-clock me-1 text-warning"></i> Horario de Salida <span class="text-muted">(Opcional)</span></label>
+                            <label class="form-label text-warning small fw-bold"><i class="fa-solid fa-money-bill-wave me-1"></i> Método de Pago</label>
+                            <input type="hidden" asp-for="MetodoPago" id="txtMetodoPago" value="Efectivo" />
+                            <div class="d-flex gap-2">
+                                <button type="button" class="payment-pill-btn active-efectivo flex-grow-1 justify-content-center" onclick="seleccionarPago('Efectivo', this)">
+                                    <i class="fa-solid fa-money-bill"></i> Efectivo
+                                </button>
+                                <button type="button" class="payment-pill-btn flex-grow-1 justify-content-center" onclick="seleccionarPago('Yape', this)">
+                                    <i class="fa-solid fa-mobile-screen"></i> Yape
+                                </button>
+                                <button type="button" class="payment-pill-btn flex-grow-1 justify-content-center" onclick="seleccionarPago('Plin', this)">
+                                    <i class="fa-solid fa-bolt"></i> Plin
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Clave de Envío / Código de Recojo -->
+                        <div class="col-md-4">
+                            <label asp-for="ClaveEnvio" class="form-label text-info small fw-bold">
+                                <i class="fa-solid fa-key me-1"></i> Clave de Envío (Para Recojo)
+                            </label>
+                            <div class="input-group">
+                                <input asp-for="ClaveEnvio" id="txtClaveEnvio" class="form-control bg-secondary border-0 text-white font-monospace fw-bold"
+                                       placeholder="Ej: 4821" maxlength="15" autocomplete="off" />
+                                <button type="button" class="btn btn-outline-info fw-bold" onclick="generarClaveAleatoria()" title="Generar clave aleatoria">
+                                    <i class="fa-solid fa-dice me-1"></i> Generar
+                                </button>
+                            </div>
+                            <small class="text-muted fs-9">Código secreto que se solicitará al destinatario para entregar el paquete.</small>
+                        </div>
+
+                        <!-- Horario de Salida -->
+                        <div class="col-md-4">
+                            <label asp-for="TurnoSalida" class="form-label text-muted small fw-bold"><i class="fa-solid fa-clock me-1 text-warning"></i> Horario de Salida (Opcional)</label>
                             <select asp-for="TurnoSalida" id="TurnoSalida" class="form-select bg-secondary border-0 text-white">
-                                <option value="">-- Sin horario (Opcional) --</option>
-                                <option value="00:00">12:00 am (medianoche)</option>
-                                <option value="01:00">01:00 am</option>
-                                <option value="02:00">02:00 am</option>
-                                <option value="03:00">03:00 am</option>
-                                <option value="04:00">04:00 am</option>
+                                <option value="">-- Sin horario específico --</option>
                                 <option value="05:00">05:00 am</option>
                                 <option value="06:00">06:00 am</option>
                                 <option value="07:00">07:00 am</option>
@@ -182,12 +271,12 @@
                                 <option value="20:00">08:00 pm</option>
                                 <option value="21:00">09:00 pm</option>
                                 <option value="22:00">10:00 pm</option>
-                                <option value="23:00">11:00 pm</option>
                             </select>
                         </div>
-                        <!-- Cuadrito opcional: Conductor que lleva la encomienda -->
-                        <div class="col-md-3">
-                            <label asp-for="NombreConductor" class="form-label text-muted small"><i class="fa-solid fa-user-tie me-1 text-warning"></i> Conductor / Chofer <span class="text-muted">(Opcional)</span></label>
+
+                        <!-- Conductor / Chofer -->
+                        <div class="col-md-4">
+                            <label asp-for="NombreConductor" class="form-label text-muted small fw-bold"><i class="fa-solid fa-user-tie me-1 text-warning"></i> Conductor / Chofer (Opcional)</label>
                             <input asp-for="NombreConductor" class="form-control bg-secondary border-0 text-white" 
                                    placeholder="Nombre del chofer (opcional)" list="conductoresSugeridos" autocomplete="off" />
                             <datalist id="conductoresSugeridos">
@@ -200,7 +289,9 @@
                                 }
                             </datalist>
                         </div>
-                        <div class="col-md-3">
+
+                        <!-- Origen y Destino -->
+                        <div class="col-md-6">
                             <label class="form-label text-warning small fw-bold"><i class="fa-solid fa-location-dot me-1"></i> Origen</label>
                             <select name="origenRuta" id="origenRutaSelect" class="form-select bg-secondary border-0 text-white" required>
                                 <option value="">-- Seleccionar Origen --</option>
@@ -208,13 +299,14 @@
                                 {
                                     foreach (string l in (List<string>)ViewBag.Lugares)
                                     {
-                                        var isSel = (Model.ObjetoRuta?.Origen == l);
+                                        var isSel = (Model?.ObjetoRuta?.Origen == l);
                                         <option value="@l" selected="@isSel">@l</option>
                                     }
                                 }
                             </select>
                         </div>
-                        <div class="col-md-3">
+
+                        <div class="col-md-6">
                             <label class="form-label text-warning small fw-bold"><i class="fa-solid fa-map-pin me-1"></i> Destino</label>
                             <select name="destinoRuta" id="destinoRutaSelect" class="form-select bg-secondary border-0 text-white" required>
                                 <option value="">-- Seleccionar Destino --</option>
@@ -222,17 +314,19 @@
                                 {
                                     foreach (string l in (List<string>)ViewBag.Lugares)
                                     {
-                                        var isSel = (Model.ObjetoRuta?.Destino == l);
+                                        var isSel = (Model?.ObjetoRuta?.Destino == l);
                                         <option value="@l" selected="@isSel">@l</option>
                                     }
                                 }
                             </select>
                         </div>
+
+                        <!-- Observaciones -->
                         <div class="col-12">
-                            <label asp-for="Observaciones" class="form-label text-muted small"></label>
+                            <label asp-for="Observaciones" class="form-label text-muted small fw-bold">Observaciones / Indicaciones Especiales</label>
                             <textarea asp-for="Observaciones" rows="2"
                                       class="form-control bg-secondary border-0 text-white"
-                                      placeholder="Frágil, urgente, mantener frío... (opcional)"></textarea>
+                                      placeholder="Frágil, urgente, mantener refrigerado... (opcional)"></textarea>
                         </div>
                     </div>
                 </div>
@@ -252,33 +346,45 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
-        async function buscarDocumento(docInputId, nombreInputId, statusId, btnId, spinnerId, txtBtnId) {
-            const docInput = document.getElementById(docInputId);
+        // Función para cambiar método de pago
+        function seleccionarPago(metodo, btn) {
+            document.getElementById('txtMetodoPago').value = metodo;
+            document.querySelectorAll('.payment-pill-btn').forEach(b => {
+                b.className = 'payment-pill-btn flex-grow-1 justify-content-center';
+            });
+            if (metodo === 'Efectivo') btn.classList.add('active-efectivo');
+            if (metodo === 'Yape') btn.classList.add('active-yape');
+            if (metodo === 'Plin') btn.classList.add('active-plin');
+        }
+
+        // Generar clave aleatoria de 4 dígitos
+        function generarClaveAleatoria() {
+            const aleatorio = Math.floor(1000 + Math.random() * 9000);
+            document.getElementById('txtClaveEnvio').value = aleatorio;
+        }
+
+        // Búsqueda de documento (DNI 8 dígitos con RENIEC o RUC 11 dígitos con SUNAT)
+        async function consultarDoc(tipo, inputId, nombreInputId, statusId, btnId) {
+            const input = document.getElementById(inputId);
             const nombreInput = document.getElementById(nombreInputId);
             const statusDiv = document.getElementById(statusId);
             const btn = document.getElementById(btnId);
-            const spinner = document.getElementById(spinnerId);
-            const txtBtn = document.getElementById(txtBtnId);
 
-            const doc = docInput.value.trim();
+            const doc = input.value.trim();
             if (!doc) {
-                statusDiv.innerHTML = '<span class="text-warning"><i class="fa-solid fa-triangle-exclamation me-1"></i> Ingrese un DNI (8 dígitos) o RUC (11 dígitos).</span>';
+                statusDiv.innerHTML = `<span class="text-warning"><i class="fa-solid fa-triangle-exclamation me-1"></i> Ingrese el ${tipo}.</span>`;
                 return;
             }
 
-            let tipo = "";
-            if (doc.length === 8) {
-                tipo = "DNI";
-            } else if (doc.length === 11) {
-                tipo = "RUC";
-            } else {
-                statusDiv.innerHTML = '<span class="text-warning"><i class="fa-solid fa-triangle-exclamation me-1"></i> El documento debe tener 8 dígitos (DNI) o 11 dígitos (RUC).</span>';
+            if (tipo === 'DNI' && doc.length !== 8) {
+                statusDiv.innerHTML = '<span class="text-warning"><i class="fa-solid fa-triangle-exclamation me-1"></i> El DNI debe tener 8 dígitos.</span>';
+                return;
+            }
+            if (tipo === 'RUC' && doc.length !== 11) {
+                statusDiv.innerHTML = '<span class="text-warning"><i class="fa-solid fa-triangle-exclamation me-1"></i> El RUC debe tener 11 dígitos.</span>';
                 return;
             }
 
-            // Estado cargando
-            if (spinner) spinner.classList.remove("d-none");
-            if (txtBtn) txtBtn.classList.add("d-none");
             if (btn) btn.disabled = true;
             statusDiv.innerHTML = `<span class="text-info"><i class="fa-solid fa-spinner fa-spin me-1"></i> Consultando ${tipo}...</span>`;
 
@@ -291,67 +397,60 @@
                     const entidad = tipo === 'RUC' ? 'SUNAT' : 'RENIEC';
                     statusDiv.innerHTML = `<span class="text-success"><i class="fa-solid fa-circle-check me-1"></i> Encontrado en ${entidad}: <strong>${data.nombreCompleto}</strong></span>`;
                 } else {
-                    statusDiv.innerHTML = `<span class="text-warning"><i class="fa-solid fa-circle-info me-1"></i> ${data.mensaje || 'No se encontraron datos automáticos. Complete el nombre manualmente.'}</span>`;
+                    statusDiv.innerHTML = `<span class="text-warning"><i class="fa-solid fa-circle-info me-1"></i> ${data.mensaje || 'No se encontró. Ingrese el nombre manualmente.'}</span>`;
                 }
             } catch (err) {
                 console.error("Error consultando documento:", err);
-                statusDiv.innerHTML = '<span class="text-danger"><i class="fa-solid fa-circle-xmark me-1"></i> Error en la consulta. Puede ingresar el nombre de forma manual.</span>';
+                statusDiv.innerHTML = '<span class="text-danger"><i class="fa-solid fa-circle-xmark me-1"></i> Error en la consulta. Puede ingresar el nombre manualmente.</span>';
             } finally {
-                if (spinner) spinner.classList.add("d-none");
-                if (txtBtn) txtBtn.classList.remove("d-none");
                 if (btn) btn.disabled = false;
             }
         }
 
         document.addEventListener("DOMContentLoaded", function () {
-            // Remitente - Autoconsulta
-            let timerRemitente = null;
-            const inputRemitente = document.getElementById('txtDniRemitente');
-            inputRemitente?.addEventListener('input', function () {
-                const val = this.value.trim();
-                clearTimeout(timerRemitente);
-                if (val.length === 8 || val.length === 11) {
-                    timerRemitente = setTimeout(() => {
-                        buscarDocumento('txtDniRemitente', 'txtNombreRemitente', 'statusRemitente', 'btnBuscarRemitente', 'spinnerRemitente', 'txtBtnRemitente');
-                    }, 400);
+            // Autogenerar clave si está vacía
+            const claveInput = document.getElementById('txtClaveEnvio');
+            if (claveInput && !claveInput.value) {
+                generarClaveAleatoria();
+            }
+
+            // Remitente - Eventos DNI y RUC
+            document.getElementById('btnBuscarDniRemitente')?.addEventListener('click', () => {
+                consultarDoc('DNI', 'txtDniRemitente', 'txtNombreRemitente', 'statusRemitente', 'btnBuscarDniRemitente');
+            });
+            document.getElementById('txtDniRemitente')?.addEventListener('input', function() {
+                if (this.value.trim().length === 8) {
+                    consultarDoc('DNI', 'txtDniRemitente', 'txtNombreRemitente', 'statusRemitente', 'btnBuscarDniRemitente');
                 }
             });
 
-            document.getElementById('btnBuscarRemitente')?.addEventListener('click', function () {
-                buscarDocumento('txtDniRemitente', 'txtNombreRemitente', 'statusRemitente', 'btnBuscarRemitente', 'spinnerRemitente', 'txtBtnRemitente');
+            document.getElementById('btnBuscarRucRemitente')?.addEventListener('click', () => {
+                consultarDoc('RUC', 'txtRucRemitente', 'txtNombreRemitente', 'statusRemitente', 'btnBuscarRucRemitente');
             });
-
-            inputRemitente?.addEventListener('keydown', function (e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    buscarDocumento('txtDniRemitente', 'txtNombreRemitente', 'statusRemitente', 'btnBuscarRemitente', 'spinnerRemitente', 'txtBtnRemitente');
+            document.getElementById('txtRucRemitente')?.addEventListener('input', function() {
+                if (this.value.trim().length === 11) {
+                    consultarDoc('RUC', 'txtRucRemitente', 'txtNombreRemitente', 'statusRemitente', 'btnBuscarRucRemitente');
                 }
             });
 
-            // Destinatario - Autoconsulta
-            let timerDestinatario = null;
-            const inputDestinatario = document.getElementById('txtDniDestinatario');
-            inputDestinatario?.addEventListener('input', function () {
-                const val = this.value.trim();
-                clearTimeout(timerDestinatario);
-                if (val.length === 8 || val.length === 11) {
-                    timerDestinatario = setTimeout(() => {
-                        buscarDocumento('txtDniDestinatario', 'txtNombreDestinatario', 'statusDestinatario', 'btnBuscarDestinatario', 'spinnerDestinatario', 'txtBtnDestinatario');
-                    }, 400);
+            // Destinatario - Eventos DNI y RUC
+            document.getElementById('btnBuscarDniDestinatario')?.addEventListener('click', () => {
+                consultarDoc('DNI', 'txtDniDestinatario', 'txtNombreDestinatario', 'statusDestinatario', 'btnBuscarDniDestinatario');
+            });
+            document.getElementById('txtDniDestinatario')?.addEventListener('input', function() {
+                if (this.value.trim().length === 8) {
+                    consultarDoc('DNI', 'txtDniDestinatario', 'txtNombreDestinatario', 'statusDestinatario', 'btnBuscarDniDestinatario');
                 }
             });
 
-            document.getElementById('btnBuscarDestinatario')?.addEventListener('click', function () {
-                buscarDocumento('txtDniDestinatario', 'txtNombreDestinatario', 'statusDestinatario', 'btnBuscarDestinatario', 'spinnerDestinatario', 'txtBtnDestinatario');
+            document.getElementById('btnBuscarRucDestinatario')?.addEventListener('click', () => {
+                consultarDoc('RUC', 'txtRucDestinatario', 'txtNombreDestinatario', 'statusDestinatario', 'btnBuscarRucDestinatario');
             });
-
-            inputDestinatario?.addEventListener('keydown', function (e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    buscarDocumento('txtDniDestinatario', 'txtNombreDestinatario', 'statusDestinatario', 'btnBuscarDestinatario', 'spinnerDestinatario', 'txtBtnDestinatario');
+            document.getElementById('txtRucDestinatario')?.addEventListener('input', function() {
+                if (this.value.trim().length === 11) {
+                    consultarDoc('RUC', 'txtRucDestinatario', 'txtNombreDestinatario', 'statusDestinatario', 'btnBuscarRucDestinatario');
                 }
             });
-
         });
     </script>
 }

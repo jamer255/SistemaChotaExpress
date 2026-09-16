@@ -1,0 +1,256 @@
+@model SistemaChotaExpress.Models.ProformaViaje
+@{
+    ViewData["Title"] = "Nueva Proforma de Viaje";
+}
+
+<div class="row mb-3">
+    <div class="col-12">
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm mb-3">
+            <i class="fa-solid fa-arrow-left me-1"></i> Volver a proformas
+        </a>
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <h1 class="h2 text-white fw-bold mb-0">
+                    <i class="fa-solid fa-file-invoice-dollar me-2 text-warning"></i>Nueva Proforma de Viaje
+                </h1>
+                <p class="text-muted mb-0">Emite una cotización oficial para viajes especiales o pasajes con impresión A4</p>
+            </div>
+            <div class="text-end">
+                <span class="badge bg-warning text-dark font-monospace fs-6 px-3 py-2 shadow-sm border border-warning">
+                    <i class="fa-solid fa-hashtag me-1"></i>Proforma: @(ViewBag.SiguienteCodigo ?? "PROF-0001")
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form asp-action="Crear" method="post" id="formProforma">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+    <div class="row g-4">
+
+        <!-- 1. DATOS DEL CLIENTE -->
+        <div class="col-md-6">
+            <div class="card bg-dark border-glass h-100">
+                <div class="card-header bg-transparent border-secondary d-flex justify-content-between align-items-center">
+                    <h6 class="text-warning mb-0"><i class="fa-solid fa-user-tie me-2"></i>Datos del Cliente o Empresa</h6>
+                    <span class="badge bg-secondary fs-9"><i class="fa-solid fa-bolt me-1 text-warning"></i>Búsqueda RENIEC / SUNAT</span>
+                </div>
+                <div class="card-body">
+                    
+                    <div class="row g-2 mb-3">
+                        <div class="col-sm-4">
+                            <label asp-for="TipoDocumento" class="form-label text-muted small fw-bold">Tipo Doc.</label>
+                            <select asp-for="TipoDocumento" id="cboTipoDoc" class="form-select bg-secondary border-0 text-white">
+                                <option value="DNI">DNI (8 dígitos)</option>
+                                <option value="RUC">RUC (11 dígitos)</option>
+                            </select>
+                        </div>
+                        <div class="col-sm-8">
+                            <label asp-for="NumeroDocumento" class="form-label text-muted small fw-bold">N° de Documento</label>
+                            <div class="input-group">
+                                <input asp-for="NumeroDocumento" id="txtNumeroDoc" class="form-control bg-secondary border-0 text-white"
+                                       placeholder="Ingrese DNI o RUC" maxlength="11" autocomplete="off" />
+                                <button type="button" id="btnBuscarDoc" class="btn btn-warning fw-bold px-3">
+                                    <i class="fa-solid fa-magnifying-glass me-1"></i> Buscar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="statusDoc" class="small mb-2"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="NombreCliente" class="form-label text-muted small fw-bold">Cliente / Razón Social <span class="text-danger">*</span></label>
+                        <input asp-for="NombreCliente" id="txtNombreCliente" class="form-control bg-secondary border-0 text-white"
+                               placeholder="Nombre del solicitante o empresa" required />
+                        <span asp-validation-for="NombreCliente" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-2">
+                        <label asp-for="TelefonoCliente" class="form-label text-muted small fw-bold">Teléfono / Celular / WhatsApp</label>
+                        <input asp-for="TelefonoCliente" class="form-control bg-secondary border-0 text-white" placeholder="Ej: 987654321" />
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. SERVICIO Y PRECIO -->
+        <div class="col-md-6">
+            <div class="card bg-dark border-glass h-100">
+                <div class="card-header bg-transparent border-secondary">
+                    <h6 class="text-info mb-0"><i class="fa-solid fa-van-shuttle me-2"></i>Tipo de Servicio & Cotización</h6>
+                </div>
+                <div class="card-body">
+                    
+                    <div class="mb-3">
+                        <label asp-for="TipoServicio" class="form-label text-muted small fw-bold">Tipo de Servicio <span class="text-danger">*</span></label>
+                        <select asp-for="TipoServicio" id="cboTipoServicio" class="form-select bg-secondary border-0 text-white fw-bold">
+                            <option value="Viaje Expreso (Combi Completa)">Viaje Expreso (Combi Completa / Exclusivo)</option>
+                            <option value="Pasajes Individuales">Pasajes Individuales / Grupo de Asientos</option>
+                        </select>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-sm-6">
+                            <label asp-for="CantidadPasajeros" class="form-label text-muted small fw-bold">Cantidad de Pasajeros</label>
+                            <div class="input-group">
+                                <input asp-for="CantidadPasajeros" id="txtCantidadPasajeros" type="number" min="1" max="50"
+                                       class="form-control bg-secondary border-0 text-white" value="15" />
+                                <span class="input-group-text bg-secondary border-0 text-muted">asientos</span>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <label asp-for="ValidezDias" class="form-label text-muted small fw-bold">Validez de la Proforma</label>
+                            <div class="input-group">
+                                <input asp-for="ValidezDias" type="number" min="1" max="90"
+                                       class="form-control bg-secondary border-0 text-white" value="5" />
+                                <span class="input-group-text bg-secondary border-0 text-muted">días</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label asp-for="PrecioTotal" class="form-label text-warning small fw-bold">Precio Total Cotizado (S/) <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-secondary border-0 text-warning fs-5 fw-bold">S/</span>
+                            <input asp-for="PrecioTotal" type="number" step="1.00" min="1.00"
+                                   class="form-control bg-secondary border-0 text-white fw-bold fs-4 text-warning" placeholder="0.00" required />
+                        </div>
+                        <span asp-validation-for="PrecioTotal" class="text-danger small"></span>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. DETALLES DE RUTA Y CONDICIONES -->
+        <div class="col-12">
+            <div class="card bg-dark border-glass">
+                <div class="card-header bg-transparent border-secondary">
+                    <h6 class="text-white mb-0"><i class="fa-solid fa-map-location-dot me-2 text-warning"></i>Itinerario, Ruta & Condiciones del Viaje</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        
+                        <div class="col-md-3">
+                            <label class="form-label text-warning small fw-bold"><i class="fa-solid fa-location-dot me-1"></i> Origen de Salida</label>
+                            <select name="origenRuta" class="form-select bg-secondary border-0 text-white" required>
+                                <option value="">-- Seleccionar Origen --</option>
+                                @if (ViewBag.Lugares != null)
+                                {
+                                    foreach (string l in (List<string>)ViewBag.Lugares)
+                                    {
+                                        <option value="@l">@l</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label text-warning small fw-bold"><i class="fa-solid fa-map-pin me-1"></i> Destino del Viaje</label>
+                            <select name="destinoRuta" class="form-select bg-secondary border-0 text-white" required>
+                                <option value="">-- Seleccionar Destino --</option>
+                                @if (ViewBag.Lugares != null)
+                                {
+                                    foreach (string l in (List<string>)ViewBag.Lugares)
+                                    {
+                                        <option value="@l">@l</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label asp-for="FechaViaje" class="form-label text-muted small fw-bold"><i class="fa-solid fa-calendar-day me-1 text-info"></i> Fecha Prevista</label>
+                            <input asp-for="FechaViaje" type="date" class="form-control bg-secondary border-0 text-white" required />
+                        </div>
+
+                        <div class="col-md-3">
+                            <label asp-for="HoraSalida" class="form-label text-muted small fw-bold"><i class="fa-solid fa-clock me-1 text-info"></i> Horario Acordado</label>
+                            <input asp-for="HoraSalida" class="form-control bg-secondary border-0 text-white" placeholder="Ej: 06:00 am o a coordinar" />
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="Observaciones" class="form-label text-muted small fw-bold">Condiciones Comerciales y Observaciones</label>
+                            <textarea asp-for="Observaciones" rows="3" class="form-control bg-secondary border-0 text-white"
+                                      placeholder="Especificar detalles del viaje, combustible, chofer, paradas acordadas, etc."></textarea>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BOTONES DE ACCIÓN -->
+        <div class="col-12 d-flex justify-content-end gap-2">
+            <a asp-action="Index" class="btn btn-outline-secondary px-4">Cancelar</a>
+            <button type="submit" class="btn btn-warning fw-bold px-5">
+                <i class="fa-solid fa-print me-2"></i>Guardar e Imprimir Proforma A4
+            </button>
+        </div>
+
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        async function buscarClienteDoc() {
+            const tipo = document.getElementById('cboTipoDoc').value;
+            const docInput = document.getElementById('txtNumeroDoc');
+            const nombreInput = document.getElementById('txtNombreCliente');
+            const statusDiv = document.getElementById('statusDoc');
+            const btn = document.getElementById('btnBuscarDoc');
+
+            const doc = docInput.value.trim();
+            if (!doc) {
+                statusDiv.innerHTML = `<span class="text-warning"><i class="fa-solid fa-triangle-exclamation me-1"></i> Ingrese el ${tipo}.</span>`;
+                return;
+            }
+
+            if (tipo === 'DNI' && doc.length !== 8) {
+                statusDiv.innerHTML = '<span class="text-warning"><i class="fa-solid fa-triangle-exclamation me-1"></i> El DNI debe tener 8 dígitos.</span>';
+                return;
+            }
+            if (tipo === 'RUC' && doc.length !== 11) {
+                statusDiv.innerHTML = '<span class="text-warning"><i class="fa-solid fa-triangle-exclamation me-1"></i> El RUC debe tener 11 dígitos.</span>';
+                return;
+            }
+
+            btn.disabled = true;
+            statusDiv.innerHTML = `<span class="text-info"><i class="fa-solid fa-spinner fa-spin me-1"></i> Consultando ${tipo}...</span>`;
+
+            try {
+                const response = await fetch(`/Documento/Consultar?tipo=${tipo}&numero=${doc}`);
+                const data = await response.json();
+
+                if (data.success && data.nombreCompleto) {
+                    nombreInput.value = data.nombreCompleto;
+                    const entidad = tipo === 'RUC' ? 'SUNAT' : 'RENIEC';
+                    statusDiv.innerHTML = `<span class="text-success"><i class="fa-solid fa-circle-check me-1"></i> Encontrado en ${entidad}: <strong>${data.nombreCompleto}</strong></span>`;
+                } else {
+                    statusDiv.innerHTML = `<span class="text-warning"><i class="fa-solid fa-circle-info me-1"></i> ${data.mensaje || 'No se encontró. Ingrese el nombre manualmente.'}</span>`;
+                }
+            } catch (err) {
+                console.error("Error:", err);
+                statusDiv.innerHTML = '<span class="text-danger"><i class="fa-solid fa-circle-xmark me-1"></i> Error en la consulta. Ingrese el nombre de forma manual.</span>';
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            document.getElementById('btnBuscarDoc')?.addEventListener('click', buscarClienteDoc);
+            
+            document.getElementById('txtNumeroDoc')?.addEventListener('input', function () {
+                const tipo = document.getElementById('cboTipoDoc').value;
+                const len = this.value.trim().length;
+                if ((tipo === 'DNI' && len === 8) || (tipo === 'RUC' && len === 11)) {
+                    buscarClienteDoc();
+                }
+            });
+        });
+    </script>
+}

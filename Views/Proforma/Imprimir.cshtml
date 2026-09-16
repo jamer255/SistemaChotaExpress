@@ -1,0 +1,418 @@
+@model SistemaChotaExpress.Models.ProformaViaje
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Proforma @Model.CodigoProforma — Tours Chota Express</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f1f5f9;
+            color: #0f172a;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .no-print-bar {
+            background: #1e293b;
+            color: #fff;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .btn-print {
+            background: #f37021;
+            color: #fff;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+        .btn-back {
+            background: transparent;
+            color: #cbd5e1;
+            border: 1px solid #475569;
+            padding: 8px 14px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 13px;
+        }
+
+        /* Hoja A4 */
+        .page-a4 {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 20px auto;
+            background: #ffffff;
+            padding: 20mm 20mm;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .header-grid {
+            display: grid;
+            grid-template-columns: 1fr 220px;
+            gap: 20px;
+            align-items: center;
+            border-bottom: 2px solid #f37021;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .logo-box img {
+            max-width: 240px;
+            height: auto;
+            display: block;
+        }
+        .company-subtitle {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 4px;
+            font-weight: 600;
+        }
+
+        .proforma-number-box {
+            border: 2px solid #f37021;
+            border-radius: 10px;
+            text-align: center;
+            padding: 10px 14px;
+            background: #fff7ed;
+        }
+        .proforma-title {
+            font-size: 15px;
+            font-weight: 800;
+            color: #c2410c;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .proforma-code {
+            font-size: 17px;
+            font-weight: 900;
+            color: #0f172a;
+            margin-top: 3px;
+            font-family: monospace;
+        }
+
+        /* Secciones */
+        .section-title {
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #c2410c;
+            background: #ffedd5;
+            padding: 5px 10px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .info-grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+        .info-grid-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .info-item {
+            font-size: 12.5px;
+        }
+        .info-label {
+            font-weight: 700;
+            color: #475569;
+            font-size: 11px;
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: 2px;
+        }
+        .info-val {
+            color: #0f172a;
+            font-weight: 600;
+        }
+
+        /* Tabla de cotización */
+        .table-quote {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0 20px;
+        }
+        .table-quote th {
+            background: #0f172a;
+            color: #ffffff;
+            font-size: 11.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 9px 12px;
+            text-align: left;
+        }
+        .table-quote td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 12.5px;
+        }
+        .table-quote tr:nth-child(even) td {
+            background: #f8fafc;
+        }
+
+        .total-box {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 25px;
+        }
+        .total-card {
+            border: 2px solid #f37021;
+            border-radius: 8px;
+            padding: 10px 18px;
+            background: #fff7ed;
+            text-align: right;
+            min-width: 240px;
+        }
+        .total-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+        }
+        .total-amount {
+            font-size: 22px;
+            font-weight: 900;
+            color: #c2410c;
+        }
+
+        /* Beneficios y condiciones */
+        .conditions-box {
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 25px;
+            font-size: 11.5px;
+            color: #334155;
+        }
+        .conditions-box ul {
+            margin-left: 18px;
+            margin-top: 6px;
+        }
+
+        /* Firmas */
+        .signatures-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            margin-top: 40px;
+            text-align: center;
+        }
+        .signature-line {
+            border-top: 1px solid #475569;
+            padding-top: 8px;
+            font-size: 12px;
+            color: #334155;
+        }
+
+        @@media print {
+            .no-print-bar { display: none !important; }
+            body { background: transparent; }
+            .page-a4 {
+                box-shadow: none;
+                margin: 0;
+                width: 100%;
+                min-height: auto;
+                padding: 15mm 15mm;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- BARRA DE ACCIÓN NO IMPRIMIBLE -->
+    <div class="no-print-bar">
+        <div>
+            <strong>Tours Chota Express S.A.C.</strong> — Proforma de Viaje Oficial
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <a href="javascript:history.back()" class="btn-back">⬅ Volver</a>
+            <button onclick="window.print()" class="btn-print">🖨️ Imprimir Proforma A4</button>
+        </div>
+    </div>
+
+    <!-- HOJA A4 OFICIAL -->
+    <div class="page-a4">
+        <div>
+            <!-- ENCABEZADO -->
+            <div class="header-grid">
+                <div class="logo-box">
+                    <img src="~/img/logo_chota.jpg" alt="Tours Chota Express" />
+                    <div class="company-subtitle">
+                        TOURS CHOTA EXPRESS S.A.C. • RUC: 20601234567<br />
+                        Transporte Interprovincial Regular y Especial de Pasajeros<br />
+                        Chota — Cajamarca — Cutervo • Central: 987 654 321
+                    </div>
+                </div>
+                <div class="proforma-number-box">
+                    <div class="proforma-title">PROFORMA DE VIAJE</div>
+                    <div class="proforma-code">@Model.CodigoProforma</div>
+                    <div style="font-size: 10.5px; color: #64748b; margin-top: 4px;">
+                        Emisión: @Model.FechaEmision.ToString("dd/MM/yyyy")
+                    </div>
+                </div>
+            </div>
+
+            <!-- DATOS DEL CLIENTE -->
+            <div class="section-title">
+                <span>1. Información del Cliente / Solicitante</span>
+                <span>Validez: @Model.ValidezDias días</span>
+            </div>
+            <div class="info-grid-3">
+                <div class="info-item">
+                    <span class="info-label">Cliente / Razón Social:</span>
+                    <span class="info-val">@Model.NombreCliente</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">@(Model.TipoDocumento ?? "DNI / RUC"):</span>
+                    <span class="info-val">@(string.IsNullOrWhiteSpace(Model.NumeroDocumento) ? "-" : Model.NumeroDocumento)</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Teléfono / WhatsApp:</span>
+                    <span class="info-val">@(string.IsNullOrWhiteSpace(Model.TelefonoCliente) ? "-" : Model.TelefonoCliente)</span>
+                </div>
+            </div>
+
+            <!-- DETALLES DEL ITINERARIO -->
+            <div class="section-title">
+                <span>2. Itinerario & Datos del Viaje</span>
+                <span>Estado: @Model.Estado</span>
+            </div>
+            <div class="info-grid-3">
+                <div class="info-item">
+                    <span class="info-label">Ruta de Viaje:</span>
+                    <span class="info-val" style="color: #c2410c; font-weight: 800;">
+                        @(Model.ObjetoRuta != null ? $"{Model.ObjetoRuta.Origen} ➔ {Model.ObjetoRuta.Destino}" : "A coordinar")
+                    </span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Fecha Prevista de Salida:</span>
+                    <span class="info-val">@Model.FechaViaje.ToString("dd/MM/yyyy")</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Horario / Turno:</span>
+                    <span class="info-val">@(string.IsNullOrWhiteSpace(Model.HoraSalida) ? "A coordinar con el cliente" : Model.HoraSalida)</span>
+                </div>
+            </div>
+
+            <!-- TABLA DE COTIZACIÓN -->
+            <div class="section-title">
+                <span>3. Detalle de la Cotización</span>
+            </div>
+            <table class="table-quote">
+                <thead>
+                    <tr>
+                        <th style="width: 55%;">Descripción del Servicio</th>
+                        <th style="width: 15%; text-align: center;">Pasajeros</th>
+                        <th style="width: 15%; text-align: right;">Precio Unit.</th>
+                        <th style="width: 15%; text-align: right;">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <strong>@Model.TipoServicio</strong><br />
+                            <small style="color: #64748b;">
+                                Servicio de transporte en Combi moderna Toyota HiAce equipada, incluye combustible y conductor calificado.
+                            </small>
+                        </td>
+                        <td style="text-align: center; font-weight: bold;">
+                            @Model.CantidadPasajeros asientos
+                        </td>
+                        <td style="text-align: right;">
+                            @(Model.PrecioUnitario.HasValue ? $"S/ {Model.PrecioUnitario.Value:N2}" : "-")
+                        </td>
+                        <td style="text-align: right; font-weight: 800; font-size: 14px;">
+                            S/ @Model.PrecioTotal.ToString("N2")
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- TOTAL -->
+            <div class="total-box">
+                <div class="total-card">
+                    <div class="total-label">Importe Total Cotizado</div>
+                    <div class="total-amount">S/ @Model.PrecioTotal.ToString("N2")</div>
+                    <small style="color: #64748b; font-size: 10px;">Moneda: Soles (PEN) • Precios netos</small>
+                </div>
+            </div>
+
+            <!-- TÉRMINOS Y CONDICIONES -->
+            <div class="conditions-box">
+                <strong>Condiciones y Beneficios Incluidos:</strong>
+                <ul>
+                    <li>Flota oficial de combis Toyota HiAce en perfecto estado mecánico con confort para pasajeros.</li>
+                    <li>Conductor profesional con licencia de conducir categoría profesional vigente y amplia experiencia en ruta.</li>
+                    <li>Seguro Obligatorio de Accidentes de Tránsito (SOAT) vigente y cobertura integral de pasajeros.</li>
+                    <li>Monitoreo satelital GPS en tiempo real acreditado ante SUTRAN y MTC.</li>
+                    @if (!string.IsNullOrWhiteSpace(Model.Observaciones))
+                    {
+                        <li style="margin-top: 4px; font-weight: 600; color: #0f172a;">
+                            <strong>Observaciones adicionales:</strong> @Model.Observaciones
+                        </li>
+                    }
+                    <li>Esta proforma tiene una vigencia de <strong>@Model.ValidezDias días calendario</strong> a partir de su fecha de emisión.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- FIRMAS -->
+        <div>
+            <div class="signatures-grid">
+                <div>
+                    <div style="height: 45px;"></div>
+                    <div class="signature-line">
+                        <strong>Tours Chota Express S.A.C.</strong><br />
+                        Agencia de Ventas & Operaciones
+                    </div>
+                </div>
+                <div>
+                    <div style="height: 45px;"></div>
+                    <div class="signature-line">
+                        <strong>Firma del Cliente Aceptante</strong><br />
+                        DNI / RUC: @(Model.NumeroDocumento ?? "____________________")
+                    </div>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 25px; font-size: 10.5px; color: #94a3b8; border-top: 1px dashed #cbd5e1; padding-top: 8px;">
+                Generado por: @(Model.UsuarioRegistro?.Name ?? "Sistema de Ventas") • Fecha de impresión: @DateTime.Now.ToString("dd/MM/yyyy HH:mm") • Tours Chota Express S.A.C.
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

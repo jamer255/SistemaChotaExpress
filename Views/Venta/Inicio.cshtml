@@ -113,6 +113,7 @@
     /* Variantes de color */
     .card-pasajes-vender::before    { background: linear-gradient(90deg, #f37021, #fb923c); }
     .card-pasajes-historial::before { background: linear-gradient(90deg, #10b981, #34d399); }
+    .card-proforma-viaje::before    { background: linear-gradient(90deg, #f43f5e, #fb7185); }
     .card-encomienda-reg::before    { background: linear-gradient(90deg, #0284c7, #38bdf8); }
     .card-encomienda-hist::before   { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
     .card-encomienda-manif::before  { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
@@ -143,6 +144,7 @@
     .icon-blue   { background: rgba(2, 132, 199, 0.14); color: #0284c7; }
     .icon-amber  { background: rgba(245, 158, 11, 0.14); color: #f59e0b; }
     .icon-purple { background: rgba(139, 92, 246, 0.14); color: #8b5cf6; }
+    .icon-rose   { background: rgba(244, 63, 94, 0.14);  color: #f43f5e; }
 
     .pill-badge {
         font-size: 0.7rem;
@@ -157,6 +159,7 @@
     .pill-blue   { background: rgba(2, 132, 199, 0.15); color: #0284c7; }
     .pill-amber  { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
     .pill-purple { background: rgba(139, 92, 246, 0.15); color: #8b5cf6; }
+    .pill-rose   { background: rgba(244, 63, 94, 0.15);  color: #f43f5e; }
 
     .card-title-text {
         font-size: 1.12rem;
@@ -228,16 +231,16 @@
         </p>
     </div>
 
-    <!-- SECCIÓN 1: VENTA DE PASAJES (2 TARJETAS AMPLIAS) -->
+    <!-- SECCIÓN 1: VENTA DE PASAJES & PROFORMAS (3 TARJETAS ALINEADAS) -->
     <div class="grid-section-label fade-up-item d-2">
         <i class="fa-solid fa-users text-warning"></i>
-        <span>Venta y Control de Pasajes</span>
+        <span>Venta de Pasajes & Proformas de Viaje</span>
     </div>
 
     <div class="row g-3 g-lg-4 mb-4 fade-up-item d-2">
         
         <!-- 1. Vender Pasajes -->
-        <div class="col-12 col-md-6">
+        <div class="col-12 col-md-4">
             <a asp-controller="Venta" asp-action="BuscarViajes" class="modulo-card-unified card-pasajes-vender">
                 <div>
                     <div class="card-top-row">
@@ -259,7 +262,7 @@
         </div>
 
         <!-- 2. Registro de Pasajes Vendidos -->
-        <div class="col-12 col-md-6">
+        <div class="col-12 col-md-4">
             <a asp-controller="Venta" asp-action="MisVentas" class="modulo-card-unified card-pasajes-historial">
                 <div>
                     <div class="card-top-row">
@@ -268,13 +271,35 @@
                         </div>
                         <span class="pill-badge pill-green">Historial</span>
                     </div>
-                    <div class="card-title-text">Registro de Pasajes Vendidos</div>
+                    <div class="card-title-text">Registro de Pasajes</div>
                     <div class="card-desc-text">
                         Consulta general de boletos emitidos, búsqueda por DNI o fecha, reimpresión y control de ventas por turno.
                     </div>
                 </div>
                 <div class="card-btn-action text-success">
                     <span>Ver pasajes vendidos</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </div>
+            </a>
+        </div>
+
+        <!-- 3. Proforma de Viajes -->
+        <div class="col-12 col-md-4">
+            <a asp-controller="Proforma" asp-action="Crear" class="modulo-card-unified card-proforma-viaje">
+                <div>
+                    <div class="card-top-row">
+                        <div class="icon-box-sm icon-rose">
+                            <i class="fa-solid fa-file-invoice-dollar"></i>
+                        </div>
+                        <span class="pill-badge pill-rose">Cotizaciones</span>
+                    </div>
+                    <div class="card-title-text">Proforma de Viajes</div>
+                    <div class="card-desc-text">
+                        Cotización de viajes especiales o pasajes con cálculo de tarifas e impresión oficial en hoja A4.
+                    </div>
+                </div>
+                <div class="card-btn-action" style="color: #fb7185;">
+                    <span>Nueva proforma</span>
                     <i class="fa-solid fa-arrow-right"></i>
                 </div>
             </a>

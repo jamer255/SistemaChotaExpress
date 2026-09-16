@@ -15,6 +15,7 @@ namespace SistemaChotaExpress.Data
         public DbSet<Pasajero> Pasajeros { get; set; }
         public DbSet<Venta> Ventas { get; set; }
         public DbSet<Encomienda> Encomiendas { get; set; }
+        public DbSet<ProformaViaje> ProformasViajes { get; set; }
 
         // =========================================================================
         // SOLUCIÓN AL ERROR DE CONSOLA: Inicializador automático de ConnectionString

@@ -163,8 +163,16 @@ namespace SistemaChotaExpress.Controllers
                 var totalEncomiendas = await _context.Encomiendas.CountAsync();
                 int siguienteNumero = totalEncomiendas + 1;
                 modelo.CodigoSeguimiento = $"ENC-{siguienteNumero:D4}";
-                modelo.FechaRegistro = DateTime.Now;
-                modelo.Estado = "Registrado";
+                // Clave de envío de seguridad (si no se digitó, se autogenera una de 4 dígitos)
+                if (string.IsNullOrWhiteSpace(modelo.ClaveEnvio))
+                {
+                    modelo.ClaveEnvio = new Random().Next(1000, 9999).ToString();
+                }
+
+                if (string.IsNullOrWhiteSpace(modelo.MetodoPago))
+                {
+                    modelo.MetodoPago = "Efectivo";
+                }
 
                 // Asignar trabajador que registra
                 var emailActual = User.FindFirstValue(ClaimTypes.Email);

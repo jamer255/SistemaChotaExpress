@@ -121,7 +121,9 @@
         <div class="label">REMITENTE:</div>
         <div>@Model.NombreRemitente</div>
         @if (!string.IsNullOrEmpty(Model.DniRemitente))
-        { <div>DNI/RUC: @Model.DniRemitente</div> }
+        { <div>DNI: @Model.DniRemitente</div> }
+        @if (!string.IsNullOrEmpty(Model.RucRemitente))
+        { <div>RUC: @Model.RucRemitente</div> }
     </div>
 
     <div class="divider"></div>
@@ -131,9 +133,28 @@
         <div class="label">DESTINATARIO:</div>
         <div>@Model.NombreDestinatario</div>
         @if (!string.IsNullOrEmpty(Model.DniDestinatario))
-        { <div>DNI/RUC: @Model.DniDestinatario</div> }
+        { <div>DNI: @Model.DniDestinatario</div> }
+        @if (!string.IsNullOrEmpty(Model.RucDestinatario))
+        { <div>RUC: @Model.RucDestinatario</div> }
         @if (!string.IsNullOrEmpty(Model.TelefonoDestinatario))
         { <div>Telf: @Model.TelefonoDestinatario</div> }
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Seguridad y Pago -->
+    <div class="mb-2">
+        @if (!string.IsNullOrEmpty(Model.ClaveEnvio))
+        {
+            <div class="row font-bold font-lg">
+                <span>CLAVE DE RECOJO:</span>
+                <span>@Model.ClaveEnvio</span>
+            </div>
+        }
+        <div class="row">
+            <span>FORMA DE PAGO:</span>
+            <span class="font-bold">@(Model.MetodoPago ?? "Efectivo")</span>
+        </div>
     </div>
 
     <div class="divider"></div>
