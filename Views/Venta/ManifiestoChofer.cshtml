@@ -681,12 +681,12 @@
 
                                 <tr data-asiento="@i">
                                     <td class="col-num">@i</td>
-                                    <td class="col-name editable-field" contenteditable="true">@pasName</td>
-                                    <td class="col-doc editable-field" contenteditable="true">@numDoc</td>
-                                    <td class="col-ticket editable-field" contenteditable="true"></td>
-                                    <td class="col-seat editable-field" contenteditable="true">@asiento</td>
-                                    <td class="col-price editable-field" contenteditable="true"></td>
-                                    <td class="col-obs editable-field" contenteditable="true"></td>
+                                    <td class="col-name">@pasName</td>
+                                    <td class="col-doc">@numDoc</td>
+                                    <td class="col-ticket"></td>
+                                    <td class="col-seat">@asiento</td>
+                                    <td class="col-price"></td>
+                                    <td class="col-obs"></td>
                                 </tr>
                             }
                             else
@@ -694,12 +694,12 @@
                                 var asientoSugerido = (i <= 15) ? $"{i}" : "";
                                 <tr data-asiento="@i">
                                     <td class="col-num">@i</td>
-                                    <td class="col-name editable-field" contenteditable="true"></td>
-                                    <td class="col-doc editable-field" contenteditable="true"></td>
-                                    <td class="col-ticket editable-field" contenteditable="true"></td>
-                                    <td class="col-seat editable-field" contenteditable="true">@asientoSugerido</td>
-                                    <td class="col-price editable-field" contenteditable="true"></td>
-                                    <td class="col-obs editable-field" contenteditable="true"></td>
+                                    <td class="col-name"></td>
+                                    <td class="col-doc"></td>
+                                    <td class="col-ticket"></td>
+                                    <td class="col-seat">@asientoSugerido</td>
+                                    <td class="col-price"></td>
+                                    <td class="col-obs"></td>
                                 </tr>
                             }
                         }
