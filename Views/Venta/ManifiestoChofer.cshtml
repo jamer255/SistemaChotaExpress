@@ -612,9 +612,6 @@
 
 <script>
     function enviarWhatsApp() {
-        let telefono = prompt("📱 Ingresa el número de WhatsApp del conductor o destinatario (opcional, ej: 987654321):\n(Si lo dejas en blanco, podrás elegir cualquier contacto o grupo en WhatsApp)", "");
-        if (telefono === null) return; // Si cancela el prompt
-
         let texto = "*MANIFIESTO DE PASAJEROS - CHOTA EXPRESS*\n";
         texto += "--------------------------------------\n";
         texto += "*📍 Ruta:* @(Model.ObjetoRuta?.Origen) ➔ @(Model.ObjetoRuta?.Destino)\n";
@@ -654,14 +651,7 @@
         texto += "--------------------------------------\n";
         texto += "Resumen: @vendidosCount Vendidos | @reservadosCount Reservados | @libresCount Libres\n";
 
-        let phoneParam = "";
-        if (telefono && telefono.trim() !== "") {
-            let limpio = telefono.replace(/\D/g, "");
-            if (limpio.length === 9) limpio = "51" + limpio;
-            phoneParam = "phone=" + limpio + "&";
-        }
-
-        let url = "https://api.whatsapp.com/send?" + phoneParam + "text=" + encodeURIComponent(texto);
+        let url = "https://api.whatsapp.com/send?text=" + encodeURIComponent(texto);
         window.open(url, "_blank");
     }
 </script>

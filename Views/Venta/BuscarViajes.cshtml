@@ -584,24 +584,8 @@
                                             </button>
                                         </div>
                                     </div>
-                                    <!-- Botones Imprimir Manifiesto para Chofer y Compartir WhatsApp -->
-                                    <div class="col-12">
-                                        <a href="@Url.Action("ManifiestoChofer", "Venta", new { viajeId = selectedViaje.Id_Viaje })" target="_blank" class="btn btn-sm btn-outline-warning w-100 fw-bold border-glass-btn py-1.5 fs-8 text-warning shadow-sm mb-2">
-                                            <i class="fa-solid fa-print me-1.5"></i> Imprimir Plano y Manifiesto de Pasajeros
-                                        </a>
-                                        <a href="@Url.Action("ManifiestoTurno", "Encomienda", new { viajeId = selectedViaje.Id_Viaje })" target="_blank" class="btn btn-sm btn-outline-info w-100 fw-bold border-glass-btn py-1.5 fs-8 text-info shadow-sm mb-2">
-                                            <i class="fa-solid fa-box-open me-1.5"></i> Ver Manifiesto de Encomiendas
-                                        </a>
-                                        <div class="d-flex gap-2">
-                                            <a href="@Url.Action("ManifiestoChofer", "Venta", new { viajeId = selectedViaje.Id_Viaje })" target="_blank" class="btn btn-xs btn-outline-success w-50 fw-bold border-glass-btn py-1.5 fs-9 text-success shadow-sm" title="Compartir Manifiesto de Pasajes por WhatsApp">
-                                                <i class="fa-brands fa-whatsapp me-1"></i> WhatsApp Pasajes
-                                            </a>
-                                            <a href="@Url.Action("ManifiestoTurno", "Encomienda", new { viajeId = selectedViaje.Id_Viaje })" target="_blank" class="btn btn-xs btn-outline-success w-50 fw-bold border-glass-btn py-1.5 fs-9 text-success shadow-sm" title="Compartir Manifiesto de Encomiendas por WhatsApp">
-                                                <i class="fa-brands fa-whatsapp me-1"></i> WhatsApp Encomiendas
-                                            </a>
-                                        </div>
-                                    </div>
                                 </div>
+
 
                                                <!-- Seat Legends -->
                                 <div class="d-flex flex-wrap gap-3 mb-3 justify-content-center bg-dark-card border-glass p-2 rounded">
@@ -818,7 +802,7 @@
                                       <i class="fa-solid fa-print me-1"></i> Manifiesto Pasajeros
                                   </a>
                                   <a href="@Url.Action("ManifiestoTurno", "Encomienda", new { viajeId = selectedViaje.Id_Viaje })" target="_blank" class="btn btn-xs btn-outline-info border-glass-btn py-1 px-2.5 fs-9 text-info fw-bold">
-                                      <i class="fa-solid fa-box me-1"></i> Manifiesto Encomiendas
+                                      <i class="fa-solid fa-box me-1"></i> Manifiesto de Encomiendas por Turno
                                   </a>
                                   @{
                                       var ventasDetalleList = ViewBag.VentasActivasDetalle as List<SistemaChotaExpress.Models.Venta> ?? new List<SistemaChotaExpress.Models.Venta>();

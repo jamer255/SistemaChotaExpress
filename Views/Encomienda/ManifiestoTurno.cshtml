@@ -497,9 +497,6 @@
 
     <script>
         function enviarWhatsAppEncomiendas() {
-            let telefono = prompt("📱 Ingresa el número de WhatsApp del conductor o destinatario (opcional, ej: 987654321):\n(Si lo dejas en blanco, podrás elegir cualquier contacto o grupo en WhatsApp)", "");
-            if (telefono === null) return; // Si cancela
-
             var total = '@count';
             var fecha = '@fechaFiltro.ToString("dd/MM/yyyy")';
             var hora = '@horaFormato12';
@@ -540,14 +537,7 @@
             texto += "----------------------------------\n"
                 + "✅ *Comprobado y Despachado por Agencia Chota Express.*";
 
-            let phoneParam = "";
-            if (telefono && telefono.trim() !== "") {
-                let limpio = telefono.replace(/\D/g, "");
-                if (limpio.length === 9) limpio = "51" + limpio;
-                phoneParam = "phone=" + limpio + "&";
-            }
-
-            var url = "https://api.whatsapp.com/send?" + phoneParam + "text=" + encodeURIComponent(texto);
+            var url = "https://api.whatsapp.com/send?text=" + encodeURIComponent(texto);
             window.open(url, '_blank');
         }
     </script>
