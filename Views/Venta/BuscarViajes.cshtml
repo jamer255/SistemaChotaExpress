@@ -537,6 +537,12 @@
                                         <i class="fa-solid fa-van-shuttle me-1 text-primary"></i> <strong>@displayNombreCombi</strong>
                                         <span class="badge bg-warning text-dark ms-1 fs-9 font-monospace">@rutaDisplay</span>
                                     </div>
+                                    <a href="@Url.Action("ManifiestoChofer", "Venta", new { viajeId = selectedViaje.Id_Viaje })" 
+                                       target="_blank" 
+                                       class="btn btn-warning btn-sm fw-bold text-dark shadow-sm px-2.5 py-1"
+                                       title="Ver e Imprimir Manifiesto Oficial de Pasajeros de esta combi (Hoja A4)">
+                                        <i class="fa-solid fa-print me-1"></i> Imprimir Manifiesto A4
+                                    </a>
                                 </div>
                                 <!-- Panel DATOS DEL VEHÍCULO: Placa + Conductor -->
                                 <div class="row g-2 mb-2">

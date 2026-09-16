@@ -806,19 +806,33 @@ namespace SistemaChotaExpress.Controllers
         // 4.1 MANIFIESTO Y CROQUIS DE ASIENTOS PARA EL CHOFER
         // ==========================================
         [HttpGet]
-        public async Task<IActionResult> ManifiestoChofer(int viajeId)
+        public async Task<IActionResult> ManifiestoChofer(int? viajeId)
         {
-            var viaje = await _context.Viajes
-                .Include(v => v.ObjetoBus)
-                .Include(v => v.ObjetoRuta)
-                .FirstOrDefaultAsync(v => v.Id_Viaje == viajeId);
+            Viaje? viaje = null;
+            if (viajeId.HasValue && viajeId.Value > 0)
+            {
+                viaje = await _context.Viajes
+                    .Include(v => v.ObjetoBus)
+                    .Include(v => v.ObjetoRuta)
+                    .FirstOrDefaultAsync(v => v.Id_Viaje == viajeId.Value);
+            }
 
-            if (viaje == null) return NotFound();
+            if (viaje == null)
+            {
+                // Si no se especificó ID o no existe, obtener el viaje más reciente con ventas o programado
+                viaje = await _context.Viajes
+                    .Include(v => v.ObjetoBus)
+                    .Include(v => v.ObjetoRuta)
+                    .OrderByDescending(v => v.FechaHoraSalida)
+                    .FirstOrDefaultAsync();
+            }
+
+            if (viaje == null) return NotFound("No se encontraron salidas registradas.");
 
             var ventasActivas = await _context.Ventas
                 .Include(v => v.ObjetoPasajero)
                 .Include(v => v.ObjetoUsuario)
-                .Where(v => v.Id_Viaje == viajeId && v.Estado != "Cancelado")
+                .Where(v => v.Id_Viaje == viaje.Id_Viaje && v.Estado != "Cancelado")
                 .OrderBy(v => v.NumeroAsiento)
                 .ToListAsync();
 

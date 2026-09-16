@@ -462,6 +462,9 @@
 
             <!-- Botones Rápidos de Llenado -->
             <div class="d-flex align-items-center gap-2">
+                <button type="button" class="btn btn-xs btn-outline-info" onclick="alternarModoLista()" id="btnModoLista" title="Alternar entre ver por número de asiento del croquis o lista continua">
+                    <i class="fa-solid fa-list-ol me-1"></i> <span id="lblModoLista">Modo Continuo (1..N)</span>
+                </button>
                 <button type="button" class="btn btn-xs btn-outline-warning" onclick="cargarDatosDelTurno()" title="Rellenar automáticamente con los datos registrados del viaje">
                     <i class="fa-solid fa-wand-magic-sparkles me-1"></i> Cargar Datos del Turno
                 </button>
@@ -534,7 +537,7 @@
                 : "CAJAMARCA - PORCON - EL COBRO - PUENTE PIEDRA - SAMANGAY - CHOTA Y VICIVERSA")
         </div>
 
-        <!-- 3. CUADROS TÉCNICOS (RUTA / COMBI / CAPACIDAD EN BLANCO PARA LLENAR) -->
+        <!-- 3. CUADROS TÉCNICOS (RUTA / COMBI / CAPACIDAD COMPILADOS CON LA SALIDA) -->
         <div class="tech-data-row">
             
             <!-- Cuadro 1: RUTA -->
@@ -545,23 +548,23 @@
                 <div class="tech-box-content">
                     <div class="tech-field">
                         <span class="tech-label">ORIGEN:</span>
-                        <span class="tech-val editable-field" id="valOrigen" contenteditable="true"></span>
+                        <span class="tech-val editable-field" id="valOrigen" contenteditable="true">@(Model.ObjetoRuta?.Origen.ToUpper() ?? "CAJAMARCA")</span>
                     </div>
                     <div class="tech-field">
                         <span class="tech-label">DESTINO:</span>
-                        <span class="tech-val editable-field" id="valDestino" contenteditable="true"></span>
+                        <span class="tech-val editable-field" id="valDestino" contenteditable="true">@(Model.ObjetoRuta?.Destino.ToUpper() ?? "CHOTA")</span>
                     </div>
                     <div class="tech-field">
                         <span class="tech-label">N° RES.:</span>
-                        <span class="tech-val editable-field" id="valRes" contenteditable="true"></span>
+                        <span class="tech-val editable-field" id="valRes" contenteditable="true">001-2024-DRTC</span>
                     </div>
                     <div class="tech-field">
                         <span class="tech-label">FECHA:</span>
-                        <span class="tech-val editable-field" id="valFecha" contenteditable="true"></span>
+                        <span class="tech-val editable-field" id="valFecha" contenteditable="true">@Model.FechaHoraSalida.ToString("dd/MM/yyyy")</span>
                     </div>
                     <div class="tech-field">
                         <span class="tech-label">HORA:</span>
-                        <span class="tech-val editable-field" id="valHora" contenteditable="true"></span>
+                        <span class="tech-val editable-field" id="valHora" contenteditable="true">@Model.FechaHoraSalida.ToString("hh:mm tt")</span>
                     </div>
                 </div>
             </div>
@@ -574,19 +577,19 @@
                 <div class="tech-box-content">
                     <div class="tech-field">
                         <span class="tech-label">CÓDIGO:</span>
-                        <span class="tech-val editable-field" id="valCodigo" contenteditable="true"></span>
+                        <span class="tech-val editable-field" id="valCodigo" contenteditable="true">@(Model.ObjetoBus != null ? $"BUS-{Model.ObjetoBus.Id_Bus:D2}" : "COMBI-01")</span>
                     </div>
                     <div class="tech-field">
                         <span class="tech-label">MODELO:</span>
-                        <span class="tech-val editable-field" id="valModelo" contenteditable="true"></span>
+                        <span class="tech-val editable-field" id="valModelo" contenteditable="true">@(Model.ObjetoBus?.Modelo ?? "Toyota HiAce")</span>
                     </div>
                     <div class="tech-field">
                         <span class="tech-label">PLACA:</span>
-                        <span class="tech-val editable-field font-monospace fw-bold" id="valPlaca" contenteditable="true"></span>
+                        <span class="tech-val editable-field font-monospace fw-bold" id="valPlaca" contenteditable="true">@(string.IsNullOrWhiteSpace(Model.PlacaVehiculo) ? (Model.ObjetoBus?.Placa ?? "SIN PLACA") : Model.PlacaVehiculo.ToUpper())</span>
                     </div>
                     <div class="tech-field">
                         <span class="tech-label">MARCA:</span>
-                        <span class="tech-val editable-field" id="valMarca" contenteditable="true"></span>
+                        <span class="tech-val editable-field" id="valMarca" contenteditable="true">@(Model.ObjetoBus?.Marca ?? "Toyota")</span>
                     </div>
                 </div>
             </div>
@@ -599,66 +602,83 @@
                 <div class="tech-box-content">
                     <div class="tech-field">
                         <span class="tech-label">CAPACIDAD COMBI:</span>
-                        <span class="tech-val editable-field" id="valCapacidad" contenteditable="true"></span>
+                        <span class="tech-val editable-field" id="valCapacidad" contenteditable="true">@capacidad</span>
                     </div>
                     <div class="tech-field">
                         <span class="tech-label">N° PASAJEROS OFICINA:</span>
-                        <span class="tech-val editable-field" id="valPasajerosOficina" contenteditable="true"></span>
+                        <span class="tech-val editable-field" id="valPasajerosOficina" contenteditable="true">@vendidosCount</span>
                     </div>
                     <div class="tech-field">
                         <span class="tech-label">N° TRIPULACIÓN:</span>
-                        <span class="tech-val editable-field" id="valTripulacion" contenteditable="true"></span>
+                        <span class="tech-val editable-field" id="valTripulacion" contenteditable="true">1</span>
                     </div>
                     <div class="tech-field">
                         <span class="tech-label">N° PASAJEROS RUTA:</span>
-                        <span class="tech-val editable-field" id="valPasajerosRuta" contenteditable="true"></span>
+                        <span class="tech-val editable-field" id="valPasajerosRuta" contenteditable="true">0</span>
                     </div>
                 </div>
             </div>
 
         </div>
 
-        <!-- 4. TRIPULACIÓN (EN BLANCO PARA LLENAR) -->
+        <!-- 4. TRIPULACIÓN -->
         <div class="crew-section">
             <div class="crew-header">TRIPULACIÓN</div>
             <div class="crew-body">
                 <div class="crew-pilot">
                     <strong class="text-primary">Piloto:</strong>
-                    <span class="fw-bold text-uppercase editable-field flex-grow-1" id="valPiloto" contenteditable="true">&nbsp;</span>
+                    <span class="fw-bold text-uppercase editable-field flex-grow-1" id="valPiloto" contenteditable="true">@(string.IsNullOrWhiteSpace(Model.NombreConductor) ? (Model.ObjetoBus?.NombreConductor ?? "POR ASIGNAR") : Model.NombreConductor.ToUpper())</span>
                 </div>
                 <div class="crew-license">
                     <strong class="text-primary">N° Licencia:</strong>
-                    <span class="font-monospace fw-bold editable-field flex-grow-1" id="valLicencia" contenteditable="true">&nbsp;</span>
+                    <span class="font-monospace fw-bold editable-field flex-grow-1" id="valLicencia" contenteditable="true">@(string.IsNullOrWhiteSpace(Model.ObjetoBus?.NumeroLicencia) ? "Q12345678" : Model.ObjetoBus.NumeroLicencia.ToUpper())</span>
                 </div>
             </div>
         </div>
 
-        <!-- 5. TABLA OFICIAL DE 16 PASAJEROS (HOJA COMPLETA) -->
+        <!-- 5. TABLA OFICIAL DE 16 PASAJEROS (COMPILADA CON VENTAS DEL CROQUIS DE LA COMBI) -->
         <div class="table-wrapper">
-            <table class="passenger-table">
+            <table class="passenger-table" id="tablaPasajerosOficial">
                 <thead>
                     <tr>
                         <th class="col-num">#</th>
                         <th class="col-name">PASAJERO</th>
-                        <th class="col-doc">N° Doc.</th>
-                        <th class="col-ticket">N° Pasaje</th>
-                        <th class="col-seat">Asiento</th>
-                        <th class="col-price">Precio</th>
-                        <th class="col-obs">Observaciones</th>
+                        <th class="col-doc">N° DOC.</th>
+                        <th class="col-ticket">N° PASAJE</th>
+                        <th class="col-seat">ASIENTO</th>
+                        <th class="col-price">PRECIO</th>
+                        <th class="col-obs">OBSERVACIONES</th>
                     </tr>
                 </thead>
                 <tbody id="tablaPasajerosBody">
                     @{
+                        // Mapeo por número de asiento de la combi (Asientos 1..15)
+                        var ventasDict = new Dictionary<int, SistemaChotaExpress.Models.Venta>();
+                        if (ventas != null)
+                        {
+                            foreach (var vt in ventas)
+                            {
+                                if (!ventasDict.ContainsKey(vt.NumeroAsiento))
+                                {
+                                    ventasDict[vt.NumeroAsiento] = vt;
+                                }
+                            }
+                        }
+
                         for (int i = 1; i <= 16; i++)
                         {
-                            var vta = (ventas != null && i <= ventas.Count) ? ventas[i - 1] : null;
+                            SistemaChotaExpress.Models.Venta? vta = null;
+                            if (ventasDict.TryGetValue(i, out var vtAsiento))
+                            {
+                                vta = vtAsiento;
+                            }
 
                             if (vta != null)
                             {
-                                var pasName = vta.ObjetoPasajero?.NombreCompleto ?? "Pasajero";
+                                var pasName = vta.ObjetoPasajero?.NombreCompleto?.ToUpper() ?? "PASAJERO";
                                 var numDoc = vta.ObjetoPasajero?.NumeroDocumento ?? "-";
                                 var ticketNum = $"#P-{vta.Id_Venta:D5}";
-                                var asiento = $"#{vta.NumeroAsiento}";
+                                var asiento = $"{vta.NumeroAsiento}";
                                 var precio = $"S/ {vta.PrecioPagado:0.00}";
                                 var obs = vta.Estado == "Reservado" ? "RESERVA" : "";
                                 if (!string.IsNullOrWhiteSpace(vta.Observaciones))
@@ -666,7 +686,7 @@
                                     obs = string.IsNullOrEmpty(obs) ? vta.Observaciones : $"{obs} - {vta.Observaciones}";
                                 }
 
-                                <tr>
+                                <tr data-asiento="@i">
                                     <td class="col-num">@i</td>
                                     <td class="col-name editable-field" contenteditable="true">@pasName</td>
                                     <td class="col-doc editable-field" contenteditable="true">@numDoc</td>
@@ -678,14 +698,15 @@
                             }
                             else
                             {
-                                <tr>
+                                var asientoSugerido = (i <= 15) ? $"{i}" : "";
+                                <tr data-asiento="@i">
                                     <td class="col-num">@i</td>
-                                    <td class="col-name editable-field" contenteditable="true">&nbsp;</td>
-                                    <td class="col-doc editable-field" contenteditable="true">&nbsp;</td>
-                                    <td class="col-ticket editable-field" contenteditable="true">&nbsp;</td>
-                                    <td class="col-seat editable-field" contenteditable="true">&nbsp;</td>
-                                    <td class="col-price editable-field" contenteditable="true">&nbsp;</td>
-                                    <td class="col-obs editable-field" contenteditable="true">&nbsp;</td>
+                                    <td class="col-name editable-field" contenteditable="true"></td>
+                                    <td class="col-doc editable-field" contenteditable="true"></td>
+                                    <td class="col-ticket editable-field" contenteditable="true"></td>
+                                    <td class="col-seat editable-field" contenteditable="true">@asientoSugerido</td>
+                                    <td class="col-price editable-field" contenteditable="true"></td>
+                                    <td class="col-obs editable-field" contenteditable="true"></td>
                                 </tr>
                             }
                         }
@@ -725,6 +746,91 @@
             }
         }
 
+        // Lista de pasajes activos serializados
+        const ventasData = [
+        @if (ventas != null && ventas.Any())
+        {
+            foreach (var v in ventas)
+            {
+                var pName = v.ObjetoPasajero?.NombreCompleto?.ToUpper() ?? "PASAJERO";
+                var numDoc = v.ObjetoPasajero?.NumeroDocumento ?? "-";
+                var ticketNum = $"#P-{v.Id_Venta:D5}";
+                var asiento = v.NumeroAsiento;
+                var precio = $"S/ {v.PrecioPagado:0.00}";
+                var obs = v.Estado == "Reservado" ? "RESERVA" : "";
+                if (!string.IsNullOrWhiteSpace(v.Observaciones))
+                {
+                    obs = string.IsNullOrEmpty(obs) ? v.Observaciones : $"{obs} - {v.Observaciones}";
+                }
+                <text>{ asiento: @asiento, nombre: "@pName", doc: "@numDoc", ticket: "@ticketNum", precio: "@precio", obs: "@obs" },</text>
+            }
+        }
+        ];
+
+        let modoActual = 'asiento'; // 'asiento' o 'continuo'
+
+        // Alternar entre modo por Asiento (fila 2 = asiento 2) y modo Continuo (fila 1, 2, 3...)
+        function alternarModoLista() {
+            modoActual = (modoActual === 'asiento') ? 'continuo' : 'asiento';
+            const btn = document.getElementById('btnModoLista');
+            const lbl = document.getElementById('lblModoLista');
+            
+            if (modoActual === 'continuo') {
+                btn.className = "btn btn-xs btn-info text-dark fw-bold";
+                lbl.innerText = "Modo Por Asiento (1..15)";
+                renderizarTablaContinuo();
+            } else {
+                btn.className = "btn btn-xs btn-outline-info";
+                lbl.innerText = "Modo Continuo (1..N)";
+                renderizarTablaPorAsiento();
+            }
+        }
+
+        function renderizarTablaPorAsiento() {
+            const rows = document.querySelectorAll('#tablaPasajerosBody tr');
+            rows.forEach((tr, idx) => {
+                const numAsiento = idx + 1;
+                const v = ventasData.find(item => item.asiento === numAsiento);
+                if (v) {
+                    tr.querySelector('.col-name').innerText = v.nombre;
+                    tr.querySelector('.col-doc').innerText = v.doc;
+                    tr.querySelector('.col-ticket').innerText = v.ticket;
+                    tr.querySelector('.col-seat').innerText = v.asiento;
+                    tr.querySelector('.col-price').innerText = v.precio;
+                    tr.querySelector('.col-obs').innerText = v.obs;
+                } else {
+                    tr.querySelector('.col-name').innerText = "";
+                    tr.querySelector('.col-doc').innerText = "";
+                    tr.querySelector('.col-ticket').innerText = "";
+                    tr.querySelector('.col-seat').innerText = (numAsiento <= 15) ? numAsiento : "";
+                    tr.querySelector('.col-price').innerText = "";
+                    tr.querySelector('.col-obs').innerText = "";
+                }
+            });
+        }
+
+        function renderizarTablaContinuo() {
+            const rows = document.querySelectorAll('#tablaPasajerosBody tr');
+            rows.forEach((tr, idx) => {
+                if (idx < ventasData.length) {
+                    const v = ventasData[idx];
+                    tr.querySelector('.col-name').innerText = v.nombre;
+                    tr.querySelector('.col-doc').innerText = v.doc;
+                    tr.querySelector('.col-ticket').innerText = v.ticket;
+                    tr.querySelector('.col-seat').innerText = v.asiento;
+                    tr.querySelector('.col-price').innerText = v.precio;
+                    tr.querySelector('.col-obs').innerText = v.obs;
+                } else {
+                    tr.querySelector('.col-name').innerText = "";
+                    tr.querySelector('.col-doc').innerText = "";
+                    tr.querySelector('.col-ticket').innerText = "";
+                    tr.querySelector('.col-seat').innerText = "";
+                    tr.querySelector('.col-price').innerText = "";
+                    tr.querySelector('.col-obs').innerText = "";
+                }
+            });
+        }
+
         // Cargar los datos del turno registrado en el sistema
         function cargarDatosDelTurno() {
             document.getElementById('valOrigen').innerText = "@(Model.ObjetoRuta?.Origen.ToUpper() ?? "CAJAMARCA")";
@@ -745,9 +851,15 @@
 
             document.getElementById('valPiloto').innerText = "@(string.IsNullOrWhiteSpace(Model.NombreConductor) ? (Model.ObjetoBus?.NombreConductor ?? "POR ASIGNAR") : Model.NombreConductor.ToUpper())";
             document.getElementById('valLicencia').innerText = "@(string.IsNullOrWhiteSpace(Model.ObjetoBus?.NumeroLicencia) ? "POR ASIGNAR" : Model.ObjetoBus.NumeroLicencia.ToUpper())";
+
+            if (modoActual === 'continuo') {
+                renderizarTablaContinuo();
+            } else {
+                renderizarTablaPorAsiento();
+            }
         }
 
-        // Dejar todos los campos técnicos en blanco para llenar a mano recién
+        // Dejar todos los campos técnicos y tabla en blanco para llenar a mano recién
         function limpiarCamposEnBlanco() {
             document.getElementById('valOrigen').innerText = "";
             document.getElementById('valDestino').innerText = "";
@@ -767,6 +879,17 @@
 
             document.getElementById('valPiloto').innerText = "";
             document.getElementById('valLicencia').innerText = "";
+
+            // Limpiar celdas de la tabla para llenar 100% a mano con lapicero
+            const rows = document.querySelectorAll('#tablaPasajerosBody tr');
+            rows.forEach((tr, idx) => {
+                tr.querySelector('.col-name').innerText = "";
+                tr.querySelector('.col-doc').innerText = "";
+                tr.querySelector('.col-ticket').innerText = "";
+                tr.querySelector('.col-seat').innerText = (idx < 15) ? (idx + 1) : "";
+                tr.querySelector('.col-price').innerText = "";
+                tr.querySelector('.col-obs').innerText = "";
+            });
         }
 
         // Enviar resumen a WhatsApp
