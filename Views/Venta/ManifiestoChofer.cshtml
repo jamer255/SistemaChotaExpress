@@ -677,23 +677,16 @@
                             {
                                 var pasName = vta.ObjetoPasajero?.NombreCompleto?.ToUpper() ?? "PASAJERO";
                                 var numDoc = vta.ObjetoPasajero?.NumeroDocumento ?? "-";
-                                var ticketNum = $"#P-{vta.Id_Venta:D5}";
                                 var asiento = $"{vta.NumeroAsiento}";
-                                var precio = $"S/ {vta.PrecioPagado:0.00}";
-                                var obs = vta.Estado == "Reservado" ? "RESERVA" : "";
-                                if (!string.IsNullOrWhiteSpace(vta.Observaciones))
-                                {
-                                    obs = string.IsNullOrEmpty(obs) ? vta.Observaciones : $"{obs} - {vta.Observaciones}";
-                                }
 
                                 <tr data-asiento="@i">
                                     <td class="col-num">@i</td>
                                     <td class="col-name editable-field" contenteditable="true">@pasName</td>
                                     <td class="col-doc editable-field" contenteditable="true">@numDoc</td>
-                                    <td class="col-ticket editable-field" contenteditable="true">@ticketNum</td>
+                                    <td class="col-ticket editable-field" contenteditable="true"></td>
                                     <td class="col-seat editable-field" contenteditable="true">@asiento</td>
-                                    <td class="col-price editable-field" contenteditable="true">@precio</td>
-                                    <td class="col-obs editable-field" contenteditable="true">@obs</td>
+                                    <td class="col-price editable-field" contenteditable="true"></td>
+                                    <td class="col-obs editable-field" contenteditable="true"></td>
                                 </tr>
                             }
                             else
@@ -794,10 +787,10 @@
                 if (v) {
                     tr.querySelector('.col-name').innerText = v.nombre;
                     tr.querySelector('.col-doc').innerText = v.doc;
-                    tr.querySelector('.col-ticket').innerText = v.ticket;
+                    tr.querySelector('.col-ticket').innerText = "";
                     tr.querySelector('.col-seat').innerText = v.asiento;
-                    tr.querySelector('.col-price').innerText = v.precio;
-                    tr.querySelector('.col-obs').innerText = v.obs;
+                    tr.querySelector('.col-price').innerText = "";
+                    tr.querySelector('.col-obs').innerText = "";
                 } else {
                     tr.querySelector('.col-name').innerText = "";
                     tr.querySelector('.col-doc').innerText = "";
@@ -816,10 +809,10 @@
                     const v = ventasData[idx];
                     tr.querySelector('.col-name').innerText = v.nombre;
                     tr.querySelector('.col-doc').innerText = v.doc;
-                    tr.querySelector('.col-ticket').innerText = v.ticket;
+                    tr.querySelector('.col-ticket').innerText = "";
                     tr.querySelector('.col-seat').innerText = v.asiento;
-                    tr.querySelector('.col-price').innerText = v.precio;
-                    tr.querySelector('.col-obs').innerText = v.obs;
+                    tr.querySelector('.col-price').innerText = "";
+                    tr.querySelector('.col-obs').innerText = "";
                 } else {
                     tr.querySelector('.col-name').innerText = "";
                     tr.querySelector('.col-doc').innerText = "";
@@ -922,9 +915,8 @@
                 {
                     var pName = v.ObjetoPasajero?.NombreCompleto ?? "Pasajero";
                     var pDoc = v.ObjetoPasajero?.NumeroDocumento ?? "-";
-                    var est = v.Estado == "Reservado" ? " (Reserva)" : "";
                     <text>
-                    texto += "@k. [Asiento #@v.NumeroAsiento] @pName - Doc: @pDoc (S/ @v.PrecioPagado.ToString("0.00"))@est\n";
+                    texto += "@k. [Asiento #@v.NumeroAsiento] @pName - Doc: @pDoc\n";
                     hayPasajeros = true;
                     </text>
                     k++;
@@ -936,9 +928,7 @@
             }
 
             texto += "--------------------------------------\n";
-            texto += "*Resumen:* @vendidosCount Vendidos | @reservadosCount Reservados | @libresCount Libres\n";
-            var recaudadoStr = "@(ventas.Where(v => v.Estado == "Vendido").Sum(v => v.PrecioPagado).ToString("0.00"))";
-            texto += "*Total Recaudado:* S/ " + recaudadoStr;
+            texto += "*Resumen:* @vendidosCount Pasajeros Registrados | @libresCount Libres";
 
             const url = "https://api.whatsapp.com/send?text=" + encodeURIComponent(texto);
             window.open(url, "_blank");
