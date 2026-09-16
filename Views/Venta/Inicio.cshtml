@@ -7,6 +7,11 @@
 }
 
 <style>
+    /* En la página de inicio, mantener el menú superior limpio solo con Inicio */
+    .navbar .navbar-nav.me-auto > .nav-item:not(:first-child) {
+        display: none !important;
+    }
+
     .bienvenida-wrapper {
         min-height: calc(100vh - 120px);
         display: flex;

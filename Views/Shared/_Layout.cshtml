@@ -38,7 +38,8 @@
                             var isGerente = User.IsInRole("Gerente");
                             var currentCtrl = ViewContext.RouteData.Values["controller"]?.ToString();
                             var currentAct = ViewContext.RouteData.Values["action"]?.ToString();
-                            var isInicio = currentCtrl == "Venta" && currentAct == "Inicio";
+                            var isInicio = (string.Equals(currentCtrl, "Venta", StringComparison.OrdinalIgnoreCase) && string.Equals(currentAct, "Inicio", StringComparison.OrdinalIgnoreCase))
+                                        || ViewData["Title"]?.ToString() == "Bienvenido";
 
                             if (isGerente)
                             {
