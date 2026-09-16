@@ -48,43 +48,6 @@
     </div>
 </div>
 
-<!-- BARRA DE HORARIOS DISPONIBLES (24 FRANJAS HORARIAS) -->
-<div class="card bg-dark text-white border-glass p-3 mb-4 shadow-sm">
-    <div class="sidebar-section-title mb-2 d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <span class="text-warning fw-bold fs-7">
-            <i class="fa-regular fa-clock me-1 text-warning"></i> HORARIOS DISPONIBLES: <span id="franjaRutaTexto" class="text-white text-uppercase">CHOTA → CAJAMARCA</span>
-        </span>
-        <small class="text-muted fs-9">24 FRANJAS HORARIAS</small>
-    </div>
-    <div class="d-flex flex-wrap gap-1.5 hour-container" id="franjasHorariasContainer">
-        @{
-            string[] horas24 = new string[] {
-                "00:00", "01:00", "02:00", "03:00", "04:00", "05:00",
-                "06:00", "07:00", "08:00", "09:00", "10:00", "11:00",
-                "12:00", "13:00", "14:00", "15:00", "16:00", "17:00",
-                "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"
-            };
-            string[] horasLabels = new string[] {
-                "12:00 AM", "01:00 AM", "02:00 AM", "03:00 AM", "04:00 AM", "05:00 AM",
-                "06:00 AM", "07:00 AM", "08:00 AM", "09:00 AM", "10:00 AM", "11:00 AM",
-                "12:00 PM", "01:00 PM", "02:00 PM", "03:00 PM", "04:00 PM", "05:00 PM",
-                "06:00 PM", "07:00 PM", "08:00 PM", "09:00 PM", "10:00 PM", "11:00 PM"
-            };
-        }
-        @for (int i = 0; i < 24; i++)
-        {
-            var hVal = horas24[i];
-            var hLabel = horasLabels[i];
-            var isSel = (Model?.TurnoSalida == hVal || (string.IsNullOrEmpty(Model?.TurnoSalida) && hVal == "08:00"));
-            <button type="button" 
-                    class="btn hour-pill-btn mb-1 me-1 @(isSel ? "btn-teal-active shadow-lg" : "btn-glass-pill")" 
-                    data-hora="@hVal" 
-                    onclick="seleccionarHorarioTurno('@hVal', this)">
-                <i class="fa-regular fa-clock me-1 fs-9"></i>@hLabel
-            </button>
-        }
-    </div>
-</div>
 
 <form asp-action="Registrar" method="post">
     @Html.AntiForgeryToken()
@@ -389,55 +352,6 @@
                 }
             });
 
-            // Sincronización de Franjas Horarias con el Select de Turno
-            const selectTurno = document.getElementById('TurnoSalida');
-            if (selectTurno) {
-                selectTurno.addEventListener('change', function () {
-                    const horaSeleccionada = this.value;
-                    document.querySelectorAll('#franjasHorariasContainer .hour-pill-btn').forEach(btn => {
-                        if (btn.getAttribute('data-hora') === horaSeleccionada) {
-                            btn.classList.remove('btn-glass-pill');
-                            btn.classList.add('btn-teal-active', 'shadow-lg');
-                        } else {
-                            btn.classList.remove('btn-teal-active', 'shadow-lg');
-                            btn.classList.add('btn-glass-pill');
-                        }
-                    });
-                });
-            }
-
-            // Actualización dinámica de Origen → Destino en la barra de horarios
-            function actualizarTextoRutaFranja() {
-                const origenSelect = document.getElementById('origenRutaSelect');
-                const destinoSelect = document.getElementById('destinoRutaSelect');
-                const spanTexto = document.getElementById('franjaRutaTexto');
-                if (spanTexto) {
-                    const orig = origenSelect && origenSelect.value ? origenSelect.value : 'CHOTA';
-                    const dest = destinoSelect && destinoSelect.value ? destinoSelect.value : 'CAJAMARCA';
-                    spanTexto.innerText = `${orig} → ${dest}`.toUpperCase();
-                }
-            }
-
-            document.getElementById('origenRutaSelect')?.addEventListener('change', actualizarTextoRutaFranja);
-            document.getElementById('destinoRutaSelect')?.addEventListener('change', actualizarTextoRutaFranja);
-            actualizarTextoRutaFranja();
         });
-
-        function seleccionarHorarioTurno(hora, btn) {
-            const select = document.getElementById('TurnoSalida');
-            if (select) {
-                select.value = hora;
-                // Disparar evento change para validaciones
-                select.dispatchEvent(new Event('change'));
-            }
-            document.querySelectorAll('#franjasHorariasContainer .hour-pill-btn').forEach(el => {
-                el.classList.remove('btn-teal-active', 'shadow-lg');
-                el.classList.add('btn-glass-pill');
-            });
-            if (btn) {
-                btn.classList.remove('btn-glass-pill');
-                btn.classList.add('btn-teal-active', 'shadow-lg');
-            }
-        }
     </script>
 }
