@@ -4,279 +4,352 @@
     var ventas = ViewBag.VentasActivas as List<SistemaChotaExpress.Models.Venta> ?? new List<SistemaChotaExpress.Models.Venta>();
     var vendidosCount = ventas.Count(v => v.Estado == "Vendido");
     var reservadosCount = ventas.Count(v => v.Estado == "Reservado");
-    var ocupadosTotal = vendidosCount + reservadosCount;
-    var libresCount = 15 - ocupadosTotal;
+    var totalOcupados = vendidosCount + reservadosCount;
+    var capacidad = Model.ObjetoBus?.Capacidad ?? 15;
+    var libresCount = capacidad - totalOcupados;
     if (libresCount < 0) libresCount = 0;
 
-    // Dict helper for quick lookup by seat
-    var ventasDict = ventas.GroupBy(v => v.NumeroAsiento).ToDictionary(g => g.Key, g => g.First());
+    var destinoUpper = Model.ObjetoRuta?.Destino?.ToUpper() ?? "";
+    bool esRutaCutervo = destinoUpper.Contains("CUTERVO");
 }
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Manifiesto de Pasajeros - Viaje #@Model.Id_Viaje - Chota Express</title>
+    <title>Manifiesto de Pasajeros - Salida #@Model.Id_Viaje - Chota Express</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Outfit', sans-serif;
-            background-color: #f1f5f9;
-            color: #0f172a;
-            margin: 0;
-            padding: 20px;
+        @@page {
+            size: A4 portrait;
+            margin: 6mm 8mm;
         }
 
-        .paper-sheet {
-            max-width: 960px;
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: #e2e8f0;
+            color: #000000;
+            margin: 0;
+            padding: 15px;
+            font-size: 11px;
+        }
+
+        /* Barra superior interactiva (No imprimible) */
+        .no-print {
+            max-width: 210mm;
+            margin: 0 auto 12px auto;
+            background: #1e293b;
+            color: #ffffff;
+            padding: 12px 18px;
+            border-radius: 8px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+        }
+
+        /* Hoja A4 Oficial */
+        .a4-sheet {
+            width: 210mm;
+            min-height: 297mm;
+            max-width: 100%;
             margin: 0 auto;
             background: #ffffff;
-            padding: 28px 36px;
-            border-radius: 8px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            border: 1px solid #cbd5e1;
+            padding: 10mm 12mm;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.15);
+            border: 1px solid #94a3b8;
+            position: relative;
         }
 
-        .header-brand {
+        /* Encabezado */
+        .manifest-header {
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            border-bottom: 2px solid #f37021;
-            padding-bottom: 12px;
-            margin-bottom: 16px;
+            align-items: flex-start;
+            border-bottom: 2px solid #1e3a8a;
+            padding-bottom: 6px;
+            margin-bottom: 6px;
         }
 
-        .company-name {
-            font-size: 1.5rem;
+        .header-left {
+            flex: 1;
+            padding-right: 15px;
+        }
+
+        .company-title {
+            font-size: 13.5pt;
+            font-weight: 900;
+            color: #1e3a8a;
+            letter-spacing: -0.2px;
+            margin: 0 0 2px 0;
+            text-transform: uppercase;
+        }
+
+        .company-subtitle {
+            font-size: 7pt;
+            color: #334155;
+            line-height: 1.25;
+            margin: 0;
+        }
+
+        .header-right {
+            text-align: right;
+            min-width: 230px;
+        }
+
+        .ruc-badge {
+            font-size: 11pt;
             font-weight: 800;
-            color: #f37021;
+            color: #1e3a8a;
+            margin-bottom: 2px;
+        }
+
+        .doc-title {
+            font-size: 13pt;
+            font-weight: 900;
+            color: #1e3a8a;
+            text-transform: uppercase;
             letter-spacing: 0.5px;
             margin: 0;
         }
 
-        .manifest-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: #1e293b;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-top: 4px;
-        }
-
-        .meta-box {
-            background-color: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            padding: 12px 16px;
-            margin-bottom: 16px;
-        }
-
-        .meta-label {
-            font-size: 0.72rem;
-            font-weight: 700;
-            color: #64748b;
-            text-transform: uppercase;
-            margin-bottom: 2px;
-        }
-
-        .meta-value {
-            font-size: 0.88rem;
-            font-weight: 700;
-            color: #0f172a;
-        }
-
-        /* Croquis de Asientos para Chofer */
-        .cabin-layout {
-            background: #ffffff;
-            border: 1.5px solid #0f172a;
-            border-radius: 8px;
-            padding: 14px;
-            margin-bottom: 20px;
-        }
-
-        .cabin-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            grid-template-rows: repeat(4, 1fr);
-            gap: 8px;
-            align-items: center;
-            justify-items: center;
-        }
-
-        .seat-item {
-            width: 100%;
-            height: 64px;
-            border: 1.5px solid #94a3b8;
-            border-radius: 6px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 2px 4px;
-            font-size: 0.72rem;
-            text-align: center;
-            background: #f8fafc;
-        }
-
-        .seat-item.occupied {
-            background-color: #fee2e2;
-            border-color: #ef4444;
-            color: #991b1b;
-        }
-
-        .seat-item.reserved {
-            background-color: #fef3c7;
-            border-color: #f59e0b;
-            color: #92400e;
-        }
-
-        .seat-item.free {
-            background-color: #ecfdf5;
-            border-color: #10b981;
-            color: #065f46;
-        }
-
-        .seat-number-badge {
+        .serie-numero {
+            font-size: 13pt;
             font-weight: 800;
-            font-size: 0.85rem;
-            line-height: 1;
-        }
-
-        .passenger-mini-name {
-            font-size: 0.65rem;
-            font-weight: 700;
-            line-height: 1.1;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 100%;
+            color: #dc2626;
+            letter-spacing: 1px;
             margin-top: 2px;
+            font-family: 'Courier New', Courier, monospace;
         }
 
-        .seat-status-mini {
-            font-size: 0.6rem;
-            text-transform: uppercase;
-            font-weight: 600;
-        }
-
-        .driver-box {
-            border: 1.5px dashed #64748b;
-            border-radius: 6px;
-            height: 64px;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: #475569;
-            font-size: 0.75rem;
-            font-weight: 700;
-            background: #f1f5f9;
-        }
-
-        /* Tabla de Pasajeros */
-        .manifest-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.78rem;
-            margin-bottom: 24px;
-        }
-
-        .manifest-table th {
-            background-color: #0f172a;
-            color: #ffffff;
-            font-weight: 700;
-            text-transform: uppercase;
-            font-size: 0.7rem;
-            padding: 8px 6px;
-            border: 1px solid #0f172a;
-            text-align: left;
-        }
-
-        .manifest-table td {
-            padding: 7px 6px;
-            border: 1px solid #cbd5e1;
-            vertical-align: middle;
-        }
-
-        .manifest-table tr:nth-child(even) td {
-            background-color: #f8fafc;
-        }
-
-        .signatures-area {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 36px;
-            padding-top: 16px;
-        }
-
-        .sig-block {
+        /* Franja de Permiso de Ruta */
+        .route-banner {
+            border: 1.5px solid #1e3a8a;
+            background-color: #eff6ff;
+            color: #1e3a8a;
             text-align: center;
-            width: 220px;
+            font-size: 8.5pt;
+            font-weight: 800;
+            padding: 4px 6px;
+            letter-spacing: 0.3px;
+            margin-bottom: 6px;
+            text-transform: uppercase;
         }
 
-        .sig-line {
-            border-top: 1.5px solid #0f172a;
+        /* Cajas de Datos Técnicos (3 columnas) */
+        .tech-data-row {
+            display: flex;
+            gap: 6px;
             margin-bottom: 6px;
         }
 
-        .sig-title {
-            font-size: 0.75rem;
+        .tech-box {
+            flex: 1;
+            border: 1.2px solid #1e3a8a;
+            border-radius: 4px;
+            display: flex;
+            overflow: hidden;
+            height: 96px;
+        }
+
+        .tech-box-side-label {
+            background-color: #1e3a8a;
+            color: #ffffff;
+            font-size: 7.5pt;
+            font-weight: 800;
+            width: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            padding: 4px 0;
+        }
+
+        .tech-box-content {
+            flex: 1;
+            padding: 4px 6px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            font-size: 7.5pt;
+        }
+
+        .tech-field {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px dashed #cbd5e1;
+            padding: 1.5px 0;
+        }
+
+        .tech-field:last-child {
+            border-bottom: none;
+        }
+
+        .tech-label {
+            font-weight: 800;
+            color: #1e3a8a;
+            font-size: 7pt;
+        }
+
+        .tech-val {
             font-weight: 700;
-            color: #1e293b;
+            color: #000000;
+            text-align: right;
+            font-size: 7.5pt;
+        }
+
+        /* Sección Tripulación */
+        .crew-section {
+            border: 1.2px solid #1e3a8a;
+            border-radius: 4px;
+            margin-bottom: 6px;
+            overflow: hidden;
+        }
+
+        .crew-header {
+            background-color: #1e3a8a;
+            color: #ffffff;
+            text-align: center;
+            font-weight: 800;
+            font-size: 8.5pt;
+            letter-spacing: 2px;
+            padding: 2px 0;
             text-transform: uppercase;
         }
 
-        .sig-sub {
-            font-size: 0.68rem;
-            color: #64748b;
+        .crew-body {
+            display: flex;
+            padding: 4px 10px;
+            font-size: 8pt;
+            background: #ffffff;
         }
 
-        /* Print Controls Bar */
-        .print-bar {
-            max-width: 960px;
-            margin: 0 auto 16px auto;
+        .crew-pilot {
+            flex: 2;
+            display: flex;
+            gap: 6px;
+        }
+
+        .crew-license {
+            flex: 1;
+            display: flex;
+            gap: 6px;
+            border-left: 1px dashed #cbd5e1;
+            padding-left: 12px;
+        }
+
+        /* Tabla de Pasajeros */
+        .passenger-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 7.8pt;
+            border: 1.5px solid #1e3a8a;
+            margin-bottom: 8px;
+        }
+
+        .passenger-table th {
+            background-color: #1e3a8a;
+            color: #ffffff;
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: 4px 4px;
+            border: 1px solid #1e3a8a;
+            text-align: center;
+            font-size: 7.5pt;
+        }
+
+        .passenger-table td {
+            padding: 3.5px 4px;
+            border: 1px solid #cbd5e1;
+            vertical-align: middle;
+            height: 24px;
+        }
+
+        .passenger-table tr:nth-child(even) td {
+            background-color: #f8fafc;
+        }
+
+        .col-num { width: 26px; text-align: center; font-weight: 800; color: #1e3a8a; }
+        .col-name { width: 38%; font-weight: 700; text-transform: uppercase; }
+        .col-doc { width: 14%; text-align: center; font-family: monospace; font-size: 8pt; }
+        .col-ticket { width: 12%; text-align: center; font-family: monospace; font-size: 7.5pt; }
+        .col-seat { width: 10%; text-align: center; font-weight: 800; }
+        .col-price { width: 10%; text-align: right; font-weight: 700; }
+        .col-obs { width: 16%; font-size: 7pt; }
+
+        /* Pie de página oficial */
+        .manifest-footer {
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-end;
+            margin-top: 6px;
+            padding-top: 4px;
+            font-size: 6.5pt;
+            color: #475569;
         }
 
+        .print-legend {
+            font-size: 6pt;
+            color: #64748b;
+            text-transform: uppercase;
+            max-width: 80%;
+            line-height: 1.2;
+        }
+
+        .copy-tag {
+            font-weight: 900;
+            font-size: 9pt;
+            color: #dc2626;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* Ajustes de Impresión Estrictos A4 */
         @@media print {
             body {
                 background: #ffffff !important;
                 padding: 0 !important;
+                margin: 0 !important;
             }
-            .print-bar {
+
+            .no-print {
                 display: none !important;
             }
-            .paper-sheet {
-                max-width: 100% !important;
+
+            .a4-sheet {
                 border: none !important;
                 box-shadow: none !important;
                 padding: 0 !important;
+                width: 100% !important;
+                min-height: auto !important;
             }
-            .manifest-table th {
-                background-color: #000000 !important;
+
+            .route-banner {
+                background-color: #eff6ff !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .tech-box-side-label, .crew-header, .passenger-table th {
+                background-color: #1e3a8a !important;
                 color: #ffffff !important;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
-            .seat-item.occupied {
-                background-color: #fee2e2 !important;
+
+            .passenger-table tr:nth-child(even) td {
+                background-color: #f8fafc !important;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
-            .seat-item.reserved {
-                background-color: #fef3c7 !important;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-            .seat-item.free {
-                background-color: #ecfdf5 !important;
+
+            .serie-numero, .copy-tag {
+                color: #dc2626 !important;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
@@ -285,373 +358,313 @@
 </head>
 <body>
 
-    <!-- Bar with Action Buttons (Hidden when printing) -->
-    <div class="print-bar">
-        <div>
-            <button onclick="window.print();" class="btn btn-primary fw-bold px-4 py-2" style="background-color: #f37021; border-color: #f37021;">
-                <i class="fa-solid fa-print me-1"></i> Imprimir Manifiesto para Chofer
-            </button>
-            <button onclick="enviarWhatsApp();" class="btn btn-success fw-bold px-3 py-2 ms-2 shadow-sm">
-                <i class="fa-brands fa-whatsapp me-1"></i> Compartir por WhatsApp
-            </button>
-            <button onclick="window.close();" class="btn btn-outline-secondary fw-bold px-3 py-2 ms-2">
-                <i class="fa-solid fa-xmark me-1"></i> Cerrar
-            </button>
-        </div>
-        <div class="text-muted fs-8">
-            <i class="fa-solid fa-circle-info me-1 text-primary"></i> Formato optimizado para impresión en hoja A4.
+    <!-- BARRA DE CONTROL Y ACCIONES (NO IMPRIMIBLE) -->
+    <div class="no-print">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div>
+                <h5 class="fw-bold mb-1 text-warning"><i class="fa-solid fa-file-lines me-2"></i>Manifiesto Oficial de Pasajeros (Formato A4)</h5>
+                <span class="text-white-50 small">Selecciona el permiso de ruta oficial para imprimir o compartir:</span>
+            </div>
+            
+            <!-- Selector de Permiso de Ruta -->
+            <div class="d-flex align-items-center gap-2">
+                <span class="small fw-bold text-white"><i class="fa-solid fa-route text-warning me-1"></i>Ruta Oficial:</span>
+                <div class="btn-group" role="group">
+                    <button type="button" id="btnRutaCutervo" class="btn btn-sm @(esRutaCutervo ? "btn-warning text-dark fw-bold" : "btn-outline-light")" onclick="cambiarRutaPermiso('cutervo')">
+                        <i class="fa-solid fa-check-circle me-1"></i> Hasta Cutervo
+                    </button>
+                    <button type="button" id="btnRutaChota" class="btn btn-sm @(!esRutaCutervo ? "btn-warning text-dark fw-bold" : "btn-outline-light")" onclick="cambiarRutaPermiso('chota')">
+                        <i class="fa-solid fa-check-circle me-1"></i> Hasta Chota
+                    </button>
+                </div>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="d-flex gap-2">
+                <button onclick="window.print();" class="btn btn-warning fw-bold text-dark px-3 shadow-sm">
+                    <i class="fa-solid fa-print me-1"></i> Imprimir en Hoja A4
+                </button>
+                <button onclick="enviarWhatsApp();" class="btn btn-success fw-bold px-3 shadow-sm">
+                    <i class="fa-brands fa-whatsapp me-1"></i> Enviar a WhatsApp
+                </button>
+                <button onclick="window.close();" class="btn btn-outline-light px-3">
+                    <i class="fa-solid fa-xmark me-1"></i> Cerrar
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- Official Paper Document -->
-    <div class="paper-sheet">
-        <!-- Header -->
-        <div class="header-brand">
-            <div>
-                <h1 class="company-name">TOURS CHOTA EXPRESS S.A.C.</h1>
-                <div class="manifest-title">MANIFIESTO OFICIAL DE PASAJEROS & CROQUIS DE ASIENTOS</div>
-                <small class="text-muted">Servicio de Transporte Interprovincial de Pasajeros | RUC: 20600308883</small>
+    <!-- DOCUMENTO FÍSICO OFICIAL EN HOJA A4 -->
+    <div class="a4-sheet">
+        
+        <!-- 1. ENCABEZADO FISCAL -->
+        <div class="manifest-header">
+            <div class="header-left">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-van-shuttle text-primary fs-3"></i>
+                    <h1 class="company-title">EMPRESA DE MULTISERVICIOS Y TRANSPORTES TURS CHOTA EXPRESS S.A.C.</h1>
+                </div>
+                <div class="company-subtitle mt-1">
+                    <strong>DOMICILIO FISCAL:</strong> Cal. Sara Macdougall N° 218 - Bar. San José - Cajamarca - Cajamarca - Cajamarca<br />
+                    <strong>CAJAMARCA:</strong> JR. ANGAMOS N° 970 - TELF.: 076-267458 CEL.: 951314266 - CAJAMARCA<br />
+                    <strong>CUTERVO:</strong> JR. COMERCIO N° 1116 - CUTERVO &nbsp;|&nbsp; <strong>CHOTA:</strong> JR. GREGORIO MALCA N° 445 - CHOTA
+                </div>
             </div>
-            <div class="text-end">
-                <span class="badge bg-dark fs-7 px-3 py-2 font-monospace">SALIDA #@Model.Id_Viaje</span>
-                <div class="fs-9 text-muted mt-1">Impreso: @DateTime.Now.ToString("dd/MM/yyyy hh:mm tt")</div>
-            </div>
-        </div>
-
-        <!-- Trip Metadata -->
-        <div class="meta-box">
-            <div class="row g-2">
-                <!-- Fila 1: ORIGEN / DESTINO / FECHA / HORA -->
-                <div class="col-3">
-                    <div class="meta-label">&#x1F4CD; ORIGEN:</div>
-                    <div class="meta-value text-primary">
-                        @(Model.ObjetoRuta?.Origen?.ToUpper() ?? "—")
-                    </div>
-                </div>
-                <div class="col-3">
-                    <div class="meta-label">&#x1F3C1; DESTINO:</div>
-                    <div class="meta-value text-primary">
-                        @(Model.ObjetoRuta?.Destino?.ToUpper() ?? "—")
-                    </div>
-                </div>
-                <div class="col-3">
-                    <div class="meta-label">&#x1F4C5; FECHA:</div>
-                    <div class="meta-value">
-                        @Model.FechaHoraSalida.ToString("dd/MM/yyyy")
-                    </div>
-                </div>
-                <div class="col-3">
-                    <div class="meta-label">&#x23F0; HORA DE SALIDA:</div>
-                    <div class="meta-value" style="color:#f37021; font-size:1rem;">
-                        @Model.FechaHoraSalida.ToString("hh:mm tt")
-                    </div>
-                </div>
-
-                <!-- Fila 2: MODELO / MARCA / PLACA / CAPACIDAD -->
-                <div class="col-3 pt-2 border-top border-light">
-                    <div class="meta-label">&#x1F697; MODELO:</div>
-                    <div class="meta-value font-monospace">
-                        @(Model.ObjetoBus?.Modelo ?? "—")
-                    </div>
-                </div>
-                <div class="col-3 pt-2 border-top border-light">
-                    <div class="meta-label">&#x1F3F7;&#xFE0F; MARCA:</div>
-                    <div class="meta-value">
-                        @(Model.ObjetoBus?.Marca ?? "—")
-                    </div>
-                </div>
-                <div class="col-3 pt-2 border-top border-light">
-                    <div class="meta-label">&#x1F6E2;&#xFE0F; PLACA:</div>
-                    <div class="meta-value font-monospace">
-                        <span class="badge bg-dark px-2">@(string.IsNullOrWhiteSpace(Model.PlacaVehiculo) ? "SIN PLACA" : Model.PlacaVehiculo.ToUpper())</span>
-                    </div>
-                </div>
-                <div class="col-3 pt-2 border-top border-light">
-                    <div class="meta-label">&#x1F4BA; CAPACIDAD COMBI:</div>
-                    <div class="meta-value">
-                        @(Model.ObjetoBus?.Capacidad.ToString() ?? "15") asientos
-                    </div>
-                </div>
-
-                <!-- Fila 3: PILOTO / N° LICENCIA -->
-                <div class="col-5 pt-2 border-top border-light">
-                    <div class="meta-label">&#x1F9D1;&#x200D;&#x1F4BC; PILOTO (Conductor):</div>
-                    <div class="meta-value text-uppercase">
-                        @(string.IsNullOrWhiteSpace(Model.NombreConductor) ? "POR ASIGNAR" : Model.NombreConductor)
-                    </div>
-                </div>
-                <div class="col-4 pt-2 border-top border-light">
-                    <div class="meta-label">&#x1F4DD; N° LICENCIA DE CONDUCIR:</div>
-                    <div class="meta-value font-monospace">
-                        @(string.IsNullOrWhiteSpace(Model.ObjetoBus?.NumeroLicencia) ? "—" : Model.ObjetoBus.NumeroLicencia.ToUpper())
-                    </div>
-                </div>
-
-                <!-- Totales -->
-                <div class="col-12 mt-1 pt-2 border-top border-light d-flex justify-content-between align-items-center">
-                    <div class="fs-8">
-                        <strong>Capacidad Total:</strong> @(Model.ObjetoBus?.Capacidad ?? 15) asientos &nbsp;|&nbsp;
-                        <strong class="text-success">Vendidos:</strong> @vendidosCount &nbsp;|&nbsp;
-                        <strong class="text-warning">Reservados:</strong> @reservadosCount &nbsp;|&nbsp;
-                        <strong class="text-secondary">Libres:</strong> @libresCount
-                    </div>
-                    <div class="fs-8 font-monospace">
-                        <strong>Total Recaudado:</strong> S/ @ventas.Where(v => v.Estado == "Vendido").Sum(v => v.PrecioPagado).ToString("0.00")
-                    </div>
-                </div>
+            <div class="header-right">
+                <div class="ruc-badge">R.U.C. 20600308883</div>
+                <div class="doc-title">MANIFIESTO DE PASAJEROS</div>
+                <div class="serie-numero">0002 - Nº @Model.Id_Viaje.ToString("D6")</div>
             </div>
         </div>
 
-        <!-- Croquis Visual de los 15 Asientos para el Chofer (Mismo orden que el plano de ventas) -->
-        <div class="cabin-layout">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <span class="fw-bold fs-8 text-uppercase"><i class="fa-solid fa-van-shuttle me-1 text-primary"></i> Croquis de Asientos - Piso 1 Combi Estándar (Distribución Física)</span>
-                <div class="d-flex gap-2 fs-9">
-                    <span class="badge" style="background:#fee2e2; color:#991b1b; border:1px solid #ef4444;">Vendido (@vendidosCount)</span>
-                    <span class="badge" style="background:#fef3c7; color:#92400e; border:1px solid #f59e0b;">Reservado (@reservadosCount)</span>
-                    <span class="badge" style="background:#ecfdf5; color:#065f46; border:1px solid #10b981;">Libre (@libresCount)</span>
+        <!-- 2. FRANJA DE RUTA AUTORIZADA (INTERCAMBIABLE) -->
+        <div class="route-banner" id="bannerRutaPermiso">
+            @(esRutaCutervo
+                ? "CAJAMARCA - PORCON - EL COBRO - PUENTE PIEDRA - SAMANGAY - CHOTA - CUTERVO Y VICIVERSA"
+                : "CAJAMARCA - PORCON - EL COBRO - PUENTE PIEDRA - SAMANGAY - CHOTA Y VICIVERSA")
+        </div>
+
+        <!-- 3. CUADROS TÉCNICOS (RUTA / COMBI / CAPACIDAD) -->
+        <div class="tech-data-row">
+            
+            <!-- Cuadro 1: RUTA -->
+            <div class="tech-box">
+                <div class="tech-box-side-label">R u t a</div>
+                <div class="tech-box-content">
+                    <div class="tech-field">
+                        <span class="tech-label">ORIGEN:</span>
+                        <span class="tech-val">@(Model.ObjetoRuta?.Origen.ToUpper() ?? "CAJAMARCA")</span>
+                    </div>
+                    <div class="tech-field">
+                        <span class="tech-label">DESTINO:</span>
+                        <span class="tech-val" id="valDestinoManifiesto">@(Model.ObjetoRuta?.Destino.ToUpper() ?? "CHOTA")</span>
+                    </div>
+                    <div class="tech-field">
+                        <span class="tech-label">N° RES.:</span>
+                        <span class="tech-val">001-2024-DRTC</span>
+                    </div>
+                    <div class="tech-field">
+                        <span class="tech-label">FECHA:</span>
+                        <span class="tech-val">@Model.FechaHoraSalida.ToString("dd/MM/yyyy")</span>
+                    </div>
+                    <div class="tech-field">
+                        <span class="tech-label">HORA:</span>
+                        <span class="tech-val">@Model.FechaHoraSalida.ToString("hh:mm tt")</span>
+                    </div>
                 </div>
             </div>
 
-            <div class="cabin-grid">
-                <!-- Fila 1 (Superior) -->
-                @Html.Raw(RenderSeatManifestCell(2, ventasDict, 1, 1))
-                <div class="seat-space" style="grid-row: 1; grid-column: 2;"></div>
-                @Html.Raw(RenderSeatManifestCell(8, ventasDict, 1, 3))
-                @Html.Raw(RenderSeatManifestCell(11, ventasDict, 1, 4))
-                @Html.Raw(RenderSeatManifestCell(15, ventasDict, 1, 5))
-
-                <!-- Fila 2 -->
-                @Html.Raw(RenderSeatManifestCell(1, ventasDict, 2, 1))
-                @Html.Raw(RenderSeatManifestCell(5, ventasDict, 2, 2))
-                <div class="seat-space" style="grid-row: 2; grid-column: 3;"></div>
-                <div class="seat-space" style="grid-row: 2; grid-column: 4;"></div>
-                @Html.Raw(RenderSeatManifestCell(14, ventasDict, 2, 5))
-
-                <!-- Fila 3 -->
-                <div class="seat-space" style="grid-row: 3; grid-column: 1;"></div>
-                @Html.Raw(RenderSeatManifestCell(4, ventasDict, 3, 2))
-                @Html.Raw(RenderSeatManifestCell(7, ventasDict, 3, 3))
-                @Html.Raw(RenderSeatManifestCell(10, ventasDict, 3, 4))
-                @Html.Raw(RenderSeatManifestCell(13, ventasDict, 3, 5))
-
-                <!-- Fila 4 (Inferior / Conductor) -->
-                <div class="driver-box" style="grid-row: 4; grid-column: 1;">
-                    <i class="fa-solid fa-circle-radiation mb-1" style="transform: rotate(45deg); font-size: 1.3rem;"></i>
-                    <span>CHOFER</span>
+            <!-- Cuadro 2: COMBI -->
+            <div class="tech-box">
+                <div class="tech-box-side-label">C o m b i</div>
+                <div class="tech-box-content">
+                    <div class="tech-field">
+                        <span class="tech-label">CÓDIGO:</span>
+                        <span class="tech-val">@(Model.ObjetoBus != null ? $"BUS-{Model.ObjetoBus.Id_Bus:D2}" : "COMBI-01")</span>
+                    </div>
+                    <div class="tech-field">
+                        <span class="tech-label">MODELO:</span>
+                        <span class="tech-val">@(Model.ObjetoBus?.Modelo ?? "Toyota HiAce")</span>
+                    </div>
+                    <div class="tech-field">
+                        <span class="tech-label">PLACA:</span>
+                        <span class="tech-val font-monospace">@(string.IsNullOrWhiteSpace(Model.PlacaVehiculo) ? (Model.ObjetoBus?.Placa ?? "SIN PLACA") : Model.PlacaVehiculo.ToUpper())</span>
+                    </div>
+                    <div class="tech-field">
+                        <span class="tech-label">MARCA:</span>
+                        <span class="tech-val">@(Model.ObjetoBus?.Marca ?? "Toyota")</span>
+                    </div>
+                    <div class="tech-field">
+                        <span class="tech-label">ESTADO:</span>
+                        <span class="tech-val">OPERATIVO</span>
+                    </div>
                 </div>
-                @Html.Raw(RenderSeatManifestCell(3, ventasDict, 4, 2))
-                @Html.Raw(RenderSeatManifestCell(6, ventasDict, 4, 3))
-                @Html.Raw(RenderSeatManifestCell(9, ventasDict, 4, 4))
-                @Html.Raw(RenderSeatManifestCell(12, ventasDict, 4, 5))
+            </div>
+
+            <!-- Cuadro 3: CAPACIDAD -->
+            <div class="tech-box">
+                <div class="tech-box-side-label">C a p a c i d a d</div>
+                <div class="tech-box-content">
+                    <div class="tech-field">
+                        <span class="tech-label">CAPACIDAD COMBI:</span>
+                        <span class="tech-val">@capacidad</span>
+                    </div>
+                    <div class="tech-field">
+                        <span class="tech-label">N° PASAJEROS OFICINA:</span>
+                        <span class="tech-val">@vendidosCount</span>
+                    </div>
+                    <div class="tech-field">
+                        <span class="tech-label">N° TRIPULACIÓN:</span>
+                        <span class="tech-val">1</span>
+                    </div>
+                    <div class="tech-field">
+                        <span class="tech-label">N° PASAJEROS RUTA:</span>
+                        <span class="tech-val">0</span>
+                    </div>
+                    <div class="tech-field">
+                        <span class="tech-label">ASIENTOS LIBRES:</span>
+                        <span class="tech-val">@libresCount</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- 4. TRIPULACIÓN -->
+        <div class="crew-section">
+            <div class="crew-header">TRIPULACIÓN</div>
+            <div class="crew-body">
+                <div class="crew-pilot">
+                    <strong class="text-primary">Piloto:</strong>
+                    <span class="fw-bold text-uppercase">
+                        @(string.IsNullOrWhiteSpace(Model.NombreConductor) ? (Model.ObjetoBus?.NombreConductor ?? "POR ASIGNAR") : Model.NombreConductor.ToUpper())
+                    </span>
+                </div>
+                <div class="crew-license">
+                    <strong class="text-primary">N° Licencia:</strong>
+                    <span class="font-monospace fw-bold">
+                        @(string.IsNullOrWhiteSpace(Model.ObjetoBus?.NumeroLicencia) ? "POR ASIGNAR" : Model.ObjetoBus.NumeroLicencia.ToUpper())
+                    </span>
+                </div>
             </div>
         </div>
 
-        <!-- Tabla Detallada de Pasajeros para el Conductor -->
-        <h6 class="fw-bold text-uppercase fs-8 mb-2"><i class="fa-solid fa-list-check me-1 text-primary"></i> Relación Nominal de Pasajeros</h6>
-        <table class="manifest-table">
+        <!-- 5. TABLA OFICIAL DE 16 PASAJEROS (SIN CROQUIS) -->
+        <table class="passenger-table">
             <thead>
                 <tr>
-                    <th style="width: 45px; text-align: center;">Asiento</th>
-                    <th>Nombres y Apellidos del Pasajero</th>
-                    <th style="width: 100px;">Doc. Identidad</th>
-                    <th style="width: 85px;">Teléfono</th>
-                    <th style="width: 110px;">Destino / Bajada</th>
-                    <th>Comprobante / RUC</th>
-                    <th style="width: 65px; text-align: right;">Monto</th>
-                    <th style="width: 75px; text-align: center;">Estado</th>
-                    <th style="width: 110px; text-align: center;">Vendido por</th>
-                    <th style="width: 70px; text-align: center;">Abordaje</th>
+                    <th class="col-num">#</th>
+                    <th class="col-name">PASAJERO</th>
+                    <th class="col-doc">N° Doc.</th>
+                    <th class="col-ticket">N° Pasaje</th>
+                    <th class="col-seat">Asiento</th>
+                    <th class="col-price">Precio</th>
+                    <th class="col-obs">Observaciones</th>
                 </tr>
             </thead>
             <tbody>
-                @for (int s = 1; s <= 15; s++)
-                {
-                    if (ventasDict.ContainsKey(s))
+                @{
+                    // Renderizamos exactamente 16 filas como en el talonario físico
+                    for (int i = 1; i <= 16; i++)
                     {
-                        var vta = ventasDict[s];
-                        var pas = vta.ObjetoPasajero;
-                        <tr>
-                            <td style="text-align: center; font-weight: 800; font-size: 0.85rem;" class="font-monospace">
-                                #@s
-                            </td>
-                            <td>
-                                <strong>@(pas?.NombreCompleto ?? "Pasajero")</strong>
-                                @if (!string.IsNullOrWhiteSpace(vta.Observaciones) && !vta.Observaciones.StartsWith("Bajada:") && !vta.Observaciones.StartsWith("Destino:"))
-                                {
-                                    <div class="text-muted fs-9"><i class="fa-solid fa-comment-dots me-1"></i>Obs: @vta.Observaciones</div>
-                                }
-                            </td>
-                            <td class="font-monospace fs-9">
-                                @(pas?.TipoDocumento ?? "DNI"): @(pas?.NumeroDocumento ?? "-")
-                            </td>
-                            <td class="font-monospace fs-9">
-                                @(string.IsNullOrWhiteSpace(pas?.Telefono) ? "-" : pas.Telefono)
-                            </td>
-                            <td>
-                                @{
-                                    var destPasajero = Model.ObjetoRuta?.Destino ?? "Destino";
-                                    if (!string.IsNullOrWhiteSpace(vta.Observaciones))
-                                    {
-                                        if (vta.Observaciones.Contains("Bajada:"))
-                                        {
-                                            destPasajero = vta.Observaciones.Split('|')[0].Replace("Bajada:", "").Trim();
-                                        }
-                                        else if (vta.Observaciones.Contains("Destino:"))
-                                        {
-                                            destPasajero = vta.Observaciones.Split('|')[0].Replace("Destino:", "").Trim();
-                                        }
-                                    }
-                                }
-                                <span class="fw-bold text-primary fs-8">@destPasajero.ToUpper()</span>
-                            </td>
-                            <td class="fs-9">
-                                <div>@vta.TipoComprobante</div>
-                                @if (!string.IsNullOrWhiteSpace(vta.RucEmpresa))
-                                {
-                                    <span class="text-primary font-monospace fs-9">RUC: @vta.RucEmpresa (@vta.RazonSocialEmpresa)</span>
-                                }
-                            </td>
-                            <td style="text-align: right; font-weight: 700;" class="font-monospace">
-                                S/ @vta.PrecioPagado.ToString("0.00")
-                            </td>
-                            <td style="text-align: center;">
-                                @if (vta.Estado == "Vendido")
-                                {
-                                    <span class="badge bg-success" style="font-size: 0.65rem;">VENDIDO</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-warning text-dark" style="font-size: 0.65rem;">RESERVADO</span>
-                                }
-                            </td>
-                            <td style="text-align: center; font-size: 0.72rem;">
-                                @(vta.ObjetoUsuario?.Name ?? "Sistema")
-                            </td>
-                            <td style="text-align: center;">
-                                <div style="width: 18px; height: 18px; border: 1.5px solid #64748b; border-radius: 3px; margin: 0 auto;"></div>
-                            </td>
-                        </tr>
-                    }
-                    else
-                    {
-                        <tr style="opacity: 0.55;">
-                            <td style="text-align: center; font-weight: 700; font-size: 0.85rem;" class="font-monospace text-muted">
-                                #@s
-                            </td>
-                            <td class="text-muted fst-italic">-- Asiento Libre / Disponible --</td>
-                            <td class="text-muted text-center">-</td>
-                            <td class="text-muted text-center">-</td>
-                            <td class="text-muted text-center">-</td>
-                            <td class="text-muted">-</td>
-                            <td class="text-muted text-end font-monospace">S/ 0.00</td>
-                            <td style="text-align: center;"><span class="badge bg-light text-secondary" style="font-size: 0.65rem; border:1px solid #cbd5e1;">LIBRE</span></td>
-                            <td class="text-muted text-center">-</td>
-                            <td style="text-align: center;">-</td>
-                        </tr>
+                        var vta = (ventas != null && i <= ventas.Count) ? ventas[i - 1] : null;
+
+                        if (vta != null)
+                        {
+                            var pasName = vta.ObjetoPasajero?.NombreCompleto ?? "Pasajero";
+                            var numDoc = vta.ObjetoPasajero?.NumeroDocumento ?? "-";
+                            var ticketNum = $"#P-{vta.Id_Venta:D5}";
+                            var asiento = $"#{vta.NumeroAsiento}";
+                            var precio = $"S/ {vta.PrecioPagado:0.00}";
+                            var obs = vta.Estado == "Reservado" ? "RESERVA" : "";
+                            if (!string.IsNullOrWhiteSpace(vta.Observaciones))
+                            {
+                                obs = string.IsNullOrEmpty(obs) ? vta.Observaciones : $"{obs} - {vta.Observaciones}";
+                            }
+
+                            <tr>
+                                <td class="col-num">@i</td>
+                                <td class="col-name">@pasName</td>
+                                <td class="col-doc">@numDoc</td>
+                                <td class="col-ticket">@ticketNum</td>
+                                <td class="col-seat">@asiento</td>
+                                <td class="col-price">@precio</td>
+                                <td class="col-obs">@obs</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            <tr>
+                                <td class="col-num">@i</td>
+                                <td class="col-name text-muted">&nbsp;</td>
+                                <td class="col-doc">&nbsp;</td>
+                                <td class="col-ticket">&nbsp;</td>
+                                <td class="col-seat">&nbsp;</td>
+                                <td class="col-price">&nbsp;</td>
+                                <td class="col-obs">&nbsp;</td>
+                            </tr>
+                        }
                     }
                 }
             </tbody>
         </table>
 
-        <!-- Firmas del Conductor y Despachador -->
-        <div class="signatures-area">
-            <div class="sig-block">
-                <div class="sig-line"></div>
-                <div class="sig-title">Firma del Conductor</div>
-                <div class="sig-sub">@(string.IsNullOrWhiteSpace(Model.NombreConductor) ? "Nombre del Conductor" : Model.NombreConductor.ToUpper())</div>
-                <div class="sig-sub font-monospace">Placa: @(string.IsNullOrWhiteSpace(Model.PlacaVehiculo) ? "S/P" : Model.PlacaVehiculo.ToUpper())</div>
+        <!-- 6. PIE DE PÁGINA OFICIAL -->
+        <div class="manifest-footer">
+            <div class="print-legend">
+                IMPRENTA GRAFICER UNIVERSA EIRL CALLE MANUEL SEOANE N° 173 - CAJAMARCA - RUC: 20604621004, AUT. 3041990163, N° SERIE: 0002, DEL 6001 AL 6750 - FECHA: 18/06/2026
             </div>
-
-            <div class="sig-block">
-                <div class="sig-line"></div>
-                <div class="sig-title">Despachador / Administración</div>
-                <div class="sig-sub">Control de Salida & Terminal</div>
-                <div class="sig-sub">Chota Express S.A.C.</div>
+            <div class="copy-tag">
+                USUARIO
             </div>
         </div>
 
-        <div class="mt-4 pt-2 border-top text-center text-muted fs-9">
-            <i class="fa-solid fa-shield-halved me-1"></i> Este documento constituye el manifiesto de pasajeros legal conforme a las normativas del MTC / SUTRAN.
-        </div>
     </div>
 
-</body>
-</html>
+    <!-- SCRIPTS INTERACTIVOS (CAMBIO DE RUTA Y WHATSAPP) -->
+    <script>
+        // Función para alternar el permiso entre Cutervo y Chota
+        function cambiarRutaPermiso(tipo) {
+            const banner = document.getElementById('bannerRutaPermiso');
+            const btnCutervo = document.getElementById('btnRutaCutervo');
+            const btnChota = document.getElementById('btnRutaChota');
 
-@functions {
-    public static string RenderSeatManifestCell(int seatNum, Dictionary<int, SistemaChotaExpress.Models.Venta> dict, int row = 0, int col = 0)
-    {
-        string gridStyle = (row > 0 && col > 0) ? $"style=\"grid-row: {row}; grid-column: {col};\"" : "";
-        if (dict.ContainsKey(seatNum))
-        {
-            var vta = dict[seatNum];
-            var pas = vta.ObjetoPasajero;
-            var isVendido = vta.Estado == "Vendido";
-            var cssClass = isVendido ? "occupied" : "reserved";
-            var passengerName = pas?.NombreCompleto ?? "Pasajero";
-            var doc = pas?.NumeroDocumento ?? "";
-
-            return $@"
-            <div class=""seat-item {cssClass}"" {gridStyle} title=""Asiento #{seatNum} - {passengerName} ({doc})"">
-                <div class=""seat-number-badge"">#{seatNum}</div>
-                <div class=""passenger-mini-name"" title=""{passengerName}"">{passengerName}</div>
-                <div class=""seat-status-mini font-monospace"">{doc}</div>
-            </div>";
+            if (tipo === 'cutervo') {
+                banner.innerText = "CAJAMARCA - PORCON - EL COBRO - PUENTE PIEDRA - SAMANGAY - CHOTA - CUTERVO Y VICIVERSA";
+                btnCutervo.className = "btn btn-sm btn-warning text-dark fw-bold";
+                btnChota.className = "btn btn-sm btn-outline-light";
+            } else {
+                banner.innerText = "CAJAMARCA - PORCON - EL COBRO - PUENTE PIEDRA - SAMANGAY - CHOTA Y VICIVERSA";
+                btnChota.className = "btn btn-sm btn-warning text-dark fw-bold";
+                btnCutervo.className = "btn btn-sm btn-outline-light";
+            }
         }
-        else
-        {
-            return $@"
-            <div class=""seat-item free"" {gridStyle} title=""Asiento #{seatNum} - Libre"">
-                <div class=""seat-number-badge"">#{seatNum}</div>
-                <div class=""seat-status-mini text-success"">LIBRE</div>
-            </div>";
-        }
-    }
-}
 
-<script>
-    function enviarWhatsApp() {
-        let texto = "*MANIFIESTO DE PASAJEROS - CHOTA EXPRESS*\n";
-        texto += "--------------------------------------\n";
-        texto += "*📍 Ruta:* @(Model.ObjetoRuta?.Origen) ➔ @(Model.ObjetoRuta?.Destino)\n";
-        texto += "*📅 Fecha:* @Model.FechaHoraSalida.ToString("dd/MM/yyyy")\n";
-        texto += "*⏰ Salida:* @Model.FechaHoraSalida.ToString("hh:mm tt")\n";
-        texto += "*🚗 Placa:* @(string.IsNullOrWhiteSpace(Model.PlacaVehiculo) ? "SIN PLACA" : Model.PlacaVehiculo.ToUpper())\n";
-        texto += "*👨‍✈️ Chofer:* @(string.IsNullOrWhiteSpace(Model.NombreConductor) ? "POR ASIGNAR" : Model.NombreConductor.ToUpper())\n";
-        texto += "--------------------------------------\n";
-        
-        texto += "*ASIENTOS VENDIDOS Y RESERVADOS:*\n";
-        
-        let hayPasajeros = false;
-        
-        @foreach (var vta in ventas)
-        {
-            var pasName = vta.ObjetoPasajero?.NombreCompleto ?? "Pasajero";
-            var tipoDoc = vta.ObjetoPasajero?.TipoDocumento ?? "DNI";
-            var numDoc = vta.ObjetoPasajero?.NumeroDocumento ?? "-";
-            var est = vta.Estado == "Vendido" ? "✅" : "⏳ (Reserva)";
-            var dest = Model.ObjetoRuta?.Destino ?? "";
-            if (!string.IsNullOrWhiteSpace(vta.Observaciones))
+        // Envío directo a WhatsApp sin ventanas emergentes de teléfono
+        function enviarWhatsApp() {
+            const rutaTexto = document.getElementById('bannerRutaPermiso').innerText.trim();
+            
+            let texto = "*EMPRESA DE TRANSPORTES TURS CHOTA EXPRESS S.A.C.*\n";
+            texto += "*MANIFIESTO OFICIAL DE PASAJEROS*\n";
+            texto += "--------------------------------------\n";
+            texto += "*Permiso de Ruta:* " + rutaTexto + "\n";
+            texto += "*📍 Origen:* @(Model.ObjetoRuta?.Origen.ToUpper()) ➔ *Destino:* @(Model.ObjetoRuta?.Destino.ToUpper())\n";
+            texto += "*📅 Fecha:* @Model.FechaHoraSalida.ToString("dd/MM/yyyy") | *⏰ Hora:* @Model.FechaHoraSalida.ToString("hh:mm tt")\n";
+            texto += "*🚐 Placa:* @(string.IsNullOrWhiteSpace(Model.PlacaVehiculo) ? (Model.ObjetoBus?.Placa ?? "SIN PLACA") : Model.PlacaVehiculo.ToUpper())\n";
+            texto += "*👨‍✈️ Piloto:* @(string.IsNullOrWhiteSpace(Model.NombreConductor) ? (Model.ObjetoBus?.NombreConductor ?? "POR ASIGNAR") : Model.NombreConductor.ToUpper())\n";
+            texto += "*🪪 N° Licencia:* @(Model.ObjetoBus?.NumeroLicencia ?? "—")\n";
+            texto += "--------------------------------------\n";
+            texto += "*RELACIÓN DE PASAJEROS:*\n";
+
+            let hayPasajeros = false;
+
+            @if (ventas != null && ventas.Any())
             {
-                if (vta.Observaciones.Contains("Bajada:")) dest = vta.Observaciones.Split('|')[0].Replace("Bajada:", "").Trim();
-                else if (vta.Observaciones.Contains("Destino:")) dest = vta.Observaciones.Split('|')[0].Replace("Destino:", "").Trim();
+                int k = 1;
+                foreach (var v in ventas)
+                {
+                    var pName = v.ObjetoPasajero?.NombreCompleto ?? "Pasajero";
+                    var pDoc = v.ObjetoPasajero?.NumeroDocumento ?? "-";
+                    var est = v.Estado == "Reservado" ? " (Reserva)" : "";
+                    <text>
+                    texto += "@k. [Asiento #@v.NumeroAsiento] @pName - Doc: @pDoc (S/ @v.PrecioPagado.ToString("0.00"))@est\n";
+                    hayPasajeros = true;
+                    </text>
+                    k++;
+                }
             }
 
-            <text>
-            texto += "[#@vta.NumeroAsiento] @pasName - @tipoDoc @numDoc - Dest: @dest @est\n";
-            hayPasajeros = true;
-            </text>
-        }
-        
-        if (!hayPasajeros) {
-            texto += "Ningún pasaje registrado en este turno.\n";
-        }
-        
-        texto += "--------------------------------------\n";
-        texto += "Resumen: @vendidosCount Vendidos | @reservadosCount Reservados | @libresCount Libres\n";
+            if (!hayPasajeros) {
+                texto += "Sin pasajeros registrados aún.\n";
+            }
 
-        let url = "https://api.whatsapp.com/send?text=" + encodeURIComponent(texto);
-        window.open(url, "_blank");
-    }
-</script>
+            texto += "--------------------------------------\n";
+            var recaudadoStr = "@(ventas.Where(v => v.Estado == "Vendido").Sum(v => v.PrecioPagado).ToString("0.00"))";
+            texto += "*Total Recaudado:* S/ " + recaudadoStr;
+
+            const url = "https://api.whatsapp.com/send?text=" + encodeURIComponent(texto);
+            window.open(url, "_blank");
+        }
+    </script>
+</body>
+</html>
