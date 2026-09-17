@@ -126,6 +126,11 @@
                                 <div class="d-inline-flex gap-1">
                                     @if (v.Estado == "Reservado")
                                     {
+                                        <!-- Imprimir Ticket de Reserva -->
+                                        <a asp-action="Ticket" asp-route-id="@v.Id_Venta" target="_blank" class="btn btn-xs btn-outline-warning py-1 px-2" style="border-radius: 6px;" title="Imprimir Ticket de Reserva (80mm)">
+                                            <i class="fa-solid fa-print me-1"></i> Ticket
+                                        </a>
+
                                         <!-- Confirm Reservation Form -->
                                         <form asp-action="ConfirmarReserva" method="post" class="m-0">
                                             @Html.AntiForgeryToken()
@@ -146,9 +151,9 @@
                                     }
                                     else if (v.Estado == "Vendido")
                                     {
-                                        <!-- Botón Imprimir / PDF -->
-                                        <a asp-action="Ticket" asp-route-id="@v.Id_Venta" target="_blank" class="btn btn-xs btn-outline-info py-1 px-2" style="border-radius: 6px;" title="Ver / Imprimir Comprobante Electrónico (PDF)">
-                                            <i class="fa-solid fa-file-pdf me-1"></i> PDF / Imprimir
+                                        <!-- Botón Imprimir Ticket -->
+                                        <a asp-action="Ticket" asp-route-id="@v.Id_Venta" target="_blank" class="btn btn-xs btn-outline-info py-1 px-2" style="border-radius: 6px;" title="Imprimir Ticket de Pasaje (80mm)">
+                                            <i class="fa-solid fa-print me-1"></i> Imprimir Ticket
                                         </a>
 
                                         <!-- Botón Descargar XML (UBL 2.1) -->

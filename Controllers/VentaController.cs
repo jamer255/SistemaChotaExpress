@@ -593,13 +593,12 @@ namespace SistemaChotaExpress.Controllers
             if (venta.Estado == "Vendido")
             {
                 TempData["SuccessMessage"] = $"¡Pasaje vendido con éxito! Comprobante emitido: {venta.TipoComprobante}.";
-                return RedirectToAction("Ticket", new { id = venta.Id_Venta });
             }
             else
             {
                 TempData["SuccessMessage"] = "Reserva registrada con éxito.";
-                return RedirectToAction("MisVentas");
             }
+            return RedirectToAction("Ticket", new { id = venta.Id_Venta });
         }
 
         // ==========================================
@@ -623,7 +622,8 @@ namespace SistemaChotaExpress.Controllers
             string? origen,
             string? destino,
             string? fecha,
-            List<string>? destinosPasajeros = null)
+            List<string>? destinosPasajeros = null,
+            string? metodoPago = null)
         {
             if (asientos == null || !asientos.Any())
             {
@@ -665,7 +665,7 @@ namespace SistemaChotaExpress.Controllers
 
             string comprobanteFinal = string.IsNullOrWhiteSpace(tipoComprobante) ? "Boleta" : tipoComprobante;
             int emitidosCount = 0;
-            int ultimaVentaId = 0;
+            var emitidosIds = new List<int>();
 
             for (int i = 0; i < asientos.Count; i++)
             {
@@ -722,7 +722,7 @@ namespace SistemaChotaExpress.Controllers
                     RucEmpresa = (comprobanteFinal == "Factura") ? rucEmpresa?.Trim() : null,
                     RazonSocialEmpresa = (comprobanteFinal == "Factura") ? razonSocialEmpresa?.Trim().ToUpper() : null,
                     DireccionEmpresa = (comprobanteFinal == "Factura") ? direccionEmpresa?.Trim() : null,
-                    MetodoPago = "Efectivo",
+                    MetodoPago = string.IsNullOrWhiteSpace(metodoPago) ? "Efectivo" : metodoPago,
                     Observaciones = obsFinal
                 };
 
@@ -742,24 +742,26 @@ namespace SistemaChotaExpress.Controllers
                         _ = _sunatService.ProcesarComprobanteAsync(ventaRel);
                 }
 
-                ultimaVentaId = venta.Id_Venta;
+                emitidosIds.Add(venta.Id_Venta);
                 emitidosCount++;
             }
 
-            if (tipoTransaccion == "Reserva")
+            if (emitidosIds.Any())
             {
-                TempData["SuccessMessage"] = $"¡Reserva registrada con éxito para {emitidosCount} asiento(s)!";
-                return RedirectToAction("MisVentas");
+                string transaccionMsg = (tipoTransaccion == "Reserva") ? "Reserva registrada" : "Pasaje(s) emitido(s)";
+                TempData["SuccessMessage"] = $"¡{transaccionMsg} con éxito para {emitidosCount} asiento(s)!";
+
+                if (emitidosIds.Count == 1)
+                {
+                    return RedirectToAction("Ticket", new { id = emitidosIds[0] });
+                }
+                else
+                {
+                    return RedirectToAction("Ticket", new { ids = string.Join(",", emitidosIds) });
+                }
             }
 
-            if (emitidosCount == 1 && ultimaVentaId > 0)
-            {
-                TempData["SuccessMessage"] = $"¡Pasaje vendido con éxito! Comprobante emitido: {comprobanteFinal}.";
-                return RedirectToAction("Ticket", new { id = ultimaVentaId });
-            }
-
-            TempData["SuccessMessage"] = $"¡Se emitieron {emitidosCount} pasaje(s) exitosamente" + (!string.IsNullOrEmpty(razonSocialEmpresa) ? $" para la empresa '{razonSocialEmpresa}'!" : "!");
-
+            TempData["ErrorMessage"] = "No se pudo registrar la operación. Los asientos podrían estar ocupados.";
             return RedirectToAction("BuscarViajes", new { origen = origen ?? viaje.ObjetoRuta?.Origen, destino = destino ?? viaje.ObjetoRuta?.Destino, fecha, viajeId = viaje.Id_Viaje });
         }
 
@@ -786,20 +788,37 @@ namespace SistemaChotaExpress.Controllers
         // 4. TICKET (Vista de Impresión / Boleto)
         // ==========================================
         [HttpGet]
-        public async Task<IActionResult> Ticket(int id)
+        public async Task<IActionResult> Ticket(int? id, string? ids)
         {
-            var venta = await _context.Ventas
+            var targetIds = new List<int>();
+            if (!string.IsNullOrWhiteSpace(ids))
+            {
+                targetIds = ids.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                               .Select(s => int.TryParse(s.Trim(), out var n) ? n : 0)
+                               .Where(n => n > 0)
+                               .ToList();
+            }
+            else if (id.HasValue && id.Value > 0)
+            {
+                targetIds.Add(id.Value);
+            }
+
+            if (!targetIds.Any()) return NotFound("No se especificó ningún comprobante o ticket.");
+
+            var ventas = await _context.Ventas
                 .Include(v => v.ObjetoPasajero)
                 .Include(v => v.ObjetoUsuario)
                 .Include(v => v.ObjetoViaje)
                     .ThenInclude(v => v!.ObjetoBus)
                 .Include(v => v.ObjetoViaje)
                     .ThenInclude(v => v!.ObjetoRuta)
-                .FirstOrDefaultAsync(v => v.Id_Venta == id);
+                .Where(v => targetIds.Contains(v.Id_Venta))
+                .OrderBy(v => v.NumeroAsiento)
+                .ToListAsync();
 
-            if (venta == null) return NotFound();
+            if (!ventas.Any()) return NotFound("No se encontraron pasajes para imprimir.");
 
-            return View(venta);
+            return View(ventas);
         }
 
         // ==========================================
