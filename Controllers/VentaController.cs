@@ -165,6 +165,7 @@ namespace SistemaChotaExpress.Controllers
                     .Include(v => v.ObjetoRuta)
                     .Where(v => v.Id_Ruta == rutaActual.Id_Ruta && v.Estado == "Programado" && v.FechaHoraSalida >= startOfDay && v.FechaHoraSalida < endOfDay)
                     .OrderBy(v => v.FechaHoraSalida)
+                    .ThenBy(v => v.Id_Viaje)
                     .ToListAsync();
             }
 
@@ -194,7 +195,7 @@ namespace SistemaChotaExpress.Controllers
                     if (!viajes.Any(v => v.Id_Viaje == selectedViaje.Id_Viaje))
                     {
                         viajes.Add(selectedViaje);
-                        viajes = viajes.OrderBy(v => v.FechaHoraSalida).ToList();
+                        viajes = viajes.OrderBy(v => v.FechaHoraSalida).ThenBy(v => v.Id_Viaje).ToList();
                     }
                 }
                 else if (viajes.Any())
@@ -234,6 +235,7 @@ namespace SistemaChotaExpress.Controllers
 
                 var viajesEnMismaHora = viajesDisponibles
                     .Where(v => v.Viaje.FechaHoraSalida.Hour == selectedViaje.FechaHoraSalida.Hour)
+                    .OrderBy(v => v.Viaje.Id_Viaje)
                     .ToList();
 
                 if (!viajesEnMismaHora.Any(v => v.Viaje.Id_Viaje == selectedViaje.Id_Viaje))
@@ -244,6 +246,7 @@ namespace SistemaChotaExpress.Controllers
                         Viaje = selectedViaje,
                         AsientosDisponibles = Math.Max(0, cap - countOcup)
                     });
+                    viajesEnMismaHora = viajesEnMismaHora.OrderBy(v => v.Viaje.Id_Viaje).ToList();
                 }
 
                 ViewBag.ViajesEnMismaHora = viajesEnMismaHora;
@@ -387,7 +390,7 @@ namespace SistemaChotaExpress.Controllers
                 origen,
                 destino,
                 fecha = fechaHoraSalida.ToString("yyyy-MM-dd"),
-                viajeId = nuevoViaje.Id_Viaje
+                viajeId = viajeBase?.Id_Viaje ?? nuevoViaje.Id_Viaje
             });
         }
 

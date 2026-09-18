@@ -467,9 +467,12 @@
                             </div>
                             
                             <div class="d-flex flex-wrap gap-2 align-items-center">
-                                @for (int idx = 0; idx < viajesEnMismaHora.Count; idx++)
+                                @{
+                                    var combisOrdenadas = viajesEnMismaHora.OrderBy(v => v.Viaje.Id_Viaje).ToList();
+                                }
+                                @for (int idx = 0; idx < combisOrdenadas.Count; idx++)
                                 {
-                                    var itemV = viajesEnMismaHora[idx];
+                                    var itemV = combisOrdenadas[idx];
                                     var isThisSelected = itemV.Viaje.Id_Viaje == selectedViaje.Id_Viaje;
                                     var numCombi = idx + 1;
                                     var nombreVeh = $"Combi {numCombi:D2}";
@@ -486,7 +489,7 @@
                                             }
                                         </a>
 
-                                        @if (viajesEnMismaHora.Count > 1)
+                                        @if (combisOrdenadas.Count > 1)
                                         {
                                             <form asp-action="EliminarSalida" method="post" class="d-inline m-0" onsubmit="return confirm('¿Está seguro de que desea eliminar la salida de @nombreVeh?');">
                                                 @Html.AntiForgeryToken()
@@ -518,7 +521,7 @@
                         </div>
                     }
 
-                    var combiIndexPos = (viajesEnMismaHora != null) ? viajesEnMismaHora.FindIndex(v => v.Viaje.Id_Viaje == selectedViaje.Id_Viaje) + 1 : 1;
+                    var combiIndexPos = (viajesEnMismaHora != null) ? viajesEnMismaHora.OrderBy(v => v.Viaje.Id_Viaje).ToList().FindIndex(v => v.Viaje.Id_Viaje == selectedViaje.Id_Viaje) + 1 : 1;
                     if (combiIndexPos <= 0) combiIndexPos = 1;
                     var displayNombreCombi = $"COMBI {combiIndexPos:D2}";
                     <!-- SEAT MAP & REGISTRATION AREA -->

@@ -81,43 +81,13 @@ namespace SistemaChotaExpress.Services
         }
 
         /// <summary>
-        /// Limpia salidas duplicadas vacías (sin ventas) pertenecientes a la MISMA ruta y hora.
-        /// Nunca elimina viajes de otras rutas diferentes.
+        /// Limpia salidas duplicadas idénticas si existiesen, respetando todas las combis adicionales creadas.
         /// </summary>
         public static async Task LimpiarDuplicadosPorRutaAsync(AppDbContext context, DateTime fecha, int idRuta)
         {
-            var startOfDay = fecha.Date;
-            var endOfDay = startOfDay.AddDays(1);
-
-            var viajesSinVentas = await context.Viajes
-                .Include(v => v.Ventas)
-                .Where(v => v.Id_Ruta == idRuta &&
-                            v.Estado == "Programado" &&
-                            v.FechaHoraSalida >= startOfDay &&
-                            v.FechaHoraSalida < endOfDay &&
-                            !v.Ventas.Any(vt => vt.Estado == "Vendido" || vt.Estado == "Reservado"))
-                .ToListAsync();
-
-            var grupos = viajesSinVentas
-                .GroupBy(v => new { Fecha = v.FechaHoraSalida.Date, Hora = v.FechaHoraSalida.Hour, Ruta = v.Id_Ruta });
-
-            var aEliminar = new List<Viaje>();
-            foreach (var g in grupos)
-            {
-                if (g.Count() > 1)
-                {
-                    // Conservar el que tenga placa, conductor o bus asignado; si no, el más antiguo
-                    var conservar = g.FirstOrDefault(v => !string.IsNullOrWhiteSpace(v.PlacaVehiculo) || !string.IsNullOrWhiteSpace(v.NombreConductor) || v.Id_Bus != null)
-                                    ?? g.OrderBy(v => v.Id_Viaje).First();
-                    aEliminar.AddRange(g.Where(v => v.Id_Viaje != conservar.Id_Viaje));
-                }
-            }
-
-            if (aEliminar.Any())
-            {
-                context.Viajes.RemoveRange(aEliminar);
-                await context.SaveChangesAsync();
-            }
+            // Las combis adicionales (Combi 2, Combi 3, etc.) a la misma hora son salidas legítimas programadas
+            // por el usuario, por lo que no deben ser eliminadas automáticamente.
+            await Task.CompletedTask;
         }
 
         /// <summary>
