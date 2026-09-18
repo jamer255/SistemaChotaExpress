@@ -8,8 +8,14 @@
     string empresaEmisor = "EMPRESA DE MULTISERVICIOS Y TRANSPORTES TURS CHOTA EXPRESS S.A.C.";
     string nombreComercial = "TOURS CHOTA EXPRESS";
     string direccionEmisor = "CAL. SARA MACDOUGALL NRO. 218 BAR. SAN JOSE - CHOTA - CAJAMARCA";
-    string telefonosEmisor = "941 931 014 / 948 211 532 / 954 956 993";
-    string sucursalesEmisor = "Chiclayo: Calle Agricultura 210 | Chota: Jr. José Arana 290 | Bambamarca: Av. Ricardo Palma 697 | Cutervo: Jr. 22 de Octubre 1713";
+
+    var agencias = new[] {
+        new { Ciudad = "CHOTA (Principal)", Dir = "Jr. José Arana 290 / Cal. Sara Macdougall 218", Tel = "948 211 532" },
+        new { Ciudad = "CHICLAYO", Dir = "Calle Agricultura 210", Tel = "941 931 014" },
+        new { Ciudad = "CUTERVO", Dir = "Jr. 22 de Octubre 1713 / Jr. Comercio 1116", Tel = "954 956 993" },
+        new { Ciudad = "CAJAMARCA", Dir = "Jr. Angamos 970", Tel = "951 314 266 / (076) 267458" },
+        new { Ciudad = "BAMBAMARCA", Dir = "Av. Ricardo Palma 697", Tel = "948 211 532" }
+    };
 
     bool esTodoReserva = Model.All(v => v.Estado == "Reservado");
     string tituloGeneral = esTodoReserva ? "TICKET DE RESERVA" : (count > 1 ? $"TICKETS DE PASAJE ({count})" : "TICKET DE PASAJE");
@@ -21,18 +27,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@tituloGeneral - Tours Chota Express</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;600;700&family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
 
     <style>
         * { box-sizing: border-box; }
 
         body {
-            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+            font-family: 'Consolas', 'Courier New', monospace, sans-serif;
             background-color: #1a1d21;
             color: #111;
             margin: 0;
-            padding: 20px 10px;
+            padding: 15px 10px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -123,36 +128,76 @@
         .tickets-container {
             display: flex;
             flex-direction: column;
-            gap: 25px;
+            gap: 20px;
             align-items: center;
             width: 100%;
         }
 
         /* =============================================
-           FORMATO TÉRMICO POS 80mm (FORMATO POR DEFECTO)
+           FORMATO TÉRMICO POS 80mm / 72mm (ANCHO SEGURO)
            ============================================= */
         .ticket-termal {
-            display: block; /* Visible por defecto */
-            width: 340px;
+            display: block;
+            width: 100%;
+            max-width: 300px;
             background: #ffffff;
-            font-family: 'Roboto Mono', 'Consolas', monospace, sans-serif;
+            font-family: 'Consolas', 'Courier New', monospace, sans-serif;
             color: #000;
-            padding: 16px 14px;
-            border-radius: 8px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            font-size: 11px;
-            line-height: 1.35;
+            padding: 12px 10px;
+            border-radius: 6px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            font-size: 10.5px;
+            line-height: 1.3;
+            box-sizing: border-box;
+            word-break: break-word;
+            overflow-wrap: break-word;
         }
 
-        .t-top-sub { font-size: 9px; text-align: center; color: #555; margin-bottom: 4px; font-weight: bold; }
-        .t-empresa { font-size: 17px; font-weight: 900; color: #f97316; text-transform: uppercase; text-align: center; letter-spacing: 0.5px; }
-        .t-sac { font-size: 10px; font-weight: 700; text-align: center; color: #222; margin-top: 1px; }
-        .t-info-emisor { font-size: 9.5px; color: #333; text-align: center; margin: 2px 0; }
-        .t-dotted { border: none; border-top: 1px dashed #777; margin: 8px 0; }
+        .t-top-sub { font-size: 8.5px; text-align: center; color: #444; margin-bottom: 2px; font-weight: bold; }
+        .t-empresa { font-size: 15px; font-weight: 900; color: #f97316; text-transform: uppercase; text-align: center; letter-spacing: 0.5px; line-height: 1.15; }
+        .t-sac { font-size: 9px; font-weight: 700; text-align: center; color: #111; margin-top: 1px; line-height: 1.2; }
+        .t-info-emisor { font-size: 9px; color: #111; text-align: center; margin: 1.5px 0; line-height: 1.25; }
         
-        .t-title { font-size: 13px; font-weight: 900; text-align: center; text-transform: uppercase; margin: 4px 0 2px 0; color: #000; }
+        /* Bloque estructurado de agencias y contactos */
+        .t-oficinas-bloque {
+            border-top: 1px dashed #777;
+            border-bottom: 1px dashed #777;
+            padding: 4px 2px;
+            margin: 5px 0;
+            font-size: 8.5px;
+            line-height: 1.25;
+            text-align: left;
+        }
+        .t-oficinas-title {
+            font-weight: 900;
+            text-align: center;
+            font-size: 8.5px;
+            margin-bottom: 3px;
+            color: #000;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .t-oficina-fila {
+            margin-bottom: 2.5px;
+            display: flex;
+            flex-direction: column;
+            word-break: break-word;
+        }
+        .t-ofi-nombre {
+            font-weight: 800;
+            color: #000;
+        }
+        .t-ofi-datos {
+            color: #222;
+            padding-left: 5px;
+            font-size: 8px;
+        }
+
+        .t-dotted { border: none; border-top: 1px dashed #777; margin: 6px 0; }
+        
+        .t-title { font-size: 12px; font-weight: 900; text-align: center; text-transform: uppercase; margin: 3px 0 1px 0; color: #000; }
         .t-title.t-reserva { color: #d97706; }
-        .t-serie { font-size: 12px; font-weight: 800; text-align: center; margin-bottom: 6px; color: #000; letter-spacing: 0.5px; }
+        .t-serie { font-size: 11.5px; font-weight: 800; text-align: center; margin-bottom: 5px; color: #000; letter-spacing: 0.5px; }
 
         .t-badge-reserva {
             background-color: #fef3c7;
@@ -160,12 +205,12 @@
             color: #b45309;
             font-weight: 900;
             text-align: center;
-            padding: 5px;
-            border-radius: 6px;
-            font-size: 10px;
-            margin: 6px 0;
+            padding: 4px;
+            border-radius: 4px;
+            font-size: 9.5px;
+            margin: 4px 0;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
         }
 
         .t-badge-vendido {
@@ -174,16 +219,25 @@
             color: #065f46;
             font-weight: 900;
             text-align: center;
-            padding: 4px;
-            border-radius: 6px;
-            font-size: 10px;
-            margin: 6px 0;
+            padding: 3px;
+            border-radius: 4px;
+            font-size: 9.5px;
+            margin: 4px 0;
             text-transform: uppercase;
         }
         
-        .t-row { display: flex; justify-content: space-between; margin: 3px 0; font-size: 10.5px; }
-        .t-row .t-key { color: #333; font-weight: 600; }
-        .t-row .t-val { font-weight: 700; text-align: right; color: #000; }
+        .t-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 4px;
+            margin: 2px 0;
+            font-size: 10px;
+            word-break: break-word;
+            overflow-wrap: break-word;
+        }
+        .t-row .t-key { color: #000; font-weight: 700; flex-shrink: 0; }
+        .t-row .t-val { font-weight: 700; text-align: right; color: #000; word-break: break-word; overflow-wrap: break-word; }
         
         .t-section-header { font-size: 10px; font-weight: 900; text-transform: uppercase; color: #000; margin: 6px 0 3px 0; letter-spacing: 0.5px; border-bottom: 1px dotted #ccc; padding-bottom: 2px; }
         .t-pasajero-nombre { font-weight: 900; text-transform: uppercase; margin: 2px 0 4px 0; font-size: 11px; color: #000; }
@@ -306,7 +360,7 @@
             }
             .no-print { display: none !important; }
 
-            /* Por defecto o en modo térmico: Imprime tickets térmicos POS 80mm */
+            /* Por defecto o en modo térmico: Imprime tickets térmicos POS 80mm / 72mm */
             body:not(.printing-a4) .tickets-container {
                 display: block !important;
                 width: 100% !important;
@@ -317,10 +371,12 @@
                 display: block !important;
                 box-shadow: none !important;
                 border: none !important;
-                width: 76mm !important;
-                max-width: 76mm !important;
-                margin: 0 auto 6mm auto !important;
-                padding: 2mm 1mm !important;
+                width: 70mm !important;
+                max-width: 70mm !important;
+                margin: 0 auto 5mm auto !important;
+                padding: 1.5mm 2.5mm !important;
+                box-sizing: border-box !important;
+                overflow: hidden !important;
                 page-break-after: always;
                 break-after: page;
             }
@@ -405,11 +461,21 @@
                 <div class="t-top-sub">@serieCorrelativoTicket - Tours Chota Express</div>
 
                 <div class="t-empresa">@nombreComercial</div>
-                <div class="t-sac">S.A.C.</div>
-                <div class="t-info-emisor">RUC: @rucEmisor</div>
-                <div class="t-info-emisor">@direccionEmisor</div>
-                <div class="t-info-emisor">Tel: @telefonosEmisor</div>
-                <div class="t-info-emisor" style="font-size:8px; color:#666;">@sucursalesEmisor</div>
+                <div class="t-sac">@empresaEmisor</div>
+                <div class="t-info-emisor"><strong>RUC:</strong> @rucEmisor</div>
+                <div class="t-info-emisor"><strong>DIR. FISCAL:</strong> @direccionEmisor</div>
+
+                <!-- Bloque organizado de agencias y sus teléfonos de contacto -->
+                <div class="t-oficinas-bloque">
+                    <div class="t-oficinas-title">OFICINAS Y TELÉFONOS</div>
+                    @foreach (var ag in agencias)
+                    {
+                        <div class="t-oficina-fila">
+                            <span class="t-ofi-nombre">📍 @ag.Ciudad:</span>
+                            <span class="t-ofi-datos">@ag.Dir - <strong>Cel: @ag.Tel</strong></span>
+                        </div>
+                    }
+                </div>
 
                 <hr class="t-dotted" />
 
@@ -587,8 +653,10 @@
                         <div class="emisor-title">@empresaEmisor</div>
                         <div class="emisor-comercial">@nombreComercial</div>
                         <div class="emisor-dir"><strong>Dirección Fiscal:</strong> @direccionEmisor</div>
-                        <div class="emisor-extra"><strong>Tel:</strong> @telefonosEmisor &bull; <strong>Punto de Emisión:</strong> 0000 - CHOTA</div>
-                        <div class="emisor-extra" style="font-size:0.72rem; color:#555; margin-top:2px;"><strong>Sucursales:</strong> @sucursalesEmisor</div>
+                        <div class="emisor-extra" style="font-size:0.75rem; color:#222; margin-top:3px;">
+                            <strong>Agencias & Teléfonos:</strong>
+                            @string.Join(" • ", agencias.Select(a => $"{a.Ciudad}: {a.Dir} (Cel. {a.Tel})"))
+                        </div>
                     </div>
                     <div class="box-sunat">
                         <div class="sunat-ruc">R.U.C. N° @rucEmisor</div>
@@ -708,10 +776,10 @@
             try {
                 JsBarcode("#barcodeTermal_@v.Id_Venta", "@codBarcode", {
                     format: "CODE128",
-                    width: 1.5,
-                    height: 40,
+                    width: 1.2,
+                    height: 32,
                     displayValue: false,
-                    margin: 2,
+                    margin: 0,
                     background: "#ffffff",
                     lineColor: "#000000"
                 });
